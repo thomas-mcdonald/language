@@ -1,3 +1,5 @@
+type ptype = Integer | Boolean | Object | Void
+
 type program = Prog of block
 
 and block = Block of stmt list
@@ -8,7 +10,11 @@ and stmt = ClassDecl of expr * stmt list (* name * statements *)
          | Assign of expr * expr (* lhs = rhs *)
          | Declare of expr (* int x *)
 
-and expr = Number of int
+and expr =
+  { e_guts: expr_guts;
+    mutable e_type: ptype }
+
+and expr_guts = Number of int
          | Const of string
          | Ident of string
          | Binop of op * expr * expr
@@ -17,14 +23,17 @@ and expr = Number of int
 and op = Plus
 and name = string
 
+let makeExpr g =
+  { e_guts = g; e_type = Void }
+
 let nest xs =
   let newline = Str.regexp "\n" in
   let lines = Str.split newline xs in
   let comb = (fun acc x -> if acc == "" then x else acc ^ "\n  " ^ x) in
   List.fold_left comb "" lines
 
-let rec ppExpr =
-  function
+let rec ppExpr e =
+  match e.e_guts with
     Number x -> "Number " ^ string_of_int x
   | Const x -> "Const " ^ x
   | Ident x -> "Ident " ^ x

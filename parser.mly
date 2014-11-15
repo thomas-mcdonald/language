@@ -38,11 +38,11 @@ stmt:
 expr:
     ident { $1 }
   | number { $1 }
-  | expr PLUS expr  { Binop(Plus, $1, $3) }
-  | expr DOT expr   { Call($1, $3, [])}
+  | expr PLUS expr  { makeExpr (Binop(Plus, $1, $3)) }
+  | expr DOT expr   { makeExpr (Call($1, $3, [])) }
 
 ident:
-  IDENT { Ident $1 }
+  IDENT { makeExpr (Ident($1)) }
 
 number:
-  NUMBER { Number $1 }
+  NUMBER { makeExpr (Number($1)) }
