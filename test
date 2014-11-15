@@ -1,0 +1,9 @@
+class Test
+  def test
+    int x
+  end
+end
+
+def test
+
+end

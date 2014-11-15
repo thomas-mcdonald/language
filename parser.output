@@ -1,0 +1,163 @@
+   0  $accept : %entry% $end
+
+   1  program : stmts
+   2          | SEMI
+
+   3  stmts : actual_stmts
+
+   4  actual_stmts :
+   5               | stmts stmt
+
+   6  stmt : CLASS ident stmts END
+   7       | DEF ident stmts END
+
+   8  ident : IDENT
+
+   9  %entry% : '\001' program
+
+state 0
+	$accept : . %entry% $end  (0)
+
+	'\001'  shift 1
+	.  error
+
+	%entry%  goto 2
+
+
+state 1
+	%entry% : '\001' . program  (9)
+	actual_stmts : .  (4)
+
+	SEMI  shift 3
+	$end  reduce 4
+	CLASS  reduce 4
+	DEF  reduce 4
+
+	program  goto 4
+	stmts  goto 5
+	actual_stmts  goto 6
+
+
+state 2
+	$accept : %entry% . $end  (0)
+
+	$end  accept
+
+
+state 3
+	program : SEMI .  (2)
+
+	.  reduce 2
+
+
+state 4
+	%entry% : '\001' program .  (9)
+
+	.  reduce 9
+
+
+state 5
+	program : stmts .  (1)
+	actual_stmts : stmts . stmt  (5)
+
+	CLASS  shift 7
+	DEF  shift 8
+	$end  reduce 1
+
+	stmt  goto 9
+
+
+state 6
+	stmts : actual_stmts .  (3)
+
+	.  reduce 3
+
+
+state 7
+	stmt : CLASS . ident stmts END  (6)
+
+	IDENT  shift 10
+	.  error
+
+	ident  goto 11
+
+
+state 8
+	stmt : DEF . ident stmts END  (7)
+
+	IDENT  shift 10
+	.  error
+
+	ident  goto 12
+
+
+state 9
+	actual_stmts : stmts stmt .  (5)
+
+	.  reduce 5
+
+
+state 10
+	ident : IDENT .  (8)
+
+	.  reduce 8
+
+
+state 11
+	stmt : CLASS ident . stmts END  (6)
+	actual_stmts : .  (4)
+
+	.  reduce 4
+
+	stmts  goto 13
+	actual_stmts  goto 6
+
+
+state 12
+	stmt : DEF ident . stmts END  (7)
+	actual_stmts : .  (4)
+
+	.  reduce 4
+
+	stmts  goto 14
+	actual_stmts  goto 6
+
+
+state 13
+	actual_stmts : stmts . stmt  (5)
+	stmt : CLASS ident stmts . END  (6)
+
+	CLASS  shift 7
+	DEF  shift 8
+	END  shift 15
+	.  error
+
+	stmt  goto 9
+
+
+state 14
+	actual_stmts : stmts . stmt  (5)
+	stmt : DEF ident stmts . END  (7)
+
+	CLASS  shift 7
+	DEF  shift 8
+	END  shift 16
+	.  error
+
+	stmt  goto 9
+
+
+state 15
+	stmt : CLASS ident stmts END .  (6)
+
+	.  reduce 6
+
+
+state 16
+	stmt : DEF ident stmts END .  (7)
+
+	.  reduce 7
+
+
+10 terminals, 7 nonterminals
+10 grammar rules, 17 states
