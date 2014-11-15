@@ -1,16 +1,16 @@
 class Test
-  def test
-    int x
-    x = 3
-    y = Test.new
+  int x
+
+  def initialize
+    x = 0
+  end
+
+  def increment
+    x = x + 1
   end
 
   def allow
     int x
     int y
   end
-end
-
-def test
-
 end

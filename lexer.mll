@@ -30,6 +30,7 @@ rule token =
   | "."               { DOT }
   | "="               { EQUALS }
   | "("               { LPAREN }
+  | "+"               { PLUS }
   | ")"               { RPAREN }
   | [' ''\t']+        { token lexbuf }
   | "\n"              { token lexbuf }

@@ -9,6 +9,7 @@ type token =
   | EOF
   | END
   | LPAREN
+  | PLUS
   | RPAREN
   | SEMI
   | INT

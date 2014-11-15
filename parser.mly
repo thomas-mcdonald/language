@@ -4,7 +4,7 @@ open Tree
 
 %token <int> NUMBER
 %token <string> IDENT
-%token CLASS COMMA DEF DOT EQUALS EOF END LPAREN RPAREN SEMI
+%token CLASS COMMA DEF DOT EQUALS EOF END LPAREN PLUS RPAREN SEMI
 /* todo - should these be specialcased? */
 %token INT
 
@@ -38,7 +38,8 @@ stmt:
 expr:
     ident { $1 }
   | number { $1 }
-  | expr DOT expr           { Call($1, $3, [])}
+  | expr PLUS expr  { Binop(Plus, $1, $3) }
+  | expr DOT expr   { Call($1, $3, [])}
 
 ident:
   IDENT { Ident $1 }

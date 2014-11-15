@@ -11,8 +11,10 @@ and stmt = ClassDecl of expr * stmt list (* name * statements *)
 and expr = Number of int
          | Const of string
          | Ident of string
+         | Binop of op * expr * expr
          | Call of expr * expr * expr list (* object.method(args) *)
 
+and op = Plus
 and name = string
 
 let nest xs =
@@ -26,7 +28,8 @@ let rec ppExpr =
     Number x -> "Number " ^ string_of_int x
   | Const x -> "Const " ^ x
   | Ident x -> "Ident " ^ x
-  | Call (obj,meth,xs) -> "Call" ^ nest (ppExpr obj) ^ nest (ppExpr meth) (* ^ nest (List.map ppExpr xs) *)
+  | Binop (Plus, e, e') -> "Add" ^ nest (ppExpr e) ^ nest (ppExpr e')
+  | Call (o, m, xs) -> "Call" ^ nest (ppExpr o) ^ nest (ppExpr m) (* ^ nest (List.map ppExpr xs) *)
 
 let rec ppStmt =
   function
