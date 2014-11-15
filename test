@@ -3,6 +3,11 @@ class Test
     int x
     x = 3
   end
+
+  def allow
+    int x
+    int y
+  end
 end
 
 def test

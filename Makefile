@@ -5,7 +5,7 @@ all: language
 LANGUAGE = keiko.cmo parser.cmo lexer.cmo tree.cmo main.cmo
 
 language: $(LANGUAGE)
-	ocamlc -o language $(LANGUAGE)
+	ocamlc -o language str.cma $(LANGUAGE)
 
 parser.mli parser.ml: parser.mly
 	ocamlyacc -v parser.mly
