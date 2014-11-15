@@ -3,9 +3,11 @@ type token =
   | IDENT of (string)
   | CLASS
   | DEF
+  | EQUALS
   | EOF
   | END
   | SEMI
+  | INT
 
 val program :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Tree.program

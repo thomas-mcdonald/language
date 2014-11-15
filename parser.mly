@@ -4,7 +4,9 @@ open Tree
 
 %token <int> NUMBER
 %token <string> IDENT
-%token CLASS DEF EOF END SEMI
+%token CLASS DEF EQUALS EOF END SEMI
+/* todo - should these be specialcased? */
+%token INT
 
 %type <Tree.program> program
 %start program
@@ -29,7 +31,16 @@ reversed_stmts:
 
 stmt:
     CLASS ident stmts END { ClassDecl ($2, $3) }
-  | DEF ident stmts END { MethodDecl($2, $3) }
-  
+  | DEF ident stmts END   { MethodDecl($2, $3) }
+  | ident EQUALS expr     { Assign($1, $3) }
+  | INT ident             { Declare($2) }
+
+expr:
+    ident { $1 }
+  | number { $1 }
+
 ident:
   IDENT { Ident $1 }
+
+number:
+  NUMBER { Number $1 }

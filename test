@@ -1,6 +1,7 @@
 class Test
   def test
     int x
+    x = 3
   end
 end
 

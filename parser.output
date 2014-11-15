@@ -3,17 +3,24 @@
    1  program : stmts
    2          | SEMI
 
-   3  stmts : actual_stmts
+   3  stmts : reversed_stmts
 
-   4  actual_stmts :
-   5               | stmts stmt
+   4  reversed_stmts :
+   5                 | stmts stmt
 
    6  stmt : CLASS ident stmts END
    7       | DEF ident stmts END
+   8       | ident EQUALS expr
+   9       | INT ident
 
-   8  ident : IDENT
+  10  expr : ident
+  11       | number
 
-   9  %entry% : '\001' program
+  12  ident : IDENT
+
+  13  number : NUMBER
+
+  14  %entry% : '\001' program
 
 state 0
 	$accept : . %entry% $end  (0)
@@ -25,17 +32,19 @@ state 0
 
 
 state 1
-	%entry% : '\001' . program  (9)
-	actual_stmts : .  (4)
+	%entry% : '\001' . program  (14)
+	reversed_stmts : .  (4)
 
 	SEMI  shift 3
 	$end  reduce 4
+	IDENT  reduce 4
 	CLASS  reduce 4
 	DEF  reduce 4
+	INT  reduce 4
 
 	program  goto 4
 	stmts  goto 5
-	actual_stmts  goto 6
+	reversed_stmts  goto 6
 
 
 state 2
@@ -51,113 +60,180 @@ state 3
 
 
 state 4
-	%entry% : '\001' program .  (9)
+	%entry% : '\001' program .  (14)
 
-	.  reduce 9
+	.  reduce 14
 
 
 state 5
 	program : stmts .  (1)
-	actual_stmts : stmts . stmt  (5)
+	reversed_stmts : stmts . stmt  (5)
 
-	CLASS  shift 7
-	DEF  shift 8
+	IDENT  shift 7
+	CLASS  shift 8
+	DEF  shift 9
+	INT  shift 10
 	$end  reduce 1
 
-	stmt  goto 9
+	stmt  goto 11
+	ident  goto 12
 
 
 state 6
-	stmts : actual_stmts .  (3)
+	stmts : reversed_stmts .  (3)
 
 	.  reduce 3
 
 
 state 7
-	stmt : CLASS . ident stmts END  (6)
+	ident : IDENT .  (12)
 
-	IDENT  shift 10
-	.  error
-
-	ident  goto 11
+	.  reduce 12
 
 
 state 8
-	stmt : DEF . ident stmts END  (7)
+	stmt : CLASS . ident stmts END  (6)
 
-	IDENT  shift 10
+	IDENT  shift 7
 	.  error
 
-	ident  goto 12
+	ident  goto 13
 
 
 state 9
-	actual_stmts : stmts stmt .  (5)
+	stmt : DEF . ident stmts END  (7)
+
+	IDENT  shift 7
+	.  error
+
+	ident  goto 14
+
+
+state 10
+	stmt : INT . ident  (9)
+
+	IDENT  shift 7
+	.  error
+
+	ident  goto 15
+
+
+state 11
+	reversed_stmts : stmts stmt .  (5)
 
 	.  reduce 5
 
 
-state 10
-	ident : IDENT .  (8)
+state 12
+	stmt : ident . EQUALS expr  (8)
+
+	EQUALS  shift 16
+	.  error
+
+
+state 13
+	stmt : CLASS ident . stmts END  (6)
+	reversed_stmts : .  (4)
+
+	.  reduce 4
+
+	stmts  goto 17
+	reversed_stmts  goto 6
+
+
+state 14
+	stmt : DEF ident . stmts END  (7)
+	reversed_stmts : .  (4)
+
+	.  reduce 4
+
+	stmts  goto 18
+	reversed_stmts  goto 6
+
+
+state 15
+	stmt : INT ident .  (9)
+
+	.  reduce 9
+
+
+state 16
+	stmt : ident EQUALS . expr  (8)
+
+	NUMBER  shift 19
+	IDENT  shift 7
+	.  error
+
+	ident  goto 20
+	expr  goto 21
+	number  goto 22
+
+
+state 17
+	reversed_stmts : stmts . stmt  (5)
+	stmt : CLASS ident stmts . END  (6)
+
+	IDENT  shift 7
+	CLASS  shift 8
+	DEF  shift 9
+	END  shift 23
+	INT  shift 10
+	.  error
+
+	stmt  goto 11
+	ident  goto 12
+
+
+state 18
+	reversed_stmts : stmts . stmt  (5)
+	stmt : DEF ident stmts . END  (7)
+
+	IDENT  shift 7
+	CLASS  shift 8
+	DEF  shift 9
+	END  shift 24
+	INT  shift 10
+	.  error
+
+	stmt  goto 11
+	ident  goto 12
+
+
+state 19
+	number : NUMBER .  (13)
+
+	.  reduce 13
+
+
+state 20
+	expr : ident .  (10)
+
+	.  reduce 10
+
+
+state 21
+	stmt : ident EQUALS expr .  (8)
 
 	.  reduce 8
 
 
-state 11
-	stmt : CLASS ident . stmts END  (6)
-	actual_stmts : .  (4)
+state 22
+	expr : number .  (11)
 
-	.  reduce 4
-
-	stmts  goto 13
-	actual_stmts  goto 6
+	.  reduce 11
 
 
-state 12
-	stmt : DEF ident . stmts END  (7)
-	actual_stmts : .  (4)
-
-	.  reduce 4
-
-	stmts  goto 14
-	actual_stmts  goto 6
-
-
-state 13
-	actual_stmts : stmts . stmt  (5)
-	stmt : CLASS ident stmts . END  (6)
-
-	CLASS  shift 7
-	DEF  shift 8
-	END  shift 15
-	.  error
-
-	stmt  goto 9
-
-
-state 14
-	actual_stmts : stmts . stmt  (5)
-	stmt : DEF ident stmts . END  (7)
-
-	CLASS  shift 7
-	DEF  shift 8
-	END  shift 16
-	.  error
-
-	stmt  goto 9
-
-
-state 15
+state 23
 	stmt : CLASS ident stmts END .  (6)
 
 	.  reduce 6
 
 
-state 16
+state 24
 	stmt : DEF ident stmts END .  (7)
 
 	.  reduce 7
 
 
-10 terminals, 7 nonterminals
-10 grammar rules, 17 states
+12 terminals, 9 nonterminals
+15 grammar rules, 25 states
