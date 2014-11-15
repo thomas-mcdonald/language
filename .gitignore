@@ -3,5 +3,6 @@
 
 lexer.ml
 parser.ml
+parser.output
 
 language
