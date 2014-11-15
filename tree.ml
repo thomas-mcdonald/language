@@ -11,6 +11,7 @@ and stmt = ClassDecl of expr * stmt list (* name * statements *)
 and expr = Number of int
          | Const of string
          | Ident of string
+         | Call of expr * expr * expr list (* object.method(args) *)
 
 and name = string
 
@@ -20,11 +21,12 @@ let nest xs =
   let comb = (fun acc x -> if acc == "" then x else acc ^ "\n  " ^ x) in
   List.fold_left comb "" lines
 
-let ppExpr =
+let rec ppExpr =
   function
     Number x -> "Number " ^ string_of_int x
   | Const x -> "Const " ^ x
   | Ident x -> "Ident " ^ x
+  | Call (obj,meth,xs) -> "Call" ^ nest (ppExpr obj) ^ nest (ppExpr meth) (* ^ nest (List.map ppExpr xs) *)
 
 let rec ppStmt =
   function

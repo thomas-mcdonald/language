@@ -4,7 +4,7 @@ open Tree
 
 %token <int> NUMBER
 %token <string> IDENT
-%token CLASS DEF EQUALS EOF END SEMI
+%token CLASS COMMA DEF DOT EQUALS EOF END LPAREN RPAREN SEMI
 /* todo - should these be specialcased? */
 %token INT
 
@@ -30,14 +30,15 @@ reversed_stmts:
   | stmts stmt { $2 :: $1 } /* remember to reverse this */
 
 stmt:
-    CLASS ident stmts END { ClassDecl ($2, $3) }
-  | DEF ident stmts END   { MethodDecl($2, $3) }
-  | ident EQUALS expr     { Assign($1, $3) }
-  | INT ident             { Declare($2) }
+    CLASS ident stmts END   { ClassDecl ($2, $3) }
+  | DEF ident stmts END     { MethodDecl($2, $3) }
+  | ident EQUALS expr       { Assign($1, $3) }
+  | INT ident               { Declare($2) }
 
 expr:
     ident { $1 }
   | number { $1 }
+  | expr DOT expr           { Call($1, $3, [])}
 
 ident:
   IDENT { Ident $1 }

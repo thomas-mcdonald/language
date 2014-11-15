@@ -2,6 +2,7 @@ class Test
   def test
     int x
     x = 3
+    y = Test.new
   end
 
   def allow
