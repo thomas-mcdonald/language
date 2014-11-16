@@ -1,8 +1,8 @@
-ML = main.ml check.ml lexer.ml parser.ml keiko.ml tree.ml
+ML = main.ml check.ml lexer.ml parser.ml keiko.ml tree.ml print.ml
 
 all: language
 
-LANGUAGE = keiko.cmo tree.cmo lexer.cmo parser.cmo check.cmo main.cmo
+LANGUAGE = keiko.cmo print.cmo tree.cmo lexer.cmo parser.cmo check.cmo main.cmo
 
 language: $(LANGUAGE)
 	ocamlc -o language str.cma $(LANGUAGE)
@@ -44,3 +44,5 @@ keiko.cmo : keiko.cmi
 keiko.cmx : keiko.cmi
 tree.cmo :
 tree.cmx :
+print.cmo : tree.cmo
+print.cmx : tree.cmx

@@ -13,7 +13,7 @@ let main () =
   let prog = try Parser.program Lexer.token lexbuf with
     Parsing.Parse_error ->
       print_string "parse error"; exit 1 in
-  print_string (ppProg prog);
+  print_string (Print.program prog);
   Check.annotate prog;
   exit 0
 
