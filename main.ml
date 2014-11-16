@@ -1,3 +1,4 @@
+open Check
 open Lexer
 open Tree
 
@@ -13,6 +14,7 @@ let main () =
     Parsing.Parse_error ->
       print_string "parse error"; exit 1 in
   print_string (ppProg prog);
+  Check.annotate prog;
   exit 0
 
 let language = main ()
