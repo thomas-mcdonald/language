@@ -14,3 +14,7 @@ class Test
     int y
   end
 end
+
+class Counter < Test
+
+end

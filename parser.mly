@@ -4,7 +4,7 @@ open Tree
 
 %token <int> NUMBER
 %token <string> IDENT
-%token CLASS COMMA DEF DOT EQUALS EOF END LPAREN PLUS RPAREN SEMI
+%token CLASS COMMA DEF DOT EQUALS EOF END GT LPAREN PLUS RPAREN SEMI
 /* todo - should these be specialcased? */
 %token INT
 
@@ -12,7 +12,9 @@ open Tree
 %start program
 
 %{
-  
+
+let nil = makeExpr Nil
+
 %}
 
 %%
@@ -30,10 +32,11 @@ reversed_stmts:
   | stmts stmt { $2 :: $1 } /* remember to reverse this */
 
 stmt:
-    CLASS ident stmts END   { ClassDecl ($2, $3) }
-  | DEF ident stmts END     { MethodDecl($2, $3) }
-  | ident EQUALS expr       { Assign($1, $3) }
-  | INT ident               { Declare($2) }
+    CLASS ident stmts END          { ClassDecl($2, nil, $3) }
+  | CLASS ident GT ident stmts END { ClassDecl($2, $4, $5) }
+  | DEF ident stmts END            { MethodDecl($2, $3) }
+  | ident EQUALS expr              { Assign($1, $3) }
+  | INT ident                      { Declare($2) }
 
 expr:
     ident { $1 }

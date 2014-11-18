@@ -15,10 +15,11 @@ let rec ppExpr e =
   | Ident x -> "Ident " ^ x
   | Binop (Plus, e, e') -> "Add" ^ nest (ppExpr e) ^ nest (ppExpr e')
   | Call (o, m, xs) -> "Call" ^ nest (ppExpr o) ^ nest (ppExpr m) (* ^ nest (List.map ppExpr xs) *)
+  | Nil -> "nil"
 
 let rec ppStmt =
   function
-    ClassDecl (e, xs) -> "Class" ^ nest (ppExpr e) ^ nest (ppStmts xs)
+    ClassDecl (e, e', xs) -> "Class" ^ nest (ppExpr e) ^ nest (ppExpr e') ^ nest (ppStmts xs)
   | MethodDecl (e, xs) -> "Method" ^ nest (ppExpr e) ^ nest (ppStmts xs)
   | Assign (e, e') -> "Assignment" ^ nest (ppExpr e) ^ nest (ppExpr e')
   | Declare(e) -> "Declaration " ^ nest (ppExpr e)
@@ -32,4 +33,4 @@ let ppBlock =
 
 let program =
   function
-    Prog b -> ppBlock b
+    Prog b -> ppBlock b ^ "\n"

@@ -6,7 +6,7 @@ let put (s : string) : unit =
 
 let gen_stmt (stmt : stmt) =
   match stmt with
-    ClassDecl(e, xs) ->
+    ClassDecl(e, e', xs) ->
       put "! Class Description";
       (* class code *)
       ()

@@ -29,6 +29,7 @@ rule token =
   | ","               { COMMA }
   | "."               { DOT }
   | "="               { EQUALS }
+  | "<"               { GT }
   | "("               { LPAREN }
   | "+"               { PLUS }
   | ")"               { RPAREN }

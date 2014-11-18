@@ -5,7 +5,7 @@ type program = Prog of block
 and block = Block of stmt list
           | NoBlock
 
-and stmt = ClassDecl of expr * stmt list (* name * statements *)
+and stmt = ClassDecl of expr * expr * stmt list (* name * superclass * statements *)
          | MethodDecl of expr * stmt list (* name * statements  *)
          | Assign of expr * expr (* lhs = rhs *)
          | Declare of expr (* int x *)
@@ -19,6 +19,7 @@ and expr_guts = Number of int
          | Ident of string
          | Binop of op * expr * expr
          | Call of expr * expr * expr list (* object.method(args) *)
+         | Nil
 
 and op = Plus
 and name = string
@@ -28,7 +29,7 @@ let makeExpr g =
 
 let classMatch =
   function
-    ClassDecl(_,_)  -> true
+    ClassDecl(_,_,_)  -> true
   | _               -> false
 
 let extract_classes (stmts : stmt list) : stmt list =

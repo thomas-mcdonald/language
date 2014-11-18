@@ -8,6 +8,7 @@ type token =
   | EQUALS
   | EOF
   | END
+  | GT
   | LPAREN
   | PLUS
   | RPAREN
