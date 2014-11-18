@@ -25,3 +25,11 @@ and name = string
 
 let makeExpr g =
   { e_guts = g; e_type = Void }
+
+let classMatch =
+  function
+    ClassDecl(_,_)  -> true
+  | _               -> false
+
+let extract_classes (stmts : stmt list) : stmt list =
+  List.filter classMatch stmts
