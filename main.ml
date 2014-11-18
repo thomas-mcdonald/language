@@ -1,4 +1,5 @@
 open Check
+open Gen
 open Lexer
 open Tree
 
@@ -15,6 +16,7 @@ let main () =
       print_string "parse error"; exit 1 in
   print_string (Print.program prog);
   Check.annotate prog;
+  generate prog;
   exit 0
 
 let language = main ()

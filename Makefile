@@ -1,8 +1,8 @@
-ML = main.ml check.ml lexer.ml parser.ml keiko.ml tree.ml print.ml
+ML = main.ml check.ml lexer.ml parser.ml keiko.ml tree.ml print.ml gen.ml
 
 all: language
 
-LANGUAGE = keiko.cmo print.cmo tree.cmo lexer.cmo parser.cmo check.cmo main.cmo
+LANGUAGE = keiko.cmo print.cmo tree.cmo lexer.cmo parser.cmo check.cmo gen.cmo main.cmo
 
 language: $(LANGUAGE)
 	ocamlc -o language str.cma $(LANGUAGE)
@@ -32,8 +32,8 @@ force:
 
 ###
 
-main.cmo : tree.cmo parser.cmi lexer.cmo check.cmo
-main.cmx : tree.cmx parser.cmx lexer.cmx check.cmx
+main.cmo : tree.cmo print.cmo parser.cmi lexer.cmo gen.cmo check.cmo
+main.cmx : tree.cmx print.cmx parser.cmx lexer.cmx gen.cmx check.cmx
 check.cmo : tree.cmo
 check.cmx : tree.cmx
 lexer.cmo : tree.cmo parser.cmi keiko.cmi
@@ -46,3 +46,5 @@ tree.cmo :
 tree.cmx :
 print.cmo : tree.cmo
 print.cmx : tree.cmx
+gen.cmo : tree.cmo
+gen.cmx : tree.cmx
