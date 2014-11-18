@@ -1,7 +1,9 @@
 open Tree
 
 let check_class (klass : stmt) =
-  ()
+  match klass with
+    ClassDecl(e, xs) -> ()
+  | _ -> raise (Failure "top level must be a class")
 
 let check_classes (classes : stmt list) =
   List.map check_class classes;
