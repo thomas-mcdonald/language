@@ -1,4 +1,4 @@
-ML = main.ml check.ml lexer.ml parser.ml keiko.ml tree.ml print.ml gen.ml
+ML = main.ml check.ml dict.ml lexer.ml parser.ml keiko.ml tree.ml print.ml gen.ml
 
 all: language
 
@@ -34,8 +34,10 @@ force:
 
 main.cmo : tree.cmo print.cmo parser.cmi lexer.cmo gen.cmo check.cmo
 main.cmx : tree.cmx print.cmx parser.cmx lexer.cmx gen.cmx check.cmx
-check.cmo : tree.cmo
-check.cmx : tree.cmx
+check.cmo : tree.cmo dict.cmo
+check.cmx : tree.cmx dict.cmx
+dict.cmo :
+dict.cmx :
 lexer.cmo : tree.cmo parser.cmi keiko.cmi
 lexer.cmx : tree.cmx parser.cmx keiko.cmx
 parser.cmo : tree.cmo parser.cmi
