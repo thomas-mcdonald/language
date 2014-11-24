@@ -26,6 +26,7 @@ let rec ppExpr e =
   | Const x -> wrap_simple ("Const " ^ x)
   | Ident x -> wrap_simple ("Ident " ^ x)
   | Binop (Plus, e, e') -> wraplist "Add" [ppExpr e; ppExpr e']
+  | Call (o, m, xs) -> wraplist "Call" [ppExpr o; ppExpr m] (* ^ nest (List.map ppExpr xs) *)
   | Nil -> "nil"
 
 let rec ppStmt =
@@ -34,7 +35,7 @@ let rec ppStmt =
   | MethodDecl (e, xs) -> wraplist "Method" [ppExpr e; ppStmts xs]
   | Assign (e, e') -> wraplist "Assignment" [ppExpr e; ppExpr e']
   | Declare(p, e) -> wraplist ("Declaration " ^ (ppType p)) [ppExpr e]
-  | Call (o, m, xs) -> wraplist "Call" [ppExpr o; ppExpr m] (* ^ nest (List.map ppExpr xs) *)
+  | Expr(e) -> wraplist "Expression" [ppExpr e]
 
 and ppStmts xs = "[" ^ String.concat ",\n" (List.map ppStmt xs) ^ "]"
 

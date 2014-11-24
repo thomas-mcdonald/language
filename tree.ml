@@ -9,7 +9,7 @@ and stmt = ClassDecl of ptype * ptype * stmt list (* name * superclass * stateme
          | MethodDecl of expr * stmt list (* name * statements  *)
          | Assign of expr * expr (* lhs = rhs *)
          | Declare of ptype * expr (* int x *)
-         | Call of expr * expr * expr list (* object.method(args) *)
+         | Expr of expr (* expression statement  *)
 
 and expr =
   { e_guts: expr_guts;
@@ -19,6 +19,7 @@ and expr_guts = Number of int
          | Const of string
          | Ident of string
          | Binop of op * expr * expr
+         | Call of expr * expr * expr list (* object.method(args) *)
          | Nil
 
 and op = Plus

@@ -36,12 +36,14 @@ stmt:
   | ident EQUALS expr              { Assign($1, $3) }
   | INT ident                      { Declare(Integer, $2) }
   | ptype ident                    { Declare($1, $2) }
-  | expr DOT expr                  { Call($1, $3, []) }
+  | expr                           { Expr($1) }
 
 expr:
     ident { $1 }
   | number { $1 }
   | expr PLUS expr  { makeExpr (Binop(Plus, $1, $3)) }
+  | expr DOT expr   { makeExpr (Call($1, $3, [])) }
+
 
 ident:
   IDENT { makeExpr (Ident($1)) }
