@@ -23,7 +23,9 @@ let lookup s =
 
 rule token =
   parse
-      ['A'-'Z''a'-'z']['A'-'Z''a'-'z''0'-'9''_']* as s
+    ['A'-'Z']['A'-'Z''a'-'z']* as s
+                      { TYPE s }
+  | ['A'-'Z''a'-'z']['A'-'Z''a'-'z''0'-'9''_']* as s
                       { lookup s }
   | ['0'-'9']+ as s   { NUMBER (int_of_string s) }
   | ","               { COMMA }

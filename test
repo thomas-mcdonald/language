@@ -15,6 +15,10 @@ class Test
   end
 end
 
-class Counter < Test
+class Delegate < Test
+  Test counter
 
+  def increment
+    counter.increment
+  end
 end

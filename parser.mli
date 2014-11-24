@@ -1,6 +1,7 @@
 type token =
   | NUMBER of (int)
   | IDENT of (string)
+  | TYPE of (string)
   | CLASS
   | COMMA
   | DEF
