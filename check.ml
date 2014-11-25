@@ -1,13 +1,36 @@
 open Dict
 open Tree
 
-let check_class (klass : stmt) =
-  match klass with
-    ClassDecl(e, e', xs) -> ()
-  | _ -> raise (Failure "top level must be a class")
+let error (str:string) =
+  Printf.eprintf "%s" str;
+  exit 1
 
+let check_class_name (klass : stmt) (classes : string list) : string =
+  let name_check = (fun x -> if List.mem x classes then
+    error ("class " ^ x ^ " already defined")
+  else x) in
+  match klass with
+    ClassDecl(Object(n), Void, _) ->
+      name_check n
+  | ClassDecl(Object(n), Object(s), _) ->
+      let name = name_check n in
+      if List.mem s classes then name else error "superclass not defined"
+  | _ -> error "check_class_name must be called with a class"
+
+(*
+  check_classes extracts information about the classes in the program.
+  This is done in multiple passes.
+    * Fold through the list of classes, gathering a list of class names and verifying
+      * no duplicate names
+      * superclasses are already defined
+    * Extract list of class names
+    * Check superclasses exist
+    * Generate list of instance variables & check their types
+    * Generate list of methods
+*)
 let check_classes (classes : stmt list) =
-  List.map check_class classes;
+  let accu = (fun acc x -> (check_class_name x acc)::acc) in
+  let class_names = List.fold_left accu [] classes in
   ()
 
 let check_block (env : environment) (block : block) =
