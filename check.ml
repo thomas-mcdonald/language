@@ -19,6 +19,13 @@ let check_class (klass : stmt) (env : environment) : environment =
       if class_exists env s then (define_class env n s) else error "superclass not defined"
   | _ -> error "check_class_name must be called with a class"
 
+let check_variables (klass : stmt) (env : environment) : environment =
+  match klass with
+    ClassDecl(Object(n), _, xs) ->
+      env
+    | _ -> error "check_variables called against a non-class"
+
+
 (*
   check_classes extracts information about the classes in the program.
   This is done in multiple passes.
@@ -29,8 +36,10 @@ let check_class (klass : stmt) (env : environment) : environment =
     * Generate list of methods
 *)
 let check_classes (classes : stmt list) (env : environment) =
-  let accu = (fun env x -> check_class x env) in
-  List.fold_left accu env classes
+  let class_accu = (fun env x -> check_class x env) in
+  let var_accu = (fun env x -> check_variables x env) in
+  let env' = List.fold_left class_accu env classes in
+  List.fold_left var_accu env' classes
 
 let check_block (env : environment) (block : block) =
   match block with
