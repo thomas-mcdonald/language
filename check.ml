@@ -38,7 +38,7 @@ let check_block (env : environment) (block : block) =
     | Block(xs) -> check_classes xs env
 
 let annotate (program : program) : unit =
-  let env = new_env in
+  let env = initial_env in
   match program with
     Prog(block) ->
       check_block env block;

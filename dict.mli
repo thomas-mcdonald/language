@@ -1,7 +1,7 @@
 type environment
 
 
-and def_type = ClassDef of string (* class*)
+and def_type = ClassDef of def option ref (* class*)
              | VarDef (* variable *)
 
 and def = {
@@ -10,8 +10,8 @@ and def = {
   d_env : environment (* environment in this scope *)
   }
 
-(* Create a new environment *)
-val new_env : environment
+(* The initial environment *)
+val initial_env : environment
 
 (* Find a definition in the top level of a given environment *)
 val find_def : environment -> string -> def
