@@ -14,13 +14,15 @@ and def = {
 
 let new_env : environment = Env (ref EnvMap.empty)
 
+let add_def env n d =
+  match env with
+    Env(m) -> m := EnvMap.add n d !m; env
+
 (* the initial environment. contains the object godclass *)
 let initial_env : environment =
   let env = new_env in
   let d = { d_name = "Object"; d_type = ClassDef(ref None); d_env = new_env } in
-  match env with
-    Env(m) ->
-      m := EnvMap.add "Object" d !m; Env(m)
+  add_def env "Object" d
 
 let find_def env x =
   match env with
@@ -36,8 +38,7 @@ let def_exists env x =
 let define_class env name supername =
   let sc = if supername = "" then find_def env "Object" else find_def env supername in
   let d = { d_name = name; d_type = ClassDef(ref (Some sc)); d_env = new_env } in
-  match env with
-    Env(m) -> m := EnvMap.add name d !m; env
+  add_def env name d
 
 let class_exists env name =
   try
@@ -47,3 +48,9 @@ let class_exists env name =
     | _ -> false
   with
     Not_found -> false
+
+(* variable methods *)
+let define_variable env name classname =
+  let c = find_def env classname in
+  let d = { d_name = name; d_type = VarDef(ref c); d_env = new_env } in
+  add_def env name d

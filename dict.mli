@@ -13,6 +13,9 @@ and def = {
 (* The initial environment *)
 val initial_env : environment
 
+(* add the definition to the environment *)
+val add_def : environment -> string -> def -> environment
+
 (* Find a definition in the top level of a given environment *)
 val find_def : environment -> string -> def
 
