@@ -5,16 +5,18 @@ let error (str:string) =
   Printf.eprintf "%s" str;
   exit 1
 
-let check_class_name (klass : stmt) (classes : string list) : string =
-  let name_check = (fun x -> if List.mem x classes then
+(* check_class checks that the class name is unique & the superclass exists *)
+let check_class (klass : stmt) (env : environment) : environment =
+  let name_check = (fun x -> if def_exists env x then
     error ("class " ^ x ^ " already defined")
   else x) in
   match klass with
     ClassDecl(Object(n), Void, _) ->
-      name_check n
+      name_check n;
+      define_class env n ""
   | ClassDecl(Object(n), Object(s), _) ->
-      let name = name_check n in
-      if List.mem s classes then name else error "superclass not defined"
+      name_check n;
+      if class_exists env s then (define_class env n s) else error "superclass not defined"
   | _ -> error "check_class_name must be called with a class"
 
 (*
@@ -23,23 +25,21 @@ let check_class_name (klass : stmt) (classes : string list) : string =
     * Fold through the list of classes, gathering a list of class names and verifying
       * no duplicate names
       * superclasses are already defined
-    * Extract list of class names
-    * Check superclasses exist
     * Generate list of instance variables & check their types
     * Generate list of methods
 *)
-let check_classes (classes : stmt list) =
-  let accu = (fun acc x -> (check_class_name x acc)::acc) in
-  let class_names = List.fold_left accu [] classes in
+let check_classes (classes : stmt list) (env : environment) =
+  let accu = (fun env x -> check_class x env) in
+  let class_names = List.fold_left accu env classes in
   ()
 
 let check_block (env : environment) (block : block) =
   match block with
       NoBlock -> raise (Failure "no program given")
-    | Block(xs) -> check_classes xs
+    | Block(xs) -> check_classes xs env
 
 let annotate (program : program) : unit =
-  let env = Env (ref []) in
+  let env = new_env in
   match program with
     Prog(block) ->
       check_block env block;
