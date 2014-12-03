@@ -3,7 +3,7 @@ module EnvMap = Map.Make(String)
 type environment = Env of def EnvMap.t ref
 
 and def_type = ClassDef of def option ref (* class (superclass) *)
-             | VarDef (* variable *)
+             | VarDef of def ref (* variable (class type) *)
 
 and def = {
   (* d_tag : int; (* unique id *) *)
@@ -25,7 +25,6 @@ let initial_env : environment =
 let find_def env x =
   match env with
     Env(m) -> EnvMap.find x !m
-  | _ -> raise Not_found
 
 let def_exists env x =
   try
@@ -33,6 +32,7 @@ let def_exists env x =
   with
     Not_found -> false
 
+(* class methods *)
 let define_class env name supername =
   let sc = if supername = "" then find_def env "Object" else find_def env supername in
   let d = { d_name = name; d_type = ClassDef(ref (Some sc)); d_env = new_env } in

@@ -19,10 +19,19 @@ let check_class (klass : stmt) (env : environment) : environment =
       if class_exists env s then (define_class env n s) else error "superclass not defined"
   | _ -> error "check_class_name must be called with a class"
 
+let check_variable (dec : stmt) class_name env : environment =
+  let c = find_def env class_name in
+  match dec with
+    Declare(t, x) -> env
+  | _ -> error "check variable called with a non var"
+
 let check_variables (klass : stmt) (env : environment) : environment =
+  let statement_filter = (fun x -> match x with Declare(_) -> true | _ -> false) in
   match klass with
     ClassDecl(Object(n), _, xs) ->
-      env
+      let var_accu = (fun env x -> check_variable x n env) in
+      let statements = List.filter statement_filter xs in
+      List.fold_left var_accu env statements
     | _ -> error "check_variables called against a non-class"
 
 

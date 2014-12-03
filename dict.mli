@@ -2,7 +2,7 @@ type environment
 
 
 and def_type = ClassDef of def option ref (* class*)
-             | VarDef (* variable *)
+             | VarDef of def ref (* variable *)
 
 and def = {
   d_name : string; (* name of element *)
@@ -25,3 +25,6 @@ val define_class : environment -> string -> string -> environment
 
 (* does a class exist with the name? used for finding superclasses *)
 val class_exists : environment -> string -> bool
+
+(* define a variable *)
+val define_variable : environment -> string -> string -> environment
