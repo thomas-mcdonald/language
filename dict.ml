@@ -12,7 +12,7 @@ and def = {
   d_env : environment; (* environment in this scope *)
   }
 
-let new_env : environment = Env (ref EnvMap.empty)
+let new_env = fun () -> Env (ref EnvMap.empty)
 
 let add_def env n d =
   match env with
@@ -20,8 +20,8 @@ let add_def env n d =
 
 (* the initial environment. contains the object godclass *)
 let initial_env : environment =
-  let env = new_env in
-  let d = { d_name = "Object"; d_type = ClassDef(ref None); d_env = new_env } in
+  let env = new_env () in
+  let d = { d_name = "Object"; d_type = ClassDef(ref None); d_env = new_env () } in
   add_def env "Object" d
 
 let find_def env x =
@@ -37,7 +37,7 @@ let def_exists env x =
 (* class methods *)
 let define_class env name supername =
   let sc = if supername = "" then find_def env "Object" else find_def env supername in
-  let d = { d_name = name; d_type = ClassDef(ref (Some sc)); d_env = new_env } in
+  let d = { d_name = name; d_type = ClassDef(ref (Some sc)); d_env = new_env () } in
   add_def env name d
 
 let class_exists env name =
@@ -51,5 +51,5 @@ let class_exists env name =
 
 (* variable methods *)
 let define_variable env name c =
-  let d = { d_name = name; d_type = VarDef(ref c); d_env = new_env } in
+  let d = { d_name = name; d_type = VarDef(ref c); d_env = new_env () } in
   add_def env name d
