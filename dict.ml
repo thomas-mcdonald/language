@@ -4,6 +4,7 @@ type environment = Env of def EnvMap.t ref
 
 and def_type = ClassDef of def option ref (* class (superclass) *)
              | VarDef of def ref (* variable (class type) *)
+             | MethDef (* method *)
 
 and def = {
   (* d_tag : int; (* unique id *) *)
@@ -52,4 +53,9 @@ let class_exists env name =
 (* variable methods *)
 let define_variable env name c =
   let d = { d_name = name; d_type = VarDef(ref c); d_env = new_env () } in
+  add_def env name d
+
+(* method methods *)
+let define_method env name =
+  let d = { d_name = name; d_type = MethDef; d_env = new_env () } in
   add_def env name d

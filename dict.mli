@@ -3,6 +3,7 @@ type environment
 
 and def_type = ClassDef of def option ref (* class*)
              | VarDef of def ref (* variable *)
+             | MethDef (* method *)
 
 and def = {
   d_name : string; (* name of element *)
@@ -31,3 +32,6 @@ val class_exists : environment -> string -> bool
 
 (* define a variable - class environment, name, type  *)
 val define_variable : environment -> string -> def -> environment
+
+(* define a method - class environment, name (TODO - parameters) *)
+val define_method : environment -> string -> environment

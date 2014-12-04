@@ -43,8 +43,30 @@ let check_variables (klass : stmt) (env : environment) : environment =
       let var_accu = (fun env x -> check_variable x n env) in
       let statements = List.filter statement_filter xs in
       List.fold_left var_accu env statements
-    | _ -> error "check_variables called against a non-class"
+  | _ -> error "check_variables called against a non-class"
 
+
+let check_method (meth : stmt) class_name env : environment =
+  let c = find_def env class_name in
+  match meth with
+    MethodDecl(e, xs) ->
+      (match e.e_guts with
+        Ident(s) ->
+          ensure_unique c.d_env s;
+          define_method c.d_env s;
+          env
+      | _ -> error "method name should be an identifier")
+  | _ -> error "check_method called with a non-method stmt"
+  env
+
+let check_methods (klass : stmt) env : environment =
+  let method_filter = (fun x -> match x with MethodDecl(_) -> true | _ -> false) in
+  match klass with
+    ClassDecl(Object(n), _, xs) ->
+      let meth_accu = (fun env x -> check_method x n env) in
+      let statements = List.filter method_filter xs in
+      List.fold_left meth_accu env statements
+    | _ -> error "check_methods called against a non-class"
 
 (*
   check_classes extracts information about the classes in the program.
@@ -54,12 +76,15 @@ let check_variables (klass : stmt) (env : environment) : environment =
       * superclasses are already defined
     * Generate list of instance variables & check their types
     * Generate list of methods
+    TODO: look into fusing some of these methods together
 *)
 let check_classes (classes : stmt list) (env : environment) =
   let class_accu = (fun env x -> check_class x env) in
   let var_accu = (fun env x -> check_variables x env) in
+  let meth_accu = (fun env x -> check_methods x env) in
   let env' = List.fold_left class_accu env classes in
-  List.fold_left var_accu env' classes
+  let env'' = List.fold_left var_accu env' classes in
+  List.fold_left meth_accu env'' classes
 
 let check_block (env : environment) (block : block) =
   match block with
