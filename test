@@ -1,5 +1,6 @@
 class Test
-  int x
+  Delegate x
+  Delegate y
 
   def initialize
     x = 0

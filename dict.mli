@@ -29,5 +29,5 @@ val define_class : environment -> string -> string -> environment
 (* does a class exist with the name? used for finding superclasses *)
 val class_exists : environment -> string -> bool
 
-(* define a variable *)
-val define_variable : environment -> string -> string -> environment
+(* define a variable - class environment, name, type  *)
+val define_variable : environment -> string -> def -> environment

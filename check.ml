@@ -22,7 +22,18 @@ let check_class (klass : stmt) (env : environment) : environment =
 let check_variable (dec : stmt) class_name env : environment =
   let c = find_def env class_name in
   match dec with
-    Declare(t, x) -> env
+    Declare(Object(t), e) ->
+      (match e.e_guts with
+        Ident(s) ->
+          if not (class_exists env t) then
+            error ("can't define variable of type " ^ t ^ " as class not defined");
+          ensure_unique c.d_env s;
+          let ct = find_def env t in
+          define_variable c.d_env s ct;
+          env
+        | _ -> error "unsupported variable name")
+  | Declare(p, x) ->
+      error "declare called with a primitive - TODO"
   | _ -> error "check variable called with a non var"
 
 let check_variables (klass : stmt) (env : environment) : environment =

@@ -50,7 +50,6 @@ let class_exists env name =
     Not_found -> false
 
 (* variable methods *)
-let define_variable env name classname =
-  let c = find_def env classname in
+let define_variable env name c =
   let d = { d_name = name; d_type = VarDef(ref c); d_env = new_env } in
   add_def env name d
