@@ -18,6 +18,7 @@ end
 
 class Delegate < Test
   Test counter
+  Delegate x
 
   def increment
     counter.increment
