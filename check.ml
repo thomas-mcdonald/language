@@ -9,7 +9,7 @@ let ensure_unique env x =
   if def_exists env x then error (x ^ " is already defined")
 
 (* populate_class checks that the class name is unique & the superclass exists *)
-let populate_class (klass : stmt) (env : environment) : environment =
+let populate_class env klass : environment =
   match klass with
     ClassDecl(Object(n), Void, _) ->
       ensure_unique env n;
@@ -36,7 +36,7 @@ let populate_variable (dec : stmt) class_name env : environment =
       error "declare called with a primitive - TODO"
   | _ -> error "check variable called with a non var"
 
-let populate_variables (klass : stmt) (env : environment) : environment =
+let populate_variables env klass : environment =
   let statement_filter = (fun x -> match x with Declare(_) -> true | _ -> false) in
   match klass with
     ClassDecl(Object(n), _, xs) ->
@@ -59,7 +59,7 @@ let populate_method (meth : stmt) class_name env : environment =
   | _ -> error "check_method called with a non-method stmt"
   env
 
-let populate_methods (klass : stmt) env : environment =
+let populate_methods env klass : environment =
   let method_filter = (fun x -> match x with MethodDecl(_) -> true | _ -> false) in
   match klass with
     ClassDecl(Object(n), _, xs) ->
@@ -83,12 +83,9 @@ let populate_methods (klass : stmt) env : environment =
     TODO: look into fusing some of these methods together
 *)
 let populate_class_info (classes : stmt list) (env : environment) =
-  let class_accu = (fun env x -> populate_class x env) in
-  let var_accu = (fun env x -> populate_variables x env) in
-  let meth_accu = (fun env x -> populate_methods x env) in
-  let env' = List.fold_left class_accu env classes in
-  let env'' = List.fold_left var_accu env' classes in
-  List.fold_left meth_accu env'' classes
+  let env' = List.fold_left populate_class env classes in
+  let env'' = List.fold_left populate_variables env' classes in
+  List.fold_left populate_methods env'' classes
 
 let check_block (env : environment) (block : block) =
   match block with
