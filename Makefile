@@ -16,7 +16,7 @@ lexer.ml: lexer.mll
 clean: force
 	rm -f language
 	rm -f *.cma *.cmo *.cmi
-	rm -f parser.mli parser.ml lexer.ml parser.output
+	rm -f parser.ml lexer.ml parser.output
 
 depend : $(ML) force
 	(sed '/^###/q' Makefile; echo; ocamldep $(ML)) >new
