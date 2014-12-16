@@ -26,8 +26,6 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * $Id: oblink.h 1698 2011-11-30 09:08:06Z mike $
  */
 
 #include "config.h"
@@ -41,22 +39,22 @@
 
 #ifdef DEBUG
 /* Small tables to help test auto-growth */
-#define INIT_PMEM 8             /* Init space for procedures */
-#define INIT_XMEM 128           /* Same for data buffer */
-#define INIT_LMEM 16            /* Same for local labels */
-#define INIT_SMEM 16            /* Same for symbol table */
-#define INIT_MODS 10            /* Init space for modules */
+#define INIT_PMEM 8		/* Init space for procedures */
+#define INIT_XMEM 128		/* Same for data buffer */
+#define INIT_LMEM 16		/* Same for local labels */
+#define INIT_SMEM 16		/* Same for symbol table */
+#define INIT_MODS 10		/* Init space for modules */
 #else
-#define INIT_PMEM 256           /* Init space for procedures */
-#define INIT_XMEM 2048          /* Same for data buffer */
-#define INIT_LMEM 1024          /* Same for local labels */
-#define INIT_SMEM 1024          /* Same for symbol table */
-#define INIT_MODS 100           /* Init space for modules */
+#define INIT_PMEM 256		/* Init space for procedures */
+#define INIT_XMEM 2048		/* Same for data buffer */
+#define INIT_LMEM 1024		/* Same for local labels */
+#define INIT_SMEM 1024		/* Same for symbol table */
+#define INIT_MODS 100		/* Init space for modules */
 #endif
 
-#define STACK_SIZE (1024 * 1024 - 32)   
-                                /* Default stack size (bytes) */
-#define MIN_STACK 4096          /* Min stack size (bytes) */
+#define STACK_SIZE (1024 * 1024 - 32)	
+				/* Default stack size (bytes) */
+#define MIN_STACK 4096		/* Min stack size (bytes) */
 
 typedef enum { ABS, DATA, BSS, CODE, UNDEFINED } segment;
 
@@ -70,13 +68,13 @@ typedef struct _template *template;
 
 #define MAXMAC 6
 
-struct _template {              /* An encoding of an instruction */
-     const char *t_name;        /* The instruction */
-     const char *t_pattern;     /* Argument formats */
-     int t_lo, t_hi, t_step;    /* Pattern of values for 'N' format */
-     int t_size;                /* Total length of instruction */
-     int t_oplen;               /* Length of opcode */
-     uchar t_op;                /* Opcode */
+struct _template {		/* An encoding of an instruction */
+     const char *t_name;	/* The instruction */
+     const char *t_pattern;	/* Argument formats */
+     int t_lo, t_hi, t_step;	/* Pattern of values for 'N' format */
+     int t_size;		/* Total length of instruction */
+     int t_oplen;		/* Length of opcode */
+     uchar t_op;		/* Opcode */
      const char *t_macro[MAXMAC]; /* Macro expansion */
 };
 
@@ -86,12 +84,12 @@ struct _template {              /* An encoding of an instruction */
 
 
 EXTERN int dflag;
-EXTERN int zflag;               /* Whether to compress the bytecode */
-EXTERN boolean sflag;           /* Whether to suppress symbol table */
-EXTERN boolean gflag;           /* Whether to output extra debugging info */
-EXTERN boolean custom;
-EXTERN boolean dump;
-EXTERN boolean linecount;
+EXTERN int zflag;		/* Whether to compress the bytecode */
+EXTERN mybool sflag;		/* Whether to suppress symbol table */
+EXTERN mybool gflag;		/* Whether to output extra debugging info */
+EXTERN mybool custom;
+EXTERN mybool dump;
+EXTERN mybool linecount;
 EXTERN int stack_size;
 
 /* template.c */
@@ -108,7 +106,7 @@ const char *sym_name(symbol s);
 void def_global(symbol s, segment seg, int off, int kind);
 void use_global(symbol s, uchar *base, int offset);
 int sym_value(symbol s);
-boolean known(const char *name);
+mybool known(const char *name);
 void fix_data(uchar *base, int bss);
 int write_symtab(void);
 void module_data(symbol s, unsigned checksum, int nlines);

@@ -26,8 +26,6 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * $Id: util.c 1696 2011-11-15 21:27:37Z mike $
  */
 
 #include "config.h"
@@ -41,8 +39,6 @@
 #include <assert.h>
 
 EXTERN int dflag;
-
-const char *util_rcsid = "$Id: util.c 1696 2011-11-15 21:27:37Z mike $";
 
 char *prog_name;
 
@@ -60,10 +56,10 @@ void error(const char *msg, ...) {
 
 void panic(const char *msg, ...) {
      va_list va;
-     boolean bug = FALSE;
+     mybool bug = FALSE;
 
      if (*msg == '*') {
-          bug = TRUE; msg++;
+	  bug = TRUE; msg++;
      }
 
      fprintf(stderr, "%s: Fatal error -- ", progname);
@@ -74,7 +70,7 @@ void panic(const char *msg, ...) {
        fprintf(stderr, " in %s", err_file);
      fprintf(stderr, "\n");
      if (bug)
-          fprintf(stderr, "Please report bugs to %s\n", PACKAGE_BUGREPORT);
+	  fprintf(stderr, "Please report bugs to %s\n", PACKAGE_BUGREPORT);
 
      exit(2);
 }
@@ -105,8 +101,8 @@ char *must_strdup(const char *s) {
 void *must_realloc(void *p, int n0, int n, const char *msg) {
 #ifdef DEBUG
      if (dflag) {
-          printf("Growing %s at %p from %d to %d\n", msg, p, n0, n);
-          fflush(stdout);
+	  printf("Growing %s at %p from %d to %d\n", msg, p, n0, n);
+	  fflush(stdout);
      }
 #endif
      p = realloc(p, n);
@@ -116,7 +112,7 @@ void *must_realloc(void *p, int n0, int n, const char *msg) {
 }
 
 void _buf_init(struct _growbuf *b, int size, int margin, 
-                       int elsize, const char *name) {
+		       int elsize, const char *name) {
      b->buf = must_alloc(size * elsize, name);
      b->loc = 0;
      b->size = size;
@@ -130,10 +126,10 @@ void _buf_grow(struct _growbuf *b) {
 
      /* Ensure space for margin+1 items */
      if (b->loc > b->size - b->margin) {
-          int size1 = max(b->size * GROW, b->loc + b->margin);
-          b->buf = must_realloc(b->buf, b->size * b->elsize, 
-                                size1 * b->elsize, b->name);
-          b->size = size1;
+	  int size1 = max(b->size * GROW, b->loc + b->margin);
+	  b->buf = must_realloc(b->buf, b->size * b->elsize, 
+				size1 * b->elsize, b->name);
+	  b->size = size1;
      }
 }
 
@@ -146,20 +142,20 @@ void *pool_alloc(mempool *pool, int size) {
      assert(size < PAGE);
 
      if (pool->p_alloc + size > pool->p_pool[pool->p_current] + PAGE) {
-          pool->p_current++;
-          if (pool->p_current >= pool->p_npools) {
-               if (pool->p_npools >= pool->p_size) {
-                    pool->p_pool = (unsigned char **) 
-                         must_realloc(pool->p_pool,
-                                      pool->p_size * sizeof(void *),
-                                      2 * pool->p_size * sizeof(void *),
-                                      "pool table");
-                    pool->p_size *= 2;
-               }
-               pool->p_pool[pool->p_npools++] = 
-                    (uchar *) must_alloc(PAGE, "pools");
-          }
-          pool->p_alloc = pool->p_pool[pool->p_current];
+	  pool->p_current++;
+	  if (pool->p_current >= pool->p_npools) {
+	       if (pool->p_npools >= pool->p_size) {
+		    pool->p_pool = (unsigned char **) 
+			 must_realloc(pool->p_pool,
+				      pool->p_size * sizeof(void *),
+				      2 * pool->p_size * sizeof(void *),
+				      "pool table");
+		    pool->p_size *= 2;
+	       }
+	       pool->p_pool[pool->p_npools++] = 
+		    (uchar *) must_alloc(PAGE, "pools");
+	  }
+	  pool->p_alloc = pool->p_pool[pool->p_current];
      }
 
      result = (void *) pool->p_alloc;
@@ -169,10 +165,10 @@ void *pool_alloc(mempool *pool, int size) {
 
 void pool_reset(mempool *pool) {
      if (pool->p_pool == NULL) {
-          pool->p_pool = (unsigned char **)
-               must_alloc(SIZE * sizeof(void *), "pool table");
-          pool->p_pool[0] = (uchar *) must_alloc(PAGE, "pools");
-          pool->p_npools = 1; pool->p_size = SIZE;
+	  pool->p_pool = (unsigned char **)
+	       must_alloc(SIZE * sizeof(void *), "pool table");
+	  pool->p_pool[0] = (uchar *) must_alloc(PAGE, "pools");
+	  pool->p_npools = 1; pool->p_size = SIZE;
      }
 
      pool->p_current = 0;
@@ -190,15 +186,15 @@ int split_line(char *line, char **words) {
 
      /* Set the words array */
      while (1) {
-          while (*s == ' ' || *s == '\t' || *s == '\r') s++;
-          if (*s == '\0') panic("line too long");
-          if (*s == '\n') break;
-          if (nwords == MAXWORDS) panic("too many words");
-          words[nwords++] = s;
-          while (! isspace((int) *s) && *s != '\0') s++;
-          if (*s == '\n') { *s = '\0'; break; }
-          if (*s == '\0') panic("line too long");
-          *s++ = '\0';
+	  while (*s == ' ' || *s == '\t' || *s == '\r') s++;
+	  if (*s == '\0') panic("line too long");
+	  if (*s == '\n') break;
+	  if (nwords == MAXWORDS) panic("too many words");
+	  words[nwords++] = s;
+	  while (! isspace((int) *s) && *s != '\0') s++;
+	  if (*s == '\n') { *s = '\0'; break; }
+	  if (*s == '\0') panic("line too long");
+	  *s++ = '\0';
      }
 
      return nwords;
@@ -210,7 +206,7 @@ char *squidge(char *name) {
      char *s, *t;
 
      for (s = name, t = buf; *s != '\0'; s++, t++)
-          *t = ((*s == '.' || *s == '%') ? '_' : *s);
+	  *t = ((*s == '.' || *s == '%') ? '_' : *s);
      *t = '\0';
 
      return buf;

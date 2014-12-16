@@ -26,15 +26,11 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * $Id: loader.c 1703 2012-05-01 16:44:30Z mike $
  */
 
 #include "obx.h"
 #include "keiko.h"
 #include "exec.h"
-
-const char *loader_rcsid = "$Id: loader.c 1703 2012-05-01 16:44:30Z mike $";
 
 static FILE *binfp;
 
@@ -56,9 +52,9 @@ static char *read_string() {
      char buf[256];
      
      do {
-          c = bingetc();
-          if (c == EOF) panic("*unexpected EOF");
-          buf[n++] = c;
+	  c = bingetc();
+	  if (c == EOF) panic("*unexpected EOF");
+	  buf[n++] = c;
      } while (c != '\0');
 
      p = (char *) scratch_alloc(n, TRUE);
@@ -120,103 +116,111 @@ static void relocate(int size) {
      unsigned reloc[REL_BLOCK];
 
      for (base = 0; base < size; base += n) {
-          n = min(size - base, REL_BLOCK * CODES_PER_WORD * WORD_SIZE);
-          nwords = (n/WORD_SIZE+CODES_PER_WORD-1)/CODES_PER_WORD;
-          binread(reloc, nwords * sizeof(unsigned));
+	  n = min(size - base, REL_BLOCK * CODES_PER_WORD * WORD_SIZE);
+	  nwords = (n/WORD_SIZE+CODES_PER_WORD-1)/CODES_PER_WORD;
+	  binread(reloc, nwords * sizeof(unsigned));
 
-          for (i = 0; i < n; i += WORD_SIZE) {
-               int rbits = reloc_bits(reloc, i/WORD_SIZE);
+	  for (i = 0; i < n; i += WORD_SIZE) {
+	       int rbits = reloc_bits(reloc, i/WORD_SIZE);
 
 #ifdef DEBUG
-               if (dflag > 2)
-                    printf("Reloc %d %d\n", base+i, rbits);
+	       if (dflag > 2)
+		    printf("Reloc %d %d\n", base+i, rbits);
 #endif
 
-               m = get_int(&dmem[base+i]);
-               p = (value *) &dmem[base+i];
+	       m = get_int(&dmem[base+i]);
+	       p = (value *) &dmem[base+i];
 
-               switch (rbits) {
-               case R_WORD:
-                    (*p).i = m;
-                    break;
-               case R_DATA:
-                    (*p).x = dmem + m;
-                    break;
-               case R_CODE:
-                    (*p).x = imem + m;
-                    break;
-               case R_SUBR:
-                    (*p).z = primtab[m];
-                    break;
-               }
-          }
+	       switch (rbits) {
+	       case R_NONE:
+		    break;
+	       case R_WORD:
+		    (*p).i = m;
+		    break;
+	       case R_DATA:
+		    (*p).x = dmem + m;
+		    break;
+	       case R_CODE:
+		    (*p).x = imem + m;
+		    break;
+	       case R_SUBR:
+		    (*p).z = primtab[m];
+		    break;
+	       }
+	  }
      }
 }
-               
+	       
 /* read_symbols -- read symbol table */
 static void read_symbols(int dseg) {
      int kind; char *name; uchar *addr;
      int chksum, nlines;
      int nm = 0, np = 0, i;
+#ifdef DEBUG
      const char *kname;
-          
+#define debug_kind(n) kname = n
+#else
+#define debug_kind(n)
+#endif
+	  
      modtab = (module *) scratch_alloc(nmods * sizeof(module), FALSE);
      proctab = (proc *) scratch_alloc(nprocs * sizeof(proc), FALSE);
 
      for (i = 0; i < nsyms; i++) {
-          kind = read_int();
-          name = read_string(); 
+	  kind = read_int();
+	  name = read_string(); 
 
-          switch (kind) {
-          case X_MODULE:
-               kname = "Module";
-               addr = dmem + read_int(); 
-               chksum = read_int();
-               nlines = read_int();
-               modtab[nm++] = make_module(name, addr, chksum, nlines);
-               break;
+	  switch (kind) {
+	  case X_MODULE:
+	       debug_kind("Module");
+	       addr = dmem + read_int(); 
+	       chksum = read_int();
+	       nlines = read_int();
+	       modtab[nm++] = make_module(name, addr, chksum, nlines);
+	       break;
 
-          case X_PROC:
-               kname = "Proc";
-               addr = dmem + read_int(); 
-               proctab[np++] = make_proc(name, addr);
-               break;
-                    
-          case X_DATA:
-               kname = "Data";
-               addr = dmem + read_int(); 
-               make_symbol("data", name, addr);
-               break;
+	  case X_PROC:
+	       debug_kind("Proc");
+	       addr = dmem + read_int(); 
+	       proctab[np++] = make_proc(name, addr);
+	       break;
+		    
+	  case X_DATA:
+	       debug_kind("Data");
+	       addr = dmem + read_int(); 
+	       make_symbol("data", name, addr);
+	       break;
 
-          case X_LINE:
-               kname = "Line";
-               addr = imem + read_int();
-               make_symbol("line", name, addr);
-               break;
+	  case X_LINE:
+	       debug_kind("Line");
+	       addr = imem + read_int();
+	       make_symbol("line", name, addr);
+	       break;
 
-          default:
-               kname = "Unknown"; addr = NULL;
-               panic("*bad symbol %s", name);
-          }
+	  default:
+	       debug_kind("Unknown"); 
+	       addr = NULL;
+	       panic("*bad symbol %s", name);
+	  }
 
 #ifdef DEBUG
-          if (dflag) printf("%s %s = %p\n", kname, name, addr);
+	  if (dflag) printf("%s %s = %p\n", kname, name, addr);
 #endif
      }
 
      if (nm != nmods || np != nprocs)
-          panic("*symbol counts don't match (mods %d/%d, procs %d/%d)\n",
-                nm, nmods, np, nprocs);
+	  panic("*symbol counts don't match (mods %d/%d, procs %d/%d)\n",
+		nm, nmods, np, nprocs);
 
      /* Calculate module lengths */
      addr = dmem + dseg;
      for (i = nmods-1; i >= 0; i--) {
-          modtab[i]->m_length = addr - modtab[i]->m_addr;
-          addr = modtab[i]->m_addr;
+	  modtab[i]->m_length = addr - modtab[i]->m_addr;
+	  addr = modtab[i]->m_addr;
 #ifdef DEBUG
-          if (dflag)
-               printf("Module %s has size %d\n", 
-                      modtab[i]->m_name, modtab[i]->m_length);
+	  if (dflag)
+	       printf("Module %s has size %d\n", 
+		      modtab[i]->m_name, modtab[i]->m_length);
 #endif
      }
 }
@@ -234,22 +238,24 @@ void load_file(FILE *bfp) {
      nread = fread(&t, 1, sizeof(trailer), bfp);
 
      /* Check magic numbers */
+     if (nread < sizeof(trailer))
+	  panic("couldn't read trailer");
      if (strncmp((char *) t.magic, MAGIC, 4) != 0)
-          panic("bad magic number\n%s",
-                "[The program you are running is not a valid"
-                " Oberon bytecode file]");
+	  panic("bad magic number\n%s",
+		"[The program you are running is not a valid"
+		" Oberon bytecode file]");
      if (get_int(t.sig) != SIG)
-          panic("bad signature %#0.8x\n%s\n%s", get_int(t.sig),
-                "[Although this appears to be an Oberon bytecode file,",
-                "  it needs a different version of the runtime system]");
+	  panic("bad signature %#0.8x\n%s\n%s", get_int(t.sig),
+		"[Although this appears to be an Oberon bytecode file,",
+		"  it needs a different version of the runtime system]");
      if (prim_check != 0 && (unsigned) get_int(t.primsig) != prim_check)
-          panic("bad primitive checksum\n%s\n%s",
-                "[This program uses a different set of primitives",
-                "  from the ones built into the runtime system]");
+	  panic("bad primitive checksum\n%s\n%s",
+		"[This program uses a different set of primitives",
+		"  from the ones built into the runtime system]");
 
      /* Decode the other data */
      for (i = 0; i < NSEGS; i++)
-          seglen[i] = get_int(t.segment[i]);
+	  seglen[i] = get_int(t.segment[i]);
 
      code_size = seglen[S_CODE];
      stack_size = seglen[S_STACK];
@@ -259,11 +265,11 @@ void load_file(FILE *bfp) {
 
 #ifdef DEBUG
      if (dflag) {
-          printf("csize = %d, dsize = %d, bss = %d, stk = %d\n", 
-                 seglen[S_CODE], seglen[S_DATA], 
-                 seglen[S_BSS], seglen[S_STACK]);
-          printf("nmods = %d, nprocs = %d, nsyms = %d\n",
-                 nmods, nprocs, nsyms);
+	  printf("csize = %d, dsize = %d, bss = %d, stk = %d\n", 
+		 seglen[S_CODE], seglen[S_DATA], 
+		 seglen[S_BSS], seglen[S_STACK]);
+	  printf("nmods = %d, nprocs = %d, nsyms = %d\n",
+		 nmods, nprocs, nsyms);
      }
 #endif
 
@@ -287,7 +293,7 @@ void load_file(FILE *bfp) {
      entry = (value *) &dmem[get_int(t.entry)];
      gcmap = (value *) &dmem[get_int(t.gcmap)];
      if (get_int(t.libdir) != 0)
-          libpath = (char *) &dmem[get_int(t.libdir)];
+	  libpath = (char *) &dmem[get_int(t.libdir)];
 
      /* Read the symbols */
      if (nsyms > 0) read_symbols(seglen[S_DATA]);

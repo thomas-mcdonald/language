@@ -27,14 +27,12 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: util.tcl 583 2008-10-31 09:35:55Z mike $
-#
 
 # max -- maximum of any number of args
 proc max {x args} {
     set max $x
     foreach y $args {
-        if {$y > $max} {set max $y}
+	if {$y > $max} {set max $y}
     }
     return $max
 }
@@ -52,7 +50,7 @@ proc ladd {sv args} {
     upvar $sv s
 
     foreach x $args {
-        if {! [lmember $x $s]} {lappend s $x}
+	if {! [lmember $x $s]} {lappend s $x}
     }
 }
 
@@ -61,11 +59,11 @@ proc lsplit {xs args} {
     set n [llength $args]
 
     if {[llength $xs] != $n} {
-        error "expected $n fields, got [llength $xs]"
+	error "expected $n fields, got [llength $xs]"
     }
 
     for {set i 0} {$i < $n} {incr i} {
-        uplevel [list set [lindex $args $i] [lindex $xs $i]]
+	uplevel [list set [lindex $args $i] [lindex $xs $i]]
     }
 }
 
@@ -105,15 +103,15 @@ proc flatmap {f xs} {
 # remdups -- remove adjecent duplicates from a list
 proc remdups {xs} {
     if {$xs == ""} {
-        return {}
+	return {}
     } else {
-        set y [lindex $xs 0]
-        set ys [list $y]
-        foreach x $xs {
-            if {$x != $y} {lappend ys $x}
-            set y $x
-        }
-        return $ys
+	set y [lindex $xs 0]
+	set ys [list $y]
+	foreach x $xs {
+	    if {$x != $y} {lappend ys $x}
+	    set y $x
+	}
+	return $ys
     }
 }
 

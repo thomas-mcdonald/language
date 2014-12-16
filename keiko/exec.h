@@ -26,8 +26,6 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * $Id: exec.h 1703 2012-05-01 16:44:30Z mike $
  */
 
 /* 
@@ -50,40 +48,41 @@ code for a program. This idea was stolen from CAML Light.
 /* Codes for the segments: they must appear in the object file
    in this order */
 #define NSEGS 4
-#define S_CODE 0                /* Bytecode */
-#define S_DATA 1                /* Initialized data */
-#define S_BSS 2                 /* Below stack storage */
-#define S_STACK 3               /* Stack */
+#define S_CODE 0		/* Bytecode */
+#define S_DATA 1		/* Initialized data */
+#define S_BSS 2			/* Below stack storage */
+#define S_STACK 3		/* Stack */
 
 typedef uchar word[4];
 
 typedef struct {
-     word magic;                /* Magic number 'OBCX' */
-     word sig;                  /* Signature */
-     word primsig;              /* Checksum of primitives */
-     word start;                /* Offset of data start from end of file */
-     word entry;                /* Entry point */
-     word gcmap;                /* Global pointer map */
-     word libdir;               /* Location of dynamic libraries */
-     word segment[NSEGS];       /* Segment sizes */
-     word nprocs, nmods, nsyms; /* No. of procs, modules, symbols */
+     word magic;		/* Magic number 'OBCX' */
+     word sig;			/* Signature */
+     word primsig;		/* Checksum of primitives */
+     word start;		/* Offset of data start from end of file */
+     word entry;		/* Entry point */
+     word gcmap;		/* Global pointer map */
+     word libdir;		/* Location of dynamic libraries */
+     word segment[NSEGS];	/* Segment sizes */
+     word nprocs, nmods, nsyms;	/* No. of procs, modules, symbols */
 } trailer;
 
 
 /* Layout of relocation data */
 #define WORD_SIZE 4
-#define CODES_PER_WORD 16
-#define BITS_PER_CODE 2
+#define CODES_PER_WORD 10
+#define BITS_PER_CODE 3
 #define CODE_MASK ((1 << BITS_PER_CODE) - 1)
 
 #define reloc_bits(buf, i) (buf[(i)/CODES_PER_WORD] >> \
-        ((i) % CODES_PER_WORD * BITS_PER_CODE) & CODE_MASK)
+	((i) % CODES_PER_WORD * BITS_PER_CODE) & CODE_MASK)
 
 /* Relocation codes */
-#define R_WORD 0
-#define R_DATA 1
-#define R_CODE 2
-#define R_SUBR 3
+#define R_NONE 0
+#define R_WORD 1
+#define R_DATA 2
+#define R_CODE 3
+#define R_SUBR 4
 
 /* Symbol tags */
 #define X_NONE 0
@@ -94,5 +93,5 @@ typedef struct {
 #define X_SYM 5
 
 /* Fixed primitives */
-#define INTERP 0                /* Index of interpreter as primitive */
-#define DLTRAP 1                /* Index of dynlink trap */
+#define INTERP 0		/* Index of interpreter as primitive */
+#define DLTRAP 1		/* Index of dynlink trap */
