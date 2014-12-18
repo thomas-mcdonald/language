@@ -44,8 +44,8 @@ parser.cmo : tree.cmo parser.cmi
 parser.cmx : tree.cmx parser.cmi
 keiko.cmo : keiko.cmi
 keiko.cmx : keiko.cmi
-tree.cmo :
-tree.cmx :
+tree.cmo : dict.cmi
+tree.cmx : dict.cmx
 print.cmo : tree.cmo
 print.cmx : tree.cmx
 gen.cmo : tree.cmo

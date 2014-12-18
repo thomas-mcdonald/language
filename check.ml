@@ -8,16 +8,20 @@ let error (str:string) =
 let ensure_unique env x =
   if def_exists env x then error (x ^ " is already defined")
 
-(* populate_class checks that the class name is unique & the superclass exists *)
-let populate_class env klass : environment =
-  match klass with
-    ClassDecl(Object(n), Void, _) ->
-      ensure_unique env n;
-      define_class env n ""
-  | ClassDecl(Object(n), Object(s), _) ->
-      ensure_unique env n;
-      if class_exists env s then (define_class env n s) else error "superclass not defined"
-  | _ -> error "check_class_name must be called with a class"
+let populate_stmt (env : environment) (stmt : stmt) : environment =
+  match stmt with
+    (* class declaration without superclass *)
+    ClassDecl(n, Void, _) ->
+      let name = n.n_name in
+      ensure_unique env name;
+      define_class env name ""
+    (* class declaration with superclass *)
+  | ClassDecl(n, Object(s), _) ->
+      let name = n.n_name in
+      ensure_unique env name;
+      if class_exists env s
+      then (define_class env name s)
+      else error "superclass not defined"
 
 let populate_variable (dec : stmt) class_name env : environment =
   let c = find_def env class_name in
@@ -39,8 +43,8 @@ let populate_variable (dec : stmt) class_name env : environment =
 let populate_variables env klass : environment =
   let statement_filter = (fun x -> match x with Declare(_) -> true | _ -> false) in
   match klass with
-    ClassDecl(Object(n), _, xs) ->
-      let var_accu = (fun env x -> populate_variable x n env) in
+    ClassDecl(n, _, xs) ->
+      let var_accu = (fun env x -> populate_variable x n.n_name env) in
       let statements = List.filter statement_filter xs in
       List.fold_left var_accu env statements
   | _ -> error "check_variables called against a non-class"
@@ -62,8 +66,8 @@ let populate_method (meth : stmt) class_name env : environment =
 let populate_methods env klass : environment =
   let method_filter = (fun x -> match x with MethodDecl(_) -> true | _ -> false) in
   match klass with
-    ClassDecl(Object(n), _, xs) ->
-      let meth_accu = (fun env x -> populate_method x n env) in
+    ClassDecl(n, _, xs) ->
+      let meth_accu = (fun env x -> populate_method x n.n_name env) in
       let statements = List.filter method_filter xs in
       List.fold_left meth_accu env statements
     | _ -> error "check_methods called against a non-class"
@@ -83,7 +87,7 @@ let populate_methods env klass : environment =
     TODO: look into fusing some of these methods together
 *)
 let populate_class_info (classes : stmt list) (env : environment) =
-  let env' = List.fold_left populate_class env classes in
+  let env' = List.fold_left populate_stmt env classes in
   let env'' = List.fold_left populate_variables env' classes in
   List.fold_left populate_methods env'' classes
 

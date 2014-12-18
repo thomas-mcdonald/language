@@ -1,3 +1,11 @@
+open Dict
+
+type ident = string
+
+type name =
+  { n_name: ident;
+    mutable n_def: def }
+
 type ptype = Integer | Boolean | Object of string | Void
 
 type program = Prog of block
@@ -5,7 +13,7 @@ type program = Prog of block
 and block = Block of stmt list
           | NoBlock
 
-and stmt = ClassDecl of ptype * ptype * stmt list (* name * superclass * statements *)
+and stmt = ClassDecl of name * ptype * stmt list (* name * superclass * statements *)
          | MethodDecl of expr * stmt list (* name * statements  *)
          | Assign of expr * expr (* lhs = rhs *)
          | Declare of ptype * expr (* int x *)
@@ -23,7 +31,6 @@ and expr_guts = Number of int
          | Nil
 
 and op = Plus
-and name = string
 
 let makeExpr g =
   { e_guts = g; e_type = Void }

@@ -1,4 +1,5 @@
 %{
+open Dict
 open Tree
 %}
 
@@ -12,6 +13,8 @@ open Tree
 %start program
 
 %{
+
+let makeDef x = { n_name = x; n_def = unknown_def }
 
 %}
 
@@ -30,13 +33,17 @@ reversed_stmts:
   | stmts stmt { $2 :: $1 } /* remember to reverse this */
 
 stmt:
-    CLASS ptype stmts END          { ClassDecl($2, Void, $3) }
-  | CLASS ptype GT ptype stmts END { ClassDecl($2, $4, $5) }
+    CLASS classname stmts END          { ClassDecl($2, Void, $3) }
+  | CLASS classname GT ptype stmts END { ClassDecl($2, $4, $5) }
   | DEF ident stmts END            { MethodDecl($2, $3) }
   | ident EQUALS expr              { Assign($1, $3) }
   | INT ident                      { Declare(Integer, $2) }
   | ptype ident                    { Declare($1, $2) }
   | expr                           { Expr($1) }
+
+classname:
+  TYPE                             { makeDef($1) }
+
 
 expr:
     ident { $1 }

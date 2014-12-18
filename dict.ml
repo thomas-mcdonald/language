@@ -5,6 +5,7 @@ type environment = Env of def EnvMap.t ref
 and def_type = ClassDef of def option ref (* class (superclass) *)
              | VarDef of def ref (* variable (class type) *)
              | MethDef (* method *)
+             | UnknownDef
 
 and def = {
   (* d_tag : int; (* unique id *) *)
@@ -34,6 +35,9 @@ let def_exists env x =
     find_def env x; true
   with
     Not_found -> false
+
+
+let unknown_def = { d_name = "unknown"; d_type = UnknownDef; d_env = new_env () }
 
 (* class methods *)
 let define_class env name supername =

@@ -20,6 +20,8 @@ let ppType =
   | Object(s) -> s ^ " (Object)"
   | Void -> "Void"
 
+let ppName n = n.n_name
+
 let rec ppExpr e =
   match e.e_guts with
     Number x -> wrap_simple ("Number " ^ string_of_int x)
@@ -31,7 +33,7 @@ let rec ppExpr e =
 
 let rec ppStmt =
   function
-    ClassDecl (p, p', xs) -> wraplist (Printf.sprintf "Class %s < %s" (ppType p) (ppType p')) [ppStmts xs]
+    ClassDecl (n, s, xs) -> wraplist (Printf.sprintf "Class %s < %s" (ppName n) (ppType s)) [ppStmts xs]
   | MethodDecl (e, xs) -> wraplist "Method" [ppExpr e; ppStmts xs]
   | Assign (e, e') -> wraplist "Assignment" [ppExpr e; ppExpr e']
   | Declare(p, e) -> wraplist ("Declaration " ^ (ppType p)) [ppExpr e]

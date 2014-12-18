@@ -4,6 +4,7 @@ type environment
 and def_type = ClassDef of def option ref (* class*)
              | VarDef of def ref (* variable *)
              | MethDef (* method *)
+             | UnknownDef
 
 and def = {
   d_name : string; (* name of element *)
@@ -22,6 +23,9 @@ val find_def : environment -> string -> def
 
 (* Does the given definition exist *)
 val def_exists : environment -> string -> bool
+
+(* placeholder def for use in name *)
+val unknown_def : def
 
 (* class specific environment methods *)
 (* define a class (name, superclass) *)
