@@ -14,7 +14,7 @@ open Tree
 
 %{
 
-let makeDef x = { n_name = x; n_def = unknown_def }
+let makeName x = { n_name = x; n_def = unknown_def }
 
 %}
 
@@ -33,17 +33,13 @@ reversed_stmts:
   | stmts stmt { $2 :: $1 } /* remember to reverse this */
 
 stmt:
-    CLASS classname stmts END          { ClassDecl($2, Void, $3) }
-  | CLASS classname GT ptype stmts END { ClassDecl($2, $4, $5) }
-  | DEF ident stmts END            { MethodDecl($2, $3) }
+    CLASS typename stmts END          { ClassDecl($2, Void, $3) }
+  | CLASS typename GT ptype stmts END { ClassDecl($2, $4, $5) }
+  | DEF identname stmts END           { MethodDecl($2, $3) }
   | ident EQUALS expr              { Assign($1, $3) }
   | INT ident                      { Declare(Integer, $2) }
   | ptype ident                    { Declare($1, $2) }
   | expr                           { Expr($1) }
-
-classname:
-  TYPE                             { makeDef($1) }
-
 
 expr:
     ident { $1 }
@@ -51,12 +47,17 @@ expr:
   | expr PLUS expr  { makeExpr (Binop(Plus, $1, $3)) }
   | expr DOT expr   { makeExpr (Call($1, $3, [])) }
 
-
 ident:
   IDENT { makeExpr (Ident($1)) }
 
 ptype:
   TYPE { Object $1 }
+
+identname:
+  IDENT { makeName $1 }
+
+typename:
+  TYPE { makeName $1 }
 
 number:
   NUMBER { makeExpr (Number($1)) }

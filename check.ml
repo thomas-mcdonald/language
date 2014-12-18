@@ -53,13 +53,11 @@ let populate_variables env klass : environment =
 let populate_method (meth : stmt) class_name env : environment =
   let c = find_def env class_name in
   match meth with
-    MethodDecl(e, xs) ->
-      (match e.e_guts with
-        Ident(s) ->
-          ensure_unique c.d_env s;
-          define_method c.d_env s;
-          env
-      | _ -> error "method name should be an identifier")
+    MethodDecl(n, xs) ->
+      let name = n.n_name in
+      ensure_unique c.d_env name;
+      define_method c.d_env name;
+      env
   | _ -> error "check_method called with a non-method stmt"
   env
 

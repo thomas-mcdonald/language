@@ -14,7 +14,7 @@ and block = Block of stmt list
           | NoBlock
 
 and stmt = ClassDecl of name * ptype * stmt list (* name * superclass * statements *)
-         | MethodDecl of expr * stmt list (* name * statements  *)
+         | MethodDecl of name * stmt list (* name * statements  *)
          | Assign of expr * expr (* lhs = rhs *)
          | Declare of ptype * expr (* int x *)
          | Expr of expr (* expression statement  *)

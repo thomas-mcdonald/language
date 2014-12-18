@@ -34,7 +34,7 @@ let rec ppExpr e =
 let rec ppStmt =
   function
     ClassDecl (n, s, xs) -> wraplist (Printf.sprintf "Class %s < %s" (ppName n) (ppType s)) [ppStmts xs]
-  | MethodDecl (e, xs) -> wraplist "Method" [ppExpr e; ppStmts xs]
+  | MethodDecl (n, xs) -> wraplist "Method" [ppName n; ppStmts xs]
   | Assign (e, e') -> wraplist "Assignment" [ppExpr e; ppExpr e']
   | Declare(p, e) -> wraplist ("Declaration " ^ (ppType p)) [ppExpr e]
   | Expr(e) -> wraplist "Expression" [ppExpr e]
