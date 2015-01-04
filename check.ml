@@ -8,20 +8,33 @@ let error (str:string) =
 let ensure_unique env x =
   if def_exists env x then error (x ^ " is already defined")
 
+let find_class_data (d : def) =
+  match d.d_type with ClassDef(_, c) -> c | _ -> failwith "find_class_data"
+
+(* add a method to a class record.  *)
+let add_method (c : def) (d : def) =
+  let cd = find_class_data c in
+  cd.c_methods <- cd.c_methods @ [d]
+
 let populate_stmt (env : environment) (stmt : stmt) : environment =
   match stmt with
     (* class declaration without superclass *)
     ClassDecl(n, Void, _) ->
       let name = n.n_name in
       ensure_unique env name;
-      define_class env name ""
+      (* TODO: pull this logic out of Dict and into a method, works for now... *)
+      let env' = define_class env name "" in
+      n.n_def <- find_def env' name;
+      env'
     (* class declaration with superclass *)
   | ClassDecl(n, Object(s), _) ->
       let name = n.n_name in
       ensure_unique env name;
-      if class_exists env s
-      then (define_class env name s)
-      else error "superclass not defined"
+      if not (class_exists env s)
+      then error "superclass not defined"
+      else let env' = define_class env name s in
+      n.n_def <- find_def env' name;
+      env'
 
 let populate_variable (dec : stmt) class_name env : environment =
   let c = find_def env class_name in
@@ -55,8 +68,10 @@ let populate_method (meth : stmt) class_name env : environment =
   match meth with
     MethodDecl(n, args, xs) ->
       let name = n.n_name in
+      let d = { d_name = name; d_type = MethDef; d_env = new_env () } in
       ensure_unique c.d_env name;
-      define_method c.d_env name;
+      add_def env name d; (* TODO: work out wtf this is for - is it useful? *)
+      add_method c d;
       env
   | _ -> error "check_method called with a non-method stmt"
   env
