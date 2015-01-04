@@ -14,10 +14,12 @@ and block = Block of stmt list
           | NoBlock
 
 and stmt = ClassDecl of name * ptype * stmt list (* name * superclass * statements *)
-         | MethodDecl of name * stmt list (* name * statements  *)
+         | MethodDecl of name * method_arg list * stmt list (* name * args * statements  *)
          | Assign of expr * expr (* lhs = rhs *)
          | Declare of ptype * expr (* int x *)
          | Expr of expr (* expression statement  *)
+
+and method_arg = Arg of name * ptype
 
 and expr =
   { e_guts: expr_guts;

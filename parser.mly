@@ -35,11 +35,20 @@ reversed_stmts:
 stmt:
     CLASS typename stmts END          { ClassDecl($2, Void, $3) }
   | CLASS typename GT ptype stmts END { ClassDecl($2, $4, $5) }
-  | DEF identname stmts END           { MethodDecl($2, $3) }
+  | DEF identname stmts END                     { MethodDecl($2, [], $3) }
+  | DEF identname LPAREN args RPAREN stmts END  { MethodDecl($2, $4, $6) }
   | ident EQUALS expr              { Assign($1, $3) }
   | INT ident                      { Declare(Integer, $2) }
   | ptype ident                    { Declare($1, $2) }
   | expr                           { Expr($1) }
+
+args:
+    /* empty*/      { [] }
+  | arg             { [$1] }
+  | arg COMMA args  { $1 :: $3 }
+
+arg:
+  ptype identname   { Arg($2, $1) }
 
 expr:
     ident { $1 }

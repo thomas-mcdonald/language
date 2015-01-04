@@ -21,6 +21,7 @@ let ppType =
   | Void -> "Void"
 
 let ppName n = n.n_name
+let ppArgs args = wraplist "arguments" (List.map (fun a -> match a with Arg(n, p) -> n.n_name ^ " " ^ ppType p) args)
 
 let rec ppExpr e =
   match e.e_guts with
@@ -34,7 +35,7 @@ let rec ppExpr e =
 let rec ppStmt =
   function
     ClassDecl (n, s, xs) -> wraplist (Printf.sprintf "Class %s < %s" (ppName n) (ppType s)) [ppStmts xs]
-  | MethodDecl (n, xs) -> wraplist "Method" [ppName n; ppStmts xs]
+  | MethodDecl (n, args, xs) -> wraplist "Method" [ppName n; ppArgs args; ppStmts xs]
   | Assign (e, e') -> wraplist "Assignment" [ppExpr e; ppExpr e']
   | Declare(p, e) -> wraplist ("Declaration " ^ (ppType p)) [ppExpr e]
   | Expr(e) -> wraplist "Expression" [ppExpr e]

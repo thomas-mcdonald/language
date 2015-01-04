@@ -53,7 +53,7 @@ let populate_variables env klass : environment =
 let populate_method (meth : stmt) class_name env : environment =
   let c = find_def env class_name in
   match meth with
-    MethodDecl(n, xs) ->
+    MethodDecl(n, args, xs) ->
       let name = n.n_name in
       ensure_unique c.d_env name;
       define_method c.d_env name;
