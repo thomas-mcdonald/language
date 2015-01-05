@@ -7,6 +7,13 @@ let put (s : string) : unit =
   print_string (s ^ "\n");
   ()
 
+(* get a list of all parents, Object at the top *)
+let rec find_hierarchy (d : def) : def list =
+  let cd = find_class_data d in
+  match cd.c_super with
+    Some(d') -> (find_hierarchy d') @ [d]
+  | None -> [d]
+
 let gen_stmt (stmt : stmt) =
   match stmt with
     ClassDecl(e, e', xs) ->
@@ -22,9 +29,13 @@ let gen_descriptor (n: name) =
   put (sprintf "! Descriptor for %s" n.n_name);
   put (sprintf "DEFINE %s" n.n_name);
   match n.n_def.d_type with
-    ClassDef(s, cd) ->
+    ClassDef(cd) ->
+      (* print method list *)
       let print_meth = (fun m -> put (sprintf "WORD %s.%s" n.n_name m.d_name)) in
-      List.map print_meth cd.c_methods
+      List.map print_meth cd.c_methods;
+      (* print class hierarchy *)
+      put (sprintf "DEFINE %s.%%super" n.n_name);
+      List.map (fun c -> put (sprintf "WORD %s" c.d_name)) (find_hierarchy n.n_def)
   | _ -> failwith "gen_descriptor"
 
 (* pull out the name from a class and call gen_descriptor on it *)

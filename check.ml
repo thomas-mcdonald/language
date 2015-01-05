@@ -8,9 +8,6 @@ let error (str:string) =
 let ensure_unique env x =
   if def_exists env x then error (x ^ " is already defined")
 
-let find_class_data (d : def) =
-  match d.d_type with ClassDef(_, c) -> c | _ -> failwith "find_class_data"
-
 (* add a method to a class record.  *)
 let add_method (c : def) (d : def) =
   let cd = find_class_data c in

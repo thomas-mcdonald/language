@@ -2,7 +2,7 @@ module EnvMap = Map.Make(String)
 
 type environment = Env of def EnvMap.t ref
 
-and def_type = ClassDef of def option ref * class_data (* class (superclass) * other class data *)
+and def_type = ClassDef of class_data (* class data *)
              | VarDef of def ref (* variable (class type) *)
              | MethDef (* method *)
              | UnknownDef
@@ -15,12 +15,23 @@ and def = {
   }
 
 and class_data = {
-  mutable c_methods : def list (* method list *)
+  c_depth : int; (* how many classes above? *)
+  mutable c_methods : def list; (* method list *)
+  c_super : def option
 }
 
 let new_env = fun () -> Env (ref EnvMap.empty)
 
-let new_class_data = fun () -> { c_methods = [] }
+(* pull class_data out of a def *)
+let find_class_data (d : def) =
+  match d.d_type with ClassDef(c) -> c | _ -> failwith "find_class_data"
+
+(* return a new class data struct. arg is for super *)
+let new_class_data x =
+  match x with
+    Some(d) ->
+      { c_depth = (find_class_data d).c_depth + 1; c_methods = []; c_super = x; }
+  | None ->     { c_depth = 0; c_methods = []; c_super = x; }
 
 let add_def env n d =
   match env with
@@ -29,7 +40,7 @@ let add_def env n d =
 (* the initial environment. contains the object godclass *)
 let initial_env : environment =
   let env = new_env () in
-  let d = { d_name = "Object"; d_type = ClassDef(ref None, new_class_data ()); d_env = new_env () } in
+  let d = { d_name = "Object"; d_type = ClassDef(new_class_data None); d_env = new_env () } in
   add_def env "Object" d
 
 let find_def env x =
@@ -48,7 +59,7 @@ let unknown_def = { d_name = "unknown"; d_type = UnknownDef; d_env = new_env () 
 (* class methods *)
 let define_class env name supername =
   let sc = if supername = "" then find_def env "Object" else find_def env supername in
-  let d = { d_name = name; d_type = ClassDef(ref (Some sc), new_class_data ()); d_env = new_env () } in
+  let d = { d_name = name; d_type = ClassDef(new_class_data (Some sc)); d_env = new_env () } in
   add_def env name d
 
 let class_exists env name =

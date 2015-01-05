@@ -1,6 +1,6 @@
 type environment
 
-and def_type = ClassDef of def option ref * class_data (* class*)
+and def_type = ClassDef of class_data (* class*)
              | VarDef of def ref (* variable *)
              | MethDef (* method *)
              | UnknownDef
@@ -12,7 +12,9 @@ and def = {
   }
 
 and class_data = {
-  mutable c_methods : def list (* method list *)
+  c_depth : int;
+  mutable c_methods : def list; (* method list *)
+  c_super : def option (* superclass *)
 }
 
 
@@ -20,6 +22,9 @@ and class_data = {
 val initial_env : environment
 
 val new_env : unit -> environment
+
+(* pull class_data out of a def *)
+val find_class_data : def -> class_data
 
 (* add the definition to the environment *)
 val add_def : environment -> string -> def -> environment
