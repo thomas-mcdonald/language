@@ -38,15 +38,15 @@ check.cmo : tree.cmo dict.cmi
 check.cmx : tree.cmx dict.cmx
 dict.cmo : dict.cmi
 dict.cmx : dict.cmi
-lexer.cmo : tree.cmo parser.cmi keiko.cmi
+lexer.cmo : tree.cmo parser.cmi keiko.cmo
 lexer.cmx : tree.cmx parser.cmx keiko.cmx
-parser.cmo : tree.cmo parser.cmi
-parser.cmx : tree.cmx parser.cmi
-keiko.cmo : keiko.cmi
-keiko.cmx : keiko.cmi
+parser.cmo : tree.cmo dict.cmi parser.cmi
+parser.cmx : tree.cmx dict.cmx parser.cmi
+keiko.cmo :
+keiko.cmx :
 tree.cmo : dict.cmi
 tree.cmx : dict.cmx
 print.cmo : tree.cmo
 print.cmx : tree.cmx
-gen.cmo : tree.cmo
-gen.cmx : tree.cmx
+gen.cmo : tree.cmo keiko.cmo dict.cmi
+gen.cmx : tree.cmx keiko.cmx dict.cmx

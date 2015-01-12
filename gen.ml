@@ -1,4 +1,5 @@
 open Dict
+open Keiko
 open Printf
 open Tree
 
@@ -6,6 +7,13 @@ open Tree
 let put (s : string) : unit =
   print_string (s ^ "\n");
   ()
+
+let icode_print (w : icode) : string =
+  match w with
+    DEFINE(s) -> "DEFINE " ^ s
+  | WORD(SYM(s)) -> "WORD " ^ s
+
+let gen (w : icode) = printf "%s\n" (icode_print w)
 
 (* get a list of all parents, Object at the top *)
 let rec find_hierarchy (d : def) : def list =
@@ -31,11 +39,11 @@ let gen_descriptor (n: name) =
   match n.n_def.d_type with
     ClassDef(cd) ->
       (* print method list *)
-      let print_meth = (fun m -> put (sprintf "WORD %s.%s" n.n_name m.d_name)) in
+      let print_meth = (fun m -> gen (WORD (SYM (n.n_name ^ "." ^ m.d_name)))) in
       List.map print_meth cd.c_methods;
       (* print class hierarchy *)
-      put (sprintf "DEFINE %s.%%super" n.n_name);
-      List.map (fun c -> put (sprintf "WORD %s" c.d_name)) (find_hierarchy n.n_def)
+      gen (DEFINE (n.n_name ^ ".%super"));
+      List.map (fun c -> gen (WORD (SYM c.d_name))) (find_hierarchy n.n_def)
   | _ -> failwith "gen_descriptor"
 
 (* pull out the name from a class and call gen_descriptor on it *)
