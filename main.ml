@@ -18,7 +18,7 @@ let main () =
       let line = pointer.Lexing.pos_lnum in
       let col = pointer.Lexing.pos_cnum - pointer.Lexing.pos_bol in
       Printf.printf "parse error at token %s, (%d, %d)" tok line col; exit 1 in
-  print_string (Print.program prog);
+  if !Config.print_ast then print_string (Print.program prog);
   Check.annotate prog;
   generate prog;
   exit 0
