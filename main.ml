@@ -3,12 +3,12 @@ open Gen
 open Lexer
 open Tree
 
+let args = Arg.align [ "--ast", Arg.Set Config.print_ast, "Print the AST"; ]
+
 let main () =
-  let argv = Array.to_list Sys.argv in
-  if List.length argv <> 2 then begin
-    print_string "usage: ./language [FILE]\n"; exit 1;
-  end;
-  let filename = List.nth argv 1 in
+  let arg = ref [] in
+  Arg.parse args (fun x -> arg := !arg @ [x]) "Usage:";
+  let filename = List.hd !arg in
   let inch = open_in filename in
   let lexbuf = Lexing.from_channel inch in
   let prog = try Parser.program Lexer.token lexbuf with
