@@ -1,0 +1,6 @@
+This tests that a missing superclass is caught in semantic analysis
+#-#-#
+class Car < Vehicle
+end
+#-#-#
+superclass not defined
