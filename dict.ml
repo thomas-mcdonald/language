@@ -34,7 +34,8 @@ let find_class_data (d : def) =
 let new_class_data x =
   match x with
     Some(d) ->
-      { c_depth = (find_class_data d).c_depth + 1; c_methods = []; c_super = x; }
+      let parent_cd = find_class_data d in
+      { c_depth = parent_cd.c_depth + 1; c_methods = []; c_super = x; }
   | None ->     { c_depth = 0; c_methods = []; c_super = x; }
 
 let add_def env n d =

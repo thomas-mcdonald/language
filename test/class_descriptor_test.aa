@@ -1,4 +1,8 @@
 tests various definitions of class descriptor
+
+When overriding methods the method should be replaced inline - the ordering of the superclass methods shouldn't change
+(this is tested in the hilux class)
+
 #-#-#
 class Car
 end
@@ -14,6 +18,11 @@ end
 class Prius < Toyota
   def recharge
     true
+  end
+end
+
+class Hilux < Toyota
+  def mpg
   end
 end
 #-#-#
@@ -37,9 +46,20 @@ WORD Toyota
 
 ! Descriptor for Prius
 DEFINE Prius
+WORD Toyota.mpg
 WORD Prius.recharge
 DEFINE Prius.%super
 WORD Object
 WORD Car
 WORD Toyota
 WORD Prius
+
+! Descriptor for Hilux
+DEFINE Hilux
+WORD Hilux.mpg
+WORD Toyota.recharge
+DEFINE Hilux.%super
+WORD Object
+WORD Car
+WORD Toyota
+WORD Hilux

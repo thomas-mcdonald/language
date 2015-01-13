@@ -8,10 +8,17 @@ let error (str:string) =
 let ensure_unique env x =
   if def_exists env x then error (x ^ " is already defined")
 
-(* add a method to a class record.  *)
+(* add a method to a class record.
+    We first check whether the method is already in the list - if we are overriding a method
+    If we are then we rewrite it in place, else we append the method to the end of the list
+*)
 let add_method (c : def) (d : def) =
-  let cd = find_class_data c in
-  cd.c_methods <- cd.c_methods @ [d]
+  let matcher = (fun x -> x.d_name = d.d_name)
+  and cd = find_class_data c in
+  if List.exists matcher cd.c_methods then
+    cd.c_methods <- List.map (fun x -> if matcher x then d else x) cd.c_methods
+  else
+    cd.c_methods <- cd.c_methods @ [d]
 
 let populate_stmt (env : environment) (stmt : stmt) : environment =
   match stmt with
@@ -74,10 +81,21 @@ let populate_method (meth : stmt) class_name env : environment =
   | _ -> error "check_method called with a non-method stmt"
   env
 
+(* add the parents methods to the class *)
+let add_parent_methods env (n : name) (p : ptype) =
+  match p with
+    Object(s) ->
+      let superclass = find_def env s in
+      let cd = find_class_data n.n_def in
+      cd.c_methods <- (find_class_data superclass).c_methods;
+  | Void -> () (* will need changing if Object gains methods *)
+  | _ -> error "add_parent_methods"
+
 let populate_methods env klass : environment =
   let method_filter = (fun x -> match x with MethodDecl(_) -> true | _ -> false) in
   match klass with
-    ClassDecl(n, _, xs) ->
+    ClassDecl(n, s, xs) ->
+      add_parent_methods env n s;
       let meth_accu = (fun env x -> populate_method x n.n_name env) in
       let statements = List.filter method_filter xs in
       List.fold_left meth_accu env statements
