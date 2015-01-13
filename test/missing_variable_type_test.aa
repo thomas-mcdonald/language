@@ -1,0 +1,7 @@
+check to ensure a variable type is always defined
+#-#-#
+class Test
+  Car a
+end
+#-#-#
+can't define variable of type Car as class not defined

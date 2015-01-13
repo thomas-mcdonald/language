@@ -1,0 +1,8 @@
+tests for error if attempt to redefine a class
+#-#-#
+class Car
+end
+class Car
+end
+#-#-#
+Car is already defined
