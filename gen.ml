@@ -24,10 +24,7 @@ let rec find_hierarchy (d : def) : def list =
 
 let gen_stmt (stmt : stmt) =
   match stmt with
-    ClassDecl(e, e', xs) ->
-      put "! Class Description";
-      (* class code *)
-      ()
+    ClassDecl(_, _, _) -> ()
 
 let gen_stmts (xs : stmt list) =
   List.map gen_stmt xs

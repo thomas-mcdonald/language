@@ -1,0 +1,43 @@
+tests various definitions of class descriptor
+#-#-#
+class Car
+end
+class Toyota < Car
+  def mpg
+  end
+
+  def recharge
+    false
+  end
+end
+
+class Prius < Toyota
+  def recharge
+    true
+  end
+end
+#-#-#
+MODULE Main 0 0
+IMPORT Lib 0
+ENDHDR
+! Descriptor for Car
+DEFINE Car
+DEFINE Car.%super
+WORD Object
+WORD Car
+! Descriptor for Toyota
+DEFINE Toyota
+WORD Toyota.mpg
+WORD Toyota.recharge
+DEFINE Toyota.%super
+WORD Object
+WORD Car
+WORD Toyota
+! Descriptor for Prius
+DEFINE Prius
+WORD Prius.recharge
+DEFINE Prius.%super
+WORD Object
+WORD Car
+WORD Toyota
+WORD Prius

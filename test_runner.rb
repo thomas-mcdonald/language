@@ -19,7 +19,7 @@ Dir["test/*_test.aa"].each do |file|
   pid = spawn('./language test/test.aa', out: w, err: w)
   Process.wait pid
   w.close
-  result = r.read
+  result = r.read.strip
   if result == expected_output
     print "."
   else
