@@ -64,8 +64,9 @@ let populate_method (meth : stmt) class_name env : environment =
   let c = find_def env class_name in
   match meth with
     MethodDecl(n, args, xs) ->
-      let name = n.n_name in
-      let d = { d_name = name; d_type = MethDef; d_env = new_env () } in
+      let name = n.n_name
+      and meth_data = { m_receiver = c } in
+      let d = { d_name = name; d_type = MethDef(meth_data); d_env = new_env () } in
       ensure_unique c.d_env name;
       add_def env name d; (* TODO: work out wtf this is for - is it useful? *)
       add_method c d;

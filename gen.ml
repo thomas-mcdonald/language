@@ -29,6 +29,11 @@ let gen_stmt (stmt : stmt) =
 let gen_stmts (xs : stmt list) =
   List.map gen_stmt xs
 
+(* generate a method descriptor given a method def *)
+let gen_method_descriptor (d : def) : icode =
+  match d.d_type with
+    MethDef(md) -> WORD (SYM (md.m_receiver.d_name ^ "." ^ d.d_name))
+
 (* generate a descriptor *)
 let gen_descriptor (n: name) =
   put (sprintf "! Descriptor for %s" n.n_name);
@@ -36,11 +41,12 @@ let gen_descriptor (n: name) =
   match n.n_def.d_type with
     ClassDef(cd) ->
       (* print method list *)
-      let print_meth = (fun m -> gen (WORD (SYM (n.n_name ^ "." ^ m.d_name)))) in
+      let print_meth = (fun m -> gen (gen_method_descriptor m)) in
       List.map print_meth cd.c_methods;
       (* print class hierarchy *)
       gen (DEFINE (n.n_name ^ ".%super"));
-      List.map (fun c -> gen (WORD (SYM c.d_name))) (find_hierarchy n.n_def)
+      List.map (fun c -> gen (WORD (SYM c.d_name))) (find_hierarchy n.n_def);
+      put ""
   | _ -> failwith "gen_descriptor"
 
 (* pull out the name from a class and call gen_descriptor on it *)

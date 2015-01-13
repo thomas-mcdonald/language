@@ -4,7 +4,7 @@ type environment = Env of def EnvMap.t ref
 
 and def_type = ClassDef of class_data (* class data *)
              | VarDef of def ref (* variable (class type) *)
-             | MethDef (* method *)
+             | MethDef of meth_data (* method *)
              | UnknownDef
 
 and def = {
@@ -18,6 +18,10 @@ and class_data = {
   c_depth : int; (* how many classes above? *)
   mutable c_methods : def list; (* method list *)
   c_super : def option
+}
+
+and meth_data = {
+  m_receiver : def;
 }
 
 let new_env = fun () -> Env (ref EnvMap.empty)

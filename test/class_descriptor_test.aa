@@ -25,6 +25,7 @@ DEFINE Car
 DEFINE Car.%super
 WORD Object
 WORD Car
+
 ! Descriptor for Toyota
 DEFINE Toyota
 WORD Toyota.mpg
@@ -33,6 +34,7 @@ DEFINE Toyota.%super
 WORD Object
 WORD Car
 WORD Toyota
+
 ! Descriptor for Prius
 DEFINE Prius
 WORD Prius.recharge

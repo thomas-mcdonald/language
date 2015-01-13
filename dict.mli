@@ -2,7 +2,7 @@ type environment
 
 and def_type = ClassDef of class_data (* class*)
              | VarDef of def ref (* variable *)
-             | MethDef (* method *)
+             | MethDef of meth_data (* method *)
              | UnknownDef
 
 and def = {
@@ -15,6 +15,10 @@ and class_data = {
   c_depth : int;
   mutable c_methods : def list; (* method list *)
   c_super : def option (* superclass *)
+}
+
+and meth_data = {
+  m_receiver : def
 }
 
 
