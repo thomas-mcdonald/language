@@ -24,3 +24,12 @@ class Delegate < Test
     counter.increment
   end
 end
+
+class Main
+  Test x
+
+  def main
+    x = Test.new
+    x.increment
+  end
+end
