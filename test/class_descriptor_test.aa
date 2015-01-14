@@ -29,6 +29,18 @@ end
 MODULE Main 0 0
 IMPORT Lib 0
 ENDHDR
+PROC Toyota.mpg 0 0 0
+END
+
+PROC Toyota.recharge 0 0 0
+END
+
+PROC Prius.recharge 0 0 0
+END
+
+PROC Hilux.mpg 0 0 0
+END
+
 ! Descriptor for Car
 DEFINE Car
 DEFINE Car.%super

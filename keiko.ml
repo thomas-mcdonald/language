@@ -75,7 +75,7 @@ type icode =
 
 let string_of_icode (w : icode) : string =
   match w with
-    PROC(s,i,SYM(t)) -> Printf.sprintf "PROC %s %d %s" s i t
+    PROC(s,f,_) -> Printf.sprintf "PROC %s %d 0 0" s f
   | END -> "END"
   | DEFINE(s) -> "DEFINE " ^ s
   | WORD(SYM(s)) -> "WORD " ^ s

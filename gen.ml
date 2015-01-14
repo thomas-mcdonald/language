@@ -17,12 +17,21 @@ let rec find_hierarchy (d : def) : def list =
     Some(d') -> (find_hierarchy d') @ [d]
   | None -> [d]
 
-let gen_stmt (stmt : stmt) =
+(* generate the code for each proceedure in a class. This is initially iterated
+  from the definition
+  *)
+let rec gen_proc (c : name) (stmt : stmt) =
   match stmt with
-    ClassDecl(_, _, _) -> ()
-
-let gen_stmts (xs : stmt list) =
-  List.map gen_stmt xs
+    ClassDecl(c, _, xs) ->
+      List.iter (gen_proc c) xs
+  | MethodDecl(n,args,xs) ->
+    (* PROC name nargs fsize gcmap *)
+    (* TODO: second argument is size of local variable space *)
+    gen (PROC ((c.n_name ^ "." ^ n.n_name), 0, INT(Int32.zero)));
+    gen END;
+    put ""
+  | Declare(t,e) -> ()
+  | _ -> failwith "gen_proc"
 
 (* generate a method descriptor given a method def *)
 let gen_method_descriptor (d : def) : icode =
@@ -55,6 +64,8 @@ let generate (prog : program) =
   put "ENDHDR";
   match prog with
     Prog(Block (xs)) ->
-      gen_stmts xs;
-      List.map gen_class_desc (extract_classes xs);
+      let dummy_name = { n_name = ""; n_def = { d_name = ""; d_type = UnknownDef; d_env = new_env () }} in
+      List.iter (gen_proc dummy_name) xs;
+      (* gen_stmts xs; *)
+      List.iter gen_class_desc (extract_classes xs);
   ()
