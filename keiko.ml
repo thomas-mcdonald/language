@@ -72,3 +72,10 @@ type icode =
   | STEW of int			(* LDLW 12/STNW n *)
   | JUMPCZ of kind * op * codelab  (* PUSH 0/JUMPC *)
   | TESTGEQ of codelab		(* Case split = DUP 1/JUMPC Lt *)
+
+let string_of_icode (w : icode) : string =
+  match w with
+    PROC(s,i,SYM(t)) -> Printf.sprintf "PROC %s %d %s" s i t
+  | END -> "END"
+  | DEFINE(s) -> "DEFINE " ^ s
+  | WORD(SYM(s)) -> "WORD " ^ s

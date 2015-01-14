@@ -8,12 +8,7 @@ let put (s : string) : unit =
   print_string (s ^ "\n");
   ()
 
-let icode_print (w : icode) : string =
-  match w with
-    DEFINE(s) -> "DEFINE " ^ s
-  | WORD(SYM(s)) -> "WORD " ^ s
-
-let gen (w : icode) = printf "%s\n" (icode_print w)
+let gen (w : icode) = printf "%s\n" (string_of_icode w)
 
 (* get a list of all parents, Object at the top *)
 let rec find_hierarchy (d : def) : def list =
