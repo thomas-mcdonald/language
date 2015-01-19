@@ -18,17 +18,21 @@ clean: force
 	rm -f *.cma *.cmo *.cmi
 	rm -f parser.ml lexer.ml parser.output
 
-depend : $(ML) force
-	(sed '/^###/q' Makefile; echo; ocamldep $(ML)) >new
-	mv new Makefile
-
 %.cmi : %.mli
 	ocamlc $(MLFLAGS) -c $<
 
 %.cmo : %.ml
 	ocamlc $(MLFLAGS) -c $<
 
-force: 
+
+.PHONY: depend test
+depend : $(ML)
+	(sed '/^###/q' Makefile; echo; ocamldep $(ML)) >new
+	mv new Makefile
+
+test:
+	ruby test_runner.rb
+
 
 ###
 
