@@ -8,13 +8,14 @@ type name =
 
 type ptype = Integer | Boolean | Object of string | Void
 
-type program = Prog of block
+type program = Prog of klass list
+
+and klass = Klass of name * name * stmt list
 
 and block = Block of stmt list
           | NoBlock
 
-and stmt = ClassDecl of name * ptype * stmt list (* name * superclass * statements *)
-         | MethodDecl of name * method_arg list * stmt list (* name * args * statements  *)
+and stmt = MethodDecl of name * method_arg list * stmt list (* name * args * statements  *)
          | Assign of expr * expr (* lhs = rhs *)
          | Declare of ptype * expr (* int x *)
          | Expr of expr (* expression statement  *)
@@ -36,11 +37,3 @@ and op = Plus
 
 let makeExpr g =
   { e_guts = g; e_type = Void }
-
-let classMatch =
-  function
-    ClassDecl(_,_,_)  -> true
-  | _               -> false
-
-let extract_classes (stmts : stmt list) : stmt list =
-  List.filter classMatch stmts

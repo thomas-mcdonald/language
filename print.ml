@@ -34,7 +34,6 @@ let rec ppExpr e =
 
 let rec ppStmt =
   function
-    ClassDecl (n, s, xs) -> wraplist (Printf.sprintf "Class %s < %s" (ppName n) (ppType s)) [ppStmts xs]
   | MethodDecl (n, args, xs) -> wraplist "Method" [ppName n; ppArgs args; ppStmts xs]
   | Assign (e, e') -> wraplist "Assignment" [ppExpr e; ppExpr e']
   | Declare(p, e) -> wraplist ("Declaration " ^ (ppType p)) [ppExpr e]
@@ -42,11 +41,11 @@ let rec ppStmt =
 
 and ppStmts xs = "[" ^ String.concat ",\n" (List.map ppStmt xs) ^ "]"
 
-let ppBlock =
+let ppClass =
   function
-    NoBlock -> "NoBlock"
-  | Block xs -> String.concat "\n" (List.map ppStmt xs)
+    Klass(n,s,xs) ->
+      wraplist (Printf.sprintf "Class %s < %s" (ppName n) (ppName s)) [ppStmts xs]
 
 let program =
   function
-    Prog b -> ppBlock b ^ "\n"
+    Prog cs -> String.concat "\n" (List.map ppClass cs)

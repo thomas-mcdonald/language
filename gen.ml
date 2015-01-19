@@ -22,8 +22,6 @@ let rec find_hierarchy (d : def) : def list =
   *)
 let rec gen_proc (c : name) (stmt : stmt) =
   match stmt with
-    ClassDecl(c, _, xs) ->
-      List.iter (gen_proc c) xs
   | MethodDecl(n,args,xs) ->
     (* PROC name nargs fsize gcmap *)
     (* TODO: second argument is size of local variable space *)
@@ -32,6 +30,10 @@ let rec gen_proc (c : name) (stmt : stmt) =
     put ""
   | Declare(t,e) -> ()
   | _ -> failwith "gen_proc"
+
+let gen_procs (klass : klass) =
+  match klass with
+    Klass(n,s,xs) -> List.iter (gen_proc n) xs
 
 (* generate a method descriptor given a method def *)
 let gen_method_descriptor (d : def) : icode =
@@ -54,18 +56,17 @@ let gen_descriptor (n: name) =
   | _ -> failwith "gen_descriptor"
 
 (* pull out the name from a class and call gen_descriptor on it *)
-let gen_class_desc (x : stmt) =
-  match x with
-    ClassDecl(n, _, _) -> gen_descriptor n
+let gen_class_desc (k : klass) =
+  match k with
+    Klass(n, _, _) -> gen_descriptor n
 
 let generate (prog : program) =
   put "MODULE Main 0 0";
   put "IMPORT Lib 0";
   put "ENDHDR";
   match prog with
-    Prog(Block (xs)) ->
-      let dummy_name = { n_name = ""; n_def = { d_name = ""; d_type = UnknownDef; d_env = new_env () }} in
-      List.iter (gen_proc dummy_name) xs;
+    Prog(cs) ->
+      List.iter gen_procs cs;
       (* gen_stmts xs; *)
-      List.iter gen_class_desc (extract_classes xs);
+      List.iter gen_class_desc cs;
   ()
