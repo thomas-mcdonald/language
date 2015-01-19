@@ -1,0 +1,11 @@
+this tests where we attempt to define a method with the same name as a variable
+#-#-#
+class Example
+end
+class Test
+  Example a
+  def a
+  end
+end
+#-#-#
+a is already defined
