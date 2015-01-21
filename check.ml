@@ -59,7 +59,6 @@ let populate_variables env klass : environment =
       let var_accu = (fun env x -> populate_variable x n.n_name env) in
       let statements = List.filter statement_filter xs in
       List.fold_left var_accu env statements
-  | _ -> error "check_variables called against a non-class"
 
 
 let populate_method (meth : stmt) class_name env : environment =
@@ -74,7 +73,6 @@ let populate_method (meth : stmt) class_name env : environment =
       add_method c d;
       env
   | _ -> error "check_method called with a non-method stmt"
-  env
 
 (* add the parents methods to the class *)
 let add_parent_methods env (n : name) (s : name) =
@@ -90,7 +88,6 @@ let populate_methods env klass : environment =
       let meth_accu = (fun env x -> populate_method x n.n_name env) in
       let statements = List.filter method_filter xs in
       List.fold_left meth_accu env statements
-    | _ -> error "check_methods called against a non-class"
 
 (*
   populate_class_info extracts information about the classes in the program 
@@ -106,14 +103,13 @@ let populate_methods env klass : environment =
       * Names are not duplicate
     TODO: look into fusing some of these methods together
 *)
-let populate_class_info (classes : klass list) (env : environment) =
+let populate_class_info (classes : klass list) (env : environment) : unit =
   let env' = List.fold_left populate_klass env classes in
   let env'' = List.fold_left populate_variables env' classes in
-  List.fold_left populate_methods env'' classes
+  ignore (List.fold_left populate_methods env'' classes)
 
 let annotate (program : program) : unit =
   let env = initial_env in
   match program with
     Prog(cs) ->
       populate_class_info cs env;
-      ()
