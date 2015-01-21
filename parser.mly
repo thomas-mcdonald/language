@@ -14,6 +14,7 @@ open Tree
 
 %{
 
+let makeExpr x = { e_guts = x; e_type = Unknown }
 let makeName x = { n_name = x; n_def = unknown_def }
 
 let classObject = { n_name = "Object"; n_def = unknown_def }

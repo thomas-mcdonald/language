@@ -1,7 +1,7 @@
 type environment
 
 and def_type = ClassDef of class_data (* class*)
-             | VarDef of def ref (* variable *)
+             | VarDef of type_data (* variable *)
              | MethDef of meth_data (* method *)
              | UnknownDef
 
@@ -20,6 +20,8 @@ and class_data = {
 and meth_data = {
   m_receiver : def
 }
+
+and type_data = Int | Object of def ref
 
 
 (* The initial environment *)
@@ -50,4 +52,4 @@ val define_class : environment -> string -> string -> environment
 val class_exists : environment -> string -> bool
 
 (* define a variable - class environment, name, type  *)
-val define_variable : environment -> string -> def -> environment
+val define_variable : environment -> string -> type_data -> environment

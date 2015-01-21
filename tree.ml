@@ -6,7 +6,7 @@ type name =
   { n_name: ident;
     mutable n_def: def }
 
-type typed = Integer | Boolean | Object of name | Void
+type typed = Integer | Boolean | Object of name | Unknown
 
 type program = Prog of klass list
 
@@ -34,6 +34,3 @@ and expr_guts = Number of int
          | Nil
 
 and op = Plus
-
-let makeExpr g =
-  { e_guts = g; e_type = Void }

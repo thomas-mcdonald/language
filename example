@@ -26,10 +26,10 @@ class Delegate < Test
 end
 
 class Main
-  Test x
+  int x
 
   def main
-    x = Test.new
+    x = 0
     x.increment
   end
 end

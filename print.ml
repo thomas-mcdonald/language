@@ -20,7 +20,7 @@ let ppType =
     Integer -> "Integer"
   | Boolean -> "Boolean"
   | Object(n) -> ppName n ^ " (Object)"
-  | Void -> "Void"
+  | Unknown -> "Unknown" (* TODO: this should probably be unreachable *)
 
 let ppArgs args = wraplist "arguments" (List.map (fun a -> match a with Arg(n, p) -> n.n_name ^ " " ^ ppType p) args)
 

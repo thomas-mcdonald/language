@@ -3,7 +3,7 @@ module EnvMap = Map.Make(String)
 type environment = Env of def EnvMap.t ref
 
 and def_type = ClassDef of class_data (* class data *)
-             | VarDef of def ref (* variable (class type) *)
+             | VarDef of type_data (* variable (class type) *)
              | MethDef of meth_data (* method *)
              | UnknownDef
 
@@ -23,6 +23,8 @@ and class_data = {
 and meth_data = {
   m_receiver : def;
 }
+
+and type_data = Int | Object of def ref
 
 let new_env = fun () -> Env (ref EnvMap.empty)
 
@@ -78,6 +80,6 @@ let class_exists env name =
 
 (* variable methods *)
 let define_variable env name c =
-  let d = { d_name = name; d_type = VarDef(ref c); d_env = new_env () } in
+  let d = { d_name = name; d_type = VarDef(c); d_env = new_env () } in
   add_def env name d
 

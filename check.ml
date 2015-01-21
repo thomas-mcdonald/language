@@ -45,11 +45,15 @@ let populate_variable (dec : stmt) class_name env : environment =
           ensure_unique c.d_env s;
           let ct = find_def env type_name in
           t.n_def <- ct;
-          define_variable c.d_env s ct;
+          define_variable c.d_env s (Object (ref ct));
           env
         | _ -> error "unsupported variable name")
-  | Declare(p, x) ->
-      error "declare called with a primitive - TODO"
+  | Declare(p, e) ->
+      match e.e_guts with
+        Ident(s) ->
+          ensure_unique c.d_env s;
+          define_variable c.d_env s Int;
+          env
   | _ -> error "check variable called with a non var"
 
 let populate_variables env klass : environment =
