@@ -39,10 +39,12 @@ let populate_variable (dec : stmt) class_name env : environment =
     Declare(Object(t), e) ->
       (match e.e_guts with
         Ident(s) ->
-          if not (class_exists env t) then
-            error ("can't define variable of type " ^ t ^ " as class not defined");
+          let type_name = t.n_name in
+          if not (class_exists env type_name) then
+            error ("can't define variable of type " ^ type_name ^ " as class not defined");
           ensure_unique c.d_env s;
-          let ct = find_def env t in
+          let ct = find_def env type_name in
+          t.n_def <- ct;
           define_variable c.d_env s ct;
           env
         | _ -> error "unsupported variable name")

@@ -13,14 +13,15 @@ let wrap_simple (s : string) = "(" ^ s ^ ")"
 let wraplist (id : string) (xs : string list) : string =
   wrap_simple (id ^ (String.concat "" (List.map nest xs)))
 
+let ppName n = n.n_name
+
 let ppType =
   function
     Integer -> "Integer"
   | Boolean -> "Boolean"
-  | Object(s) -> s ^ " (Object)"
+  | Object(n) -> ppName n ^ " (Object)"
   | Void -> "Void"
 
-let ppName n = n.n_name
 let ppArgs args = wraplist "arguments" (List.map (fun a -> match a with Arg(n, p) -> n.n_name ^ " " ^ ppType p) args)
 
 let rec ppExpr e =

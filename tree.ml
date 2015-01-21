@@ -6,7 +6,7 @@ type name =
   { n_name: ident;
     mutable n_def: def }
 
-type ptype = Integer | Boolean | Object of string | Void
+type typed = Integer | Boolean | Object of name | Void
 
 type program = Prog of klass list
 
@@ -17,14 +17,14 @@ and block = Block of stmt list
 
 and stmt = MethodDecl of name * method_arg list * stmt list (* name * args * statements  *)
          | Assign of expr * expr (* lhs = rhs *)
-         | Declare of ptype * expr (* int x *)
+         | Declare of typed * expr (* int x *)
          | Expr of expr (* expression statement  *)
 
-and method_arg = Arg of name * ptype
+and method_arg = Arg of name * typed
 
 and expr =
   { e_guts: expr_guts;
-    mutable e_type: ptype }
+    mutable e_type: typed }
 
 and expr_guts = Number of int
          | Const of string
