@@ -1,5 +1,7 @@
 ML = main.ml check.ml dict.ml lexer.ml parser.ml keiko.ml tree.ml print.ml gen.ml
 
+.PHONY: depend test clean
+
 all: language
 
 LANGUAGE = config.cmo keiko.cmo print.cmo tree.cmo dict.cmo lexer.cmo parser.cmo check.cmo gen.cmo main.cmo
@@ -13,14 +15,10 @@ parser.mli parser.ml: parser.mly
 lexer.ml: lexer.mll
 	ocamllex lexer.mll
 
-clean: force
+clean:
 	rm -f language
 	rm -f *.cma *.cmo *.cmi
 	rm -f parser.ml lexer.ml parser.output
-
-depend : $(ML) force
-	(sed '/^###/q' Makefile; echo; ocamldep $(ML)) >new
-	mv new Makefile
 
 %.cmi : %.mli
 	ocamlc $(MLFLAGS) -c $<
@@ -28,7 +26,13 @@ depend : $(ML) force
 %.cmo : %.ml
 	ocamlc $(MLFLAGS) -c $<
 
-force: 
+depend : $(ML)
+	(sed '/^###/q' Makefile; echo; ocamldep $(ML)) >new
+	mv new Makefile
+
+test:
+	ruby test_runner.rb
+
 
 ###
 

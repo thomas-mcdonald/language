@@ -62,8 +62,8 @@ let def_exists env x =
 let unknown_def = { d_name = "unknown"; d_type = UnknownDef; d_env = new_env () }
 
 (* class methods *)
-let define_class env name supername =
-  let sc = if supername = "" then find_def env "Object" else find_def env supername in
+let define_class env (name : string) (super : string) =
+  let sc = find_def env super in
   let d = { d_name = name; d_type = ClassDef(new_class_data (Some sc)); d_env = new_env () } in
   add_def env name d
 

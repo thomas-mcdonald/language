@@ -20,23 +20,16 @@ let add_method (c : def) (d : def) =
   else
     cd.c_methods <- cd.c_methods @ [d]
 
-let populate_stmt (env : environment) (stmt : stmt) : environment =
-  match stmt with
-    (* class declaration without superclass *)
-    ClassDecl(n, Void, _) ->
+let populate_klass (env : environment) (klass : klass) : environment =
+  match klass with
+    Klass(n,s, xs) ->
       let name = n.n_name in
       ensure_unique env name;
-      (* TODO: pull this logic out of Dict and into a method, works for now... *)
-      let env' = define_class env name "" in
-      n.n_def <- find_def env' name;
-      env'
-    (* class declaration with superclass *)
-  | ClassDecl(n, Object(s), _) ->
-      let name = n.n_name in
-      ensure_unique env name;
-      if not (class_exists env s)
+
+      if not (class_exists env s.n_name)
       then error "superclass not defined"
-      else let env' = define_class env name s in
+      (* TODO: pull this logic out of Dict and into a method, works for now... *)
+      else let env' = define_class env name s.n_name in
       n.n_def <- find_def env' name;
       env'
 
@@ -60,7 +53,7 @@ let populate_variable (dec : stmt) class_name env : environment =
 let populate_variables env klass : environment =
   let statement_filter = (fun x -> match x with Declare(_) -> true | _ -> false) in
   match klass with
-    ClassDecl(n, _, xs) ->
+    Klass(n, _, xs) ->
       let var_accu = (fun env x -> populate_variable x n.n_name env) in
       let statements = List.filter statement_filter xs in
       List.fold_left var_accu env statements
@@ -82,19 +75,15 @@ let populate_method (meth : stmt) class_name env : environment =
   env
 
 (* add the parents methods to the class *)
-let add_parent_methods env (n : name) (p : ptype) =
-  match p with
-    Object(s) ->
-      let superclass = find_def env s in
-      let cd = find_class_data n.n_def in
-      cd.c_methods <- (find_class_data superclass).c_methods;
-  | Void -> () (* will need changing if Object gains methods *)
-  | _ -> error "add_parent_methods"
+let add_parent_methods env (n : name) (s : name) =
+  let superclass = find_def env s.n_name in
+  let cd = find_class_data n.n_def in
+  cd.c_methods <- (find_class_data superclass).c_methods
 
 let populate_methods env klass : environment =
   let method_filter = (fun x -> match x with MethodDecl(_) -> true | _ -> false) in
   match klass with
-    ClassDecl(n, s, xs) ->
+    Klass(n, s, xs) ->
       add_parent_methods env n s;
       let meth_accu = (fun env x -> populate_method x n.n_name env) in
       let statements = List.filter method_filter xs in
@@ -115,19 +104,14 @@ let populate_methods env klass : environment =
       * Names are not duplicate
     TODO: look into fusing some of these methods together
 *)
-let populate_class_info (classes : stmt list) (env : environment) =
-  let env' = List.fold_left populate_stmt env classes in
+let populate_class_info (classes : klass list) (env : environment) =
+  let env' = List.fold_left populate_klass env classes in
   let env'' = List.fold_left populate_variables env' classes in
   List.fold_left populate_methods env'' classes
-
-let check_block (env : environment) (block : block) =
-  match block with
-      NoBlock -> raise (Failure "no program given")
-    | Block(xs) -> populate_class_info xs env
 
 let annotate (program : program) : unit =
   let env = initial_env in
   match program with
-    Prog(block) ->
-      check_block env block;
+    Prog(cs) ->
+      populate_class_info cs env;
       ()
