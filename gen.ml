@@ -46,6 +46,7 @@ let gen_descriptor (n: name) =
   put (sprintf "DEFINE %s" n.n_name);
   match n.n_def.d_type with
     ClassDef(cd) ->
+      put (sprintf "! size - %d" cd.c_size);
       (* print method list *)
       let print_meth = (fun m -> gen (gen_method_descriptor m)) in
       List.map print_meth cd.c_methods;

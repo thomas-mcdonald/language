@@ -1,8 +1,8 @@
 type environment
 
-and def_type = ClassDef of class_data (* class*)
-             | VarDef of type_data (* variable *)
+and def_type = ClassDef of class_data (* class data *)
              | MethDef of meth_data (* method *)
+             | VarDef of var_data (* variable (class type) *)
              | UnknownDef
 
 and def = {
@@ -14,11 +14,18 @@ and def = {
 and class_data = {
   c_depth : int;
   mutable c_methods : def list; (* method list *)
-  c_super : def option (* superclass *)
+  c_super : def option; (* superclass *)
+  mutable c_size : int;
+  mutable c_variables : def list
 }
 
 and meth_data = {
   m_receiver : def
+}
+
+and var_data = {
+  v_offset : int;
+  v_type : type_data
 }
 
 and type_data = Int | Object of def ref
@@ -50,6 +57,3 @@ val define_class : environment -> string -> string -> environment
 
 (* does a class exist with the name? used for finding superclasses *)
 val class_exists : environment -> string -> bool
-
-(* define a variable - class environment, name, type  *)
-val define_variable : environment -> string -> type_data -> environment

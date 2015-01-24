@@ -5,6 +5,11 @@ let error (str:string) =
   Printf.eprintf "%s" str;
   exit 1
 
+let sizeof (t : type_data) =
+  match t with
+  | Int -> 4
+  | Object(_) -> 4
+
 let ensure_unique env x =
   if def_exists env x then error (x ^ " is already defined")
 
@@ -19,6 +24,15 @@ let add_method (c : def) (d : def) =
     cd.c_methods <- List.map (fun x -> if matcher x then d else x) cd.c_methods
   else
     cd.c_methods <- cd.c_methods @ [d]
+
+(* add a variable to a class - populates with variable offset & updates class size *)
+let add_variable (c : def) (name : string) (t : type_data) =
+  let cd = find_class_data c in
+  let v = { v_offset = cd.c_size; v_type = t } in
+  let d = { d_name = name; d_type = VarDef(v); d_env = new_env () } in
+    cd.c_size <- cd.c_size + (sizeof t);
+    cd.c_variables <- cd.c_variables @ [d];
+    add_def c.d_env name d
 
 let populate_klass (env : environment) (klass : klass) : environment =
   match klass with
@@ -44,15 +58,15 @@ let populate_variable (dec : stmt) class_name env : environment =
             error ("can't define variable of type " ^ type_name ^ " as class not defined");
           ensure_unique c.d_env s;
           let ct = find_def env type_name in
+          add_variable c s (Object (ref ct));
           t.n_def <- ct;
-          define_variable c.d_env s (Object (ref ct));
           env
         | _ -> error "unsupported variable name")
   | Declare(p, e) ->
       match e.e_guts with
         Ident(s) ->
           ensure_unique c.d_env s;
-          define_variable c.d_env s Int;
+          add_variable c s Int;
           env
   | _ -> error "check variable called with a non var"
 

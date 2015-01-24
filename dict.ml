@@ -3,8 +3,8 @@ module EnvMap = Map.Make(String)
 type environment = Env of def EnvMap.t ref
 
 and def_type = ClassDef of class_data (* class data *)
-             | VarDef of type_data (* variable (class type) *)
              | MethDef of meth_data (* method *)
+             | VarDef of var_data (* variable (class type) *)
              | UnknownDef
 
 and def = {
@@ -17,11 +17,18 @@ and def = {
 and class_data = {
   c_depth : int; (* how many classes above? *)
   mutable c_methods : def list; (* method list *)
-  c_super : def option
+  c_super : def option;
+  mutable c_size : int;
+  mutable c_variables : def list
 }
 
 and meth_data = {
   m_receiver : def;
+}
+
+and var_data = {
+  v_offset : int;
+  v_type : type_data
 }
 
 and type_data = Int | Object of def ref
@@ -37,8 +44,8 @@ let new_class_data x =
   match x with
     Some(d) ->
       let parent_cd = find_class_data d in
-      { c_depth = parent_cd.c_depth + 1; c_methods = []; c_super = x; }
-  | None ->     { c_depth = 0; c_methods = []; c_super = x; }
+      { c_depth = parent_cd.c_depth + 1; c_methods = []; c_super = x; c_size = 0; c_variables = [] }
+  | None ->     { c_depth = 0; c_methods = []; c_super = x; c_size = 0; c_variables = [] }
 
 let add_def env n d =
   match env with
@@ -77,9 +84,4 @@ let class_exists env name =
     | _ -> false
   with
     Not_found -> false
-
-(* variable methods *)
-let define_variable env name c =
-  let d = { d_name = name; d_type = VarDef(c); d_env = new_env () } in
-  add_def env name d
 
