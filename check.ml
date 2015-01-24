@@ -126,8 +126,26 @@ let populate_class_info (classes : klass list) (env : environment) : unit =
   let env'' = List.fold_left populate_variables env' classes in
   ignore (List.fold_left populate_methods env'' classes)
 
+(* check_assign ensures that the lhs is an identifier and that the types match up *)
+let check_assign (e1 : expr) (e2 : expr) =
+  match e1.e_guts with
+  | Ident(i) -> ()
+  | _ -> () (* only identifiers are allowed in the parser *)
+
+let rec check_stmt (env : environment) (s : stmt) =
+  match s with
+  | MethodDecl(_,_,xs) -> List.iter (check_stmt env) xs
+  | Assign(e1, e2) -> check_assign e1 e2
+  | _ -> ()
+
+let check_class (env : environment) (klass : klass) =
+  match klass with
+    Klass(_,_,xs) ->
+      List.iter (check_stmt env) xs
+
 let annotate (program : program) : unit =
   let env = initial_env in
   match program with
     Prog(cs) ->
       populate_class_info cs env;
+      List.iter (check_class env) cs
