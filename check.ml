@@ -1,6 +1,7 @@
 open Dict
 open Tree
 
+(* utility methods for extraction etc *)
 let error (str:string) =
   Printf.eprintf "%s" str;
   exit 1
@@ -12,6 +13,18 @@ let sizeof (t : type_data) =
 
 let ensure_unique env x =
   if def_exists env x then error (x ^ " is already defined")
+
+let expr_class (env: environment) (e: expr) =
+  match e.e_type with
+  | Object(s) -> find_def env s.n_name
+  | _ -> failwith "expr_class"
+
+let type_data_to_typed t =
+  match t with
+  | Int -> Integer
+  | Object(r) ->
+    let d = !r in
+      Object { n_name = d.d_name; n_def = d }
 
 (* add a method to a class record.
     We first check whether the method is already in the list - if we are overriding a method
@@ -126,22 +139,43 @@ let populate_class_info (classes : klass list) (env : environment) : unit =
   let env'' = List.fold_left populate_variables env' classes in
   ignore (List.fold_left populate_methods env'' classes)
 
+let rec check_expr (env: environment) (e : expr) =
+  match e.e_guts with
+  | Number(x) -> e.e_type <- Integer
+  | Ident(x) ->
+    let d = find_def env x in
+    begin match d.d_type with
+    | VarDef(v) ->
+      e.e_type <- type_data_to_typed v.v_type
+    | _ -> error "identifier does not refer to a variable"
+    end
+  | Binop(Plus, e1, e2) ->
+    check_expr env e1;
+    check_expr env e2;
+    if e1.e_type <> Integer || e2.e_type <> Integer then error "plus only works on integers";
+    e.e_type <- e1.e_type (* will be an integer*)
+  | _ -> ()
+
 (* check_assign ensures that the lhs is an identifier and that the types match up *)
-let check_assign (e1 : expr) (e2 : expr) =
+let check_assign (env: environment) (e1: expr) (e2: expr) =
   match e1.e_guts with
-  | Ident(i) -> ()
+  | Ident(i) ->
+    check_expr env e1;
+    check_expr env e2;
+    if e1.e_type <> e2.e_type then error "assignment types mismatched"
   | _ -> () (* only identifiers are allowed in the parser *)
 
-let rec check_stmt (env : environment) (s : stmt) =
+let rec check_stmt (env: environment) (s: stmt) =
   match s with
   | MethodDecl(_,_,xs) -> List.iter (check_stmt env) xs
-  | Assign(e1, e2) -> check_assign e1 e2
-  | _ -> ()
+  | Assign(e1, e2) -> check_assign env e1 e2
+  | Declare(_,_) -> ()
+  | Expr(e) -> check_expr env e
 
 let check_class (env : environment) (klass : klass) =
   match klass with
-    Klass(_,_,xs) ->
-      List.iter (check_stmt env) xs
+  Klass(n,_,xs) ->
+      List.iter (check_stmt n.n_def.d_env) xs
 
 let annotate (program : program) : unit =
   let env = initial_env in
