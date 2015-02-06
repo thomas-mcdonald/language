@@ -7,7 +7,7 @@ open Tree
 %token <string> IDENT TYPE
 %token CLASS COMMA DEF DOT EQUALS EOF END GT LPAREN PLUS RPAREN SEMI
 /* todo - should these be specialcased? */
-%token INT
+%token FALSE INT TRUE
 
 %type <Tree.program> program
 %start program
@@ -57,6 +57,8 @@ arg:
 expr:
     ident { $1 }
   | number { $1 }
+  | FALSE { makeExpr (Boolean(2)) }
+  | TRUE  { makeExpr (Boolean(1)) }
   | expr PLUS expr  { makeExpr (Binop(Plus, $1, $3)) }
   | expr DOT expr   { makeExpr (Call($1, $3, [])) }
 

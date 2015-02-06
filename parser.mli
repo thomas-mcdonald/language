@@ -14,7 +14,9 @@ type token =
   | PLUS
   | RPAREN
   | SEMI
+  | FALSE
   | INT
+  | TRUE
 
 val program :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Tree.program

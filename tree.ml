@@ -29,6 +29,7 @@ and expr =
 and expr_guts = Number of int
          | Const of string
          | Ident of string
+         | Boolean of int
          | Binop of op * expr * expr
          | Call of expr * expr * expr list (* object.method(args) *)
          | Nil
