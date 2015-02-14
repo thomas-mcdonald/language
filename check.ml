@@ -143,11 +143,15 @@ let rec check_expr (env: environment) (e : expr) =
   match e.e_guts with
   | Number(x) -> e.e_type <- Integer
   | Ident(x) ->
-    let d = find_def env x in
-    begin match d.d_type with
-    | VarDef(v) ->
-      e.e_type <- type_data_to_typed v.v_type
-    | _ -> error "identifier does not refer to a variable"
+    begin try
+      let d = find_def env x in
+      begin match d.d_type with
+      | VarDef(v) ->
+        e.e_type <- type_data_to_typed v.v_type
+      | _ -> error "identifier does not refer to a variable"
+      end
+    with Not_found ->
+      error (Printf.sprintf "%s is not a variable name" x)
     end
   | Binop(Plus, e1, e2) ->
     check_expr env e1;
