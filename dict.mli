@@ -28,7 +28,7 @@ and var_data = {
   v_type : type_data
 }
 
-and type_data = Int | Object of def ref
+and type_data = Bool | Int | Object of def ref
 
 
 (* The initial environment *)

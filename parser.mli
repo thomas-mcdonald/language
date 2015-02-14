@@ -14,6 +14,7 @@ type token =
   | PLUS
   | RPAREN
   | SEMI
+  | BOOL
   | FALSE
   | INT
   | TRUE

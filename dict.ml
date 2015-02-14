@@ -31,7 +31,7 @@ and var_data = {
   v_type : type_data
 }
 
-and type_data = Int | Object of def ref
+and type_data = Bool | Int | Object of def ref
 
 let new_env = fun () -> Env (ref EnvMap.empty)
 

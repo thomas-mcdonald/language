@@ -8,6 +8,7 @@ let error (str:string) =
 
 let sizeof (t : type_data) =
   match t with
+  | Bool -> 1
   | Int -> 4
   | Object(_) -> 4
 
@@ -19,8 +20,9 @@ let expr_class (env: environment) (e: expr) =
   | Object(s) -> find_def env s.n_name
   | _ -> failwith "expr_class"
 
-let type_data_to_typed t =
+let type_data_to_typed (t: type_data) : typed =
   match t with
+  | Bool -> Bool
   | Int -> Integer
   | Object(r) ->
     let d = !r in
@@ -79,7 +81,11 @@ let populate_variable (dec : stmt) class_name env : environment =
       match e.e_guts with
         Ident(s) ->
           ensure_unique c.d_env s;
-          add_variable c s Int;
+          begin match p with
+          | Bool -> add_variable c s Bool
+          | Integer -> add_variable c s Int
+          | _ -> error "other primitive type reached populate_variable"
+          end;
           env
   | _ -> error "check variable called with a non var"
 
@@ -142,6 +148,7 @@ let populate_class_info (classes : klass list) (env : environment) : unit =
 let rec check_expr (env: environment) (e : expr) =
   match e.e_guts with
   | Number(x) -> e.e_type <- Integer
+  | Boolean(x) -> e.e_type <- Bool
   | Ident(x) ->
     begin try
       let d = find_def env x in

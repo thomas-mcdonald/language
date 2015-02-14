@@ -6,7 +6,7 @@ type name =
   { n_name: ident;
     mutable n_def: def }
 
-type typed = Integer | Boolean | Object of name | Unknown
+type typed = Integer | Bool | Object of name | Unknown
 
 type program = Prog of klass list
 

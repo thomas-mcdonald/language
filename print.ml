@@ -18,7 +18,7 @@ let ppName n = n.n_name
 let ppType =
   function
     Integer -> "Integer"
-  | Boolean -> "Boolean"
+  | Bool -> "Bool"
   | Object(n) -> ppName n ^ " (Object)"
   | Unknown -> "Unknown" (* TODO: this should probably be unreachable *)
 

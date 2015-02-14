@@ -8,6 +8,7 @@ let lineno = ref 1
 
 let keywords =
   let t = Hashtbl.create 16 in
+  Hashtbl.add t "bool" BOOL;
   Hashtbl.add t "class" CLASS;
   Hashtbl.add t "def" DEF;
   Hashtbl.add t "end" END;
