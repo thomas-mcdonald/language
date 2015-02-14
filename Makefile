@@ -1,6 +1,6 @@
 ML = main.ml check.ml dict.ml lexer.ml parser.ml keiko.ml tree.ml print.ml gen.ml
 
-.PHONY: depend test clean
+.PHONY: depend test clean cloc
 
 all: language
 
@@ -32,6 +32,9 @@ depend : $(ML)
 
 test:
 	ruby test_runner.rb
+
+cloc:
+	cloc --exclude-dir=keiko .
 
 
 ###
