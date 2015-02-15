@@ -36,6 +36,6 @@ File.delete './test/test.aa'
 print "\n"
 
 if errors.length > 0
-  errors.map(&:puts)
+  errors.map { |str| puts str }
   exit 1
 end

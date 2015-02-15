@@ -36,7 +36,7 @@ and type_data = Bool | Int | Object of def ref
 let new_env = fun () -> Env (ref EnvMap.empty)
 
 (* pull class_data out of a def *)
-let find_class_data (d : def) =
+let find_class_data (d: def) =
   match d.d_type with ClassDef(c) -> c | _ -> failwith "find_class_data"
 
 (* return a new class data struct. arg is for super *)
@@ -46,6 +46,9 @@ let new_class_data x =
       let parent_cd = find_class_data d in
       { c_depth = parent_cd.c_depth + 1; c_methods = []; c_super = x; c_size = 0; c_variables = [] }
   | None ->     { c_depth = 0; c_methods = []; c_super = x; c_size = 0; c_variables = [] }
+
+let find_meth_data (d: def) =
+  match d.d_type with MethDef(m) -> m | _ -> failwith "find_meth_data"
 
 let add_def env n d =
   match env with

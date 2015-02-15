@@ -1,0 +1,11 @@
+duplicate methods shouldn't be allowed
+#-#-#
+class Test
+  def test
+  end
+
+  def test
+  end
+end
+#-#-#
+test is already defined

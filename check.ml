@@ -98,7 +98,7 @@ let populate_variables env klass : environment =
       List.fold_left var_accu env statements
 
 
-let populate_method (meth : stmt) class_name env : environment =
+let populate_method (meth: stmt) class_name env : environment =
   let c = find_def env class_name in
   match meth with
     MethodDecl(n, args, xs) ->
@@ -106,7 +106,7 @@ let populate_method (meth : stmt) class_name env : environment =
       and meth_data = { m_receiver = c } in
       let d = { d_name = name; d_type = MethDef(meth_data); d_env = new_env () } in
       ensure_unique c.d_env name;
-      add_def env name d; (* TODO: work out wtf this is for - is it useful? *)
+      add_def c.d_env name d;
       add_method c d;
       env
   | _ -> error "check_method called with a non-method stmt"

@@ -42,6 +42,8 @@ val find_class_data : def -> class_data
 (* add the definition to the environment *)
 val add_def : environment -> string -> def -> environment
 
+val find_meth_data : def -> meth_data
+
 (* Find a definition in the top level of a given environment *)
 val find_def : environment -> string -> def
 
