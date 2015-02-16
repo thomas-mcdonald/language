@@ -11,8 +11,8 @@ class Test
   end
 
   def allow
-    int x
     int y
+    y = 1
   end
 end
 

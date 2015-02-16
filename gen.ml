@@ -17,15 +17,36 @@ let rec find_hierarchy (d : def) : def list =
     Some(d') -> (find_hierarchy d') @ [d]
   | None -> [d]
 
+let gen_addr (e: expr) = ()
+
+let gen_expr (e: expr) = ()
+
+(* assignment generation *)
+(*
+ * perform the computation in e2
+   find the location of e1
+   store value on stack in location
+*)
+let gen_assign (e1: expr) (e2: expr) =
+  gen_expr e2;
+  gen_addr e1
+
+let gen_stmt (s: stmt) =
+  match s with
+  | Assign(e1,e2) -> gen_assign e1 e2
+  | Declare(t,e) -> () (* don't do anything for declares *)
+  | _ -> failwith "gen_proc"
+
 (* generate the code for each procedure in a class. This is initially iterated
   from the definition
   *)
-let rec gen_proc (c : name) (stmt : stmt) =
+let gen_proc (c : name) (stmt : stmt) =
   match stmt with
   | MethodDecl(n,args,xs) ->
     let md = find_meth_data n.n_def in
       (* PROC name nargs fsize gcmap *)
       gen (PROC ((c.n_name ^ "." ^ n.n_name), md.m_size, INT(Int32.zero)));
+      List.iter gen_stmt xs;
       gen END;
       put ""
   | Declare(t,e) -> ()

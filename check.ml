@@ -184,48 +184,59 @@ let populate_class_info (classes : klass list) (env : environment) : unit =
   let env'' = List.fold_left populate_variables env' classes in
   ignore (List.fold_left populate_methods env'' classes)
 
-let rec check_expr (env: environment) (e : expr) =
+let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
   match e.e_guts with
   | Number(x) -> e.e_type <- Integer
   | Boolean(x) -> e.e_type <- Bool
   | Ident(x) ->
     begin try
-      let d = find_def env x in
+      (* first look in method scope *)
+      let d = find_def menv x in
       begin match d.d_type with
       | VarDef(v) ->
         e.e_type <- type_data_to_typed v.v_type
       | _ -> error "identifier does not refer to a variable"
       end
     with Not_found ->
-      error (Printf.sprintf "%s is not a variable name" x)
+      begin try
+        (* then look in class scope *)
+        let d = find_def cenv x in
+        begin match d.d_type with
+        | VarDef(v) ->
+          e.e_type <- type_data_to_typed v.v_type
+        | _ -> error "identifier does not refer to a variable"
+        end
+      with Not_found ->
+        error (Printf.sprintf "%s is not a variable name" x)
+      end
     end
   | Binop(Plus, e1, e2) ->
-    check_expr env e1;
-    check_expr env e2;
+    check_expr cenv menv e1;
+    check_expr cenv menv e2;
     if e1.e_type <> Integer || e2.e_type <> Integer then error "plus only works on integers";
     e.e_type <- e1.e_type (* will be an integer*)
   | _ -> ()
 
 (* check_assign ensures that the lhs is an identifier and that the types match up *)
-let check_assign (env: environment) (e1: expr) (e2: expr) =
+let check_assign (cenv: environment) (menv: environment) (e1: expr) (e2: expr) =
   match e1.e_guts with
   | Ident(i) ->
-    check_expr env e1;
-    check_expr env e2;
+    check_expr cenv menv e1;
+    check_expr cenv menv e2;
     if e1.e_type <> e2.e_type then error "assignment types mismatched"
   | _ -> () (* only identifiers are allowed in the parser *)
 
-let rec check_stmt (env: environment) (s: stmt) =
+let rec check_stmt (cenv: environment) (menv: environment) (s: stmt) =
   match s with
-  | MethodDecl(_,_,xs) -> List.iter (check_stmt env) xs
-  | Assign(e1, e2) -> check_assign env e1 e2
+  | MethodDecl(n,_,xs) -> List.iter (check_stmt cenv n.n_def.d_env) xs
+  | Assign(e1, e2) -> check_assign cenv menv e1 e2
   | Declare(_,_) -> ()
-  | Expr(e) -> check_expr env e
+  | Expr(e) -> check_expr cenv menv e
 
 let check_class (env : environment) (klass : klass) =
   match klass with
   Klass(n,_,xs) ->
-      List.iter (check_stmt n.n_def.d_env) xs
+      List.iter (check_stmt n.n_def.d_env (new_env ())) xs
 
 let annotate (program : program) : unit =
   let env = initial_env in
