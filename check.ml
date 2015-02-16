@@ -28,6 +28,14 @@ let type_data_to_typed (t: type_data) : typed =
     let d = !r in
       Object { n_name = d.d_name; n_def = d }
 
+(* add a local method variable to the method data *)
+let add_method_variable (m: def) (name: string) (t: type_data) =
+  let md = find_meth_data m in
+  let v = { v_offset = md.m_size; v_type = t } in
+  let d = { d_name = name; d_type = VarDef(v); d_env = new_env () } in
+    md.m_size <- md.m_size + (sizeof t);
+    add_def m.d_env name d
+
 (* add a method to a class record.
     We first check whether the method is already in the list - if we are overriding a method
     If we are then we rewrite it in place, else we append the method to the end of the list
@@ -60,10 +68,37 @@ let populate_klass (env : environment) (klass : klass) : environment =
       (* TODO: pull this logic out of Dict and into a method, works for now... *)
       else let env' = define_class env name s.n_name in
       n.n_def <- find_def env' name;
-      env'
+      env';;
 
-let populate_variable (dec : stmt) class_name env : environment =
-  let c = find_def env class_name in
+let populate_method_variable (dec: stmt) (m: name) env : environment =
+  let d = m.n_def in
+  match dec with
+    Declare(Object(t), e) ->
+      (match e.e_guts with
+        Ident(s) ->
+          let type_name = t.n_name in
+          if not (class_exists env type_name) then
+            error ("can't define variable of type " ^ type_name ^ " as class not defined");
+          ensure_unique d.d_env s;
+          let ct = find_def env type_name in
+          add_method_variable d s (Object (ref ct));
+          t.n_def <- ct;
+          env
+        | _ -> error "unsupported variable name")
+  | Declare(p, e) ->
+      match e.e_guts with
+        Ident(s) ->
+          ensure_unique d.d_env s;
+          begin match p with
+          | Bool -> add_method_variable d s Bool
+          | Integer -> add_method_variable d s Int
+          | _ -> error "other primitive type reached populate_variable"
+          end;
+          env
+  | _ -> error "check variable called with a non var"
+
+let populate_class_variable (dec : stmt) (klass: name) env : environment =
+  let c = find_def env klass.n_name in
   match dec with
     Declare(Object(t), e) ->
       (match e.e_guts with
@@ -93,22 +128,26 @@ let populate_variables env klass : environment =
   let statement_filter = (fun x -> match x with Declare(_) -> true | _ -> false) in
   match klass with
     Klass(n, _, xs) ->
-      let var_accu = (fun env x -> populate_variable x n.n_name env) in
+      let var_accu = (fun env x -> populate_class_variable x n env) in
       let statements = List.filter statement_filter xs in
       List.fold_left var_accu env statements
 
 
 let populate_method (meth: stmt) class_name env : environment =
-  let c = find_def env class_name in
+  let statement_filter = (fun x -> match x with Declare(_) -> true | _ -> false)
+  and c = find_def env class_name in
   match meth with
     MethodDecl(n, args, xs) ->
       let name = n.n_name
-      and meth_data = { m_receiver = c } in
+      and meth_data = { m_receiver = c; m_size = 0 }
+      and variable_acc = (fun env x -> populate_method_variable x n env) in
       let d = { d_name = name; d_type = MethDef(meth_data); d_env = new_env () } in
-      ensure_unique c.d_env name;
-      add_def c.d_env name d;
-      add_method c d;
-      env
+        n.n_def <- d;
+        List.fold_left variable_acc env (List.filter statement_filter xs);
+        ensure_unique c.d_env name;
+        add_def c.d_env name d;
+        add_method c d;
+        env
   | _ -> error "check_method called with a non-method stmt"
 
 (* add the parents methods to the class *)

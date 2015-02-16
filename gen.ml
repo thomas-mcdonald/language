@@ -17,17 +17,17 @@ let rec find_hierarchy (d : def) : def list =
     Some(d') -> (find_hierarchy d') @ [d]
   | None -> [d]
 
-(* generate the code for each proceedure in a class. This is initially iterated
+(* generate the code for each procedure in a class. This is initially iterated
   from the definition
   *)
 let rec gen_proc (c : name) (stmt : stmt) =
   match stmt with
   | MethodDecl(n,args,xs) ->
-    (* PROC name nargs fsize gcmap *)
-    (* TODO: second argument is size of local variable space *)
-    gen (PROC ((c.n_name ^ "." ^ n.n_name), 0, INT(Int32.zero)));
-    gen END;
-    put ""
+    let md = find_meth_data n.n_def in
+      (* PROC name nargs fsize gcmap *)
+      gen (PROC ((c.n_name ^ "." ^ n.n_name), md.m_size, INT(Int32.zero)));
+      gen END;
+      put ""
   | Declare(t,e) -> ()
   | _ -> failwith "gen_proc"
 
