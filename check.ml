@@ -189,27 +189,21 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
   | Number(x) -> e.e_type <- Integer
   | Boolean(x) -> e.e_type <- Bool
   | Ident(x) ->
-    begin try
-      (* first look in method scope *)
-      let d = find_def menv x in
-      begin match d.d_type with
-      | VarDef(v) ->
-        e.e_type <- type_data_to_typed v.v_type
-      | _ -> error "identifier does not refer to a variable"
-      end
-    with Not_found ->
+    let search_environment = (fun env failure ->
       begin try
-        (* then look in class scope *)
-        let d = find_def cenv x in
+        let d = find_def env x in
         begin match d.d_type with
         | VarDef(v) ->
           e.e_type <- type_data_to_typed v.v_type
         | _ -> error "identifier does not refer to a variable"
         end
       with Not_found ->
-        error (Printf.sprintf "%s is not a variable name" x)
+        failure ()
       end
-    end
+    ) in
+    search_environment menv (fun () ->
+      search_environment cenv (fun () ->
+        error "not a variable"))
   | Binop(Plus, e1, e2) ->
     check_expr cenv menv e1;
     check_expr cenv menv e2;
