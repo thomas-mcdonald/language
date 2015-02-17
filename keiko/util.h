@@ -26,6 +26,8 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * $Id: util.h 1696 2011-11-15 21:27:37Z mike $
  */
 
 EXTERN char *progname;
@@ -63,7 +65,7 @@ To check that at least |margin| elements remain unused:
      buf_grow(A) 
 */
 
-#define GROW 1.5		/* Growth ratio when buffer full */
+#define GROW 1.5                /* Growth ratio when buffer full */
 
 #define growdecl(b) struct _growbuf _##b
 #define growbuf(b, type) ((type *) _##b.buf)
@@ -80,7 +82,7 @@ struct _growbuf {
 };
 
 void _buf_init(struct _growbuf *b, int size, int margin, 
-		      int elsize, const char *name);
+                      int elsize, const char *name);
 void _buf_grow(struct _growbuf *b);
 
 

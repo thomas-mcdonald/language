@@ -26,6 +26,8 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * $Id: obx.h 1697 2011-11-17 11:29:39Z mike $
  */
 
 #ifndef _OBX_H
@@ -45,7 +47,7 @@
 #endif
 #include "obcommon.h"
 
-#define SLIMIT 256		/* Min stack space space left (bytes) */
+#define SLIMIT 256              /* Min stack space space left (bytes) */
 
 typedef union value value;
 
@@ -68,21 +70,21 @@ typedef long long unsigned counter;
 #endif
 
 struct _proc {
-     const char *p_name;	/* Procedure name */
-     value *p_addr;		/* Address of descriptor in data space */
+     const char *p_name;        /* Procedure name */
+     value *p_addr;             /* Address of descriptor in data space */
 #ifdef PROFILE
-     int p_index;		/* Position in listing */
-     unsigned p_calls;		/* Call count */
-     unsigned p_rec;		/* Call count for recursion */
-     counter p_self;		/* Tick count for self */
-     counter p_child;		/* Tick count for children */
-     arc p_parents;		/* List of callers */
-     arc p_children;		/* List of procs we call */
+     int p_index;               /* Position in listing */
+     unsigned p_calls;          /* Call count */
+     unsigned p_rec;            /* Call count for recursion */
+     counter p_self;            /* Tick count for self */
+     counter p_child;           /* Tick count for children */
+     arc p_parents;             /* List of callers */
+     arc p_children;            /* List of procs we call */
 #endif
 };
 
 struct _module {
-     char *m_name;		/* Layout must match proc */
+     char *m_name;              /* Layout must match proc */
      uchar *m_addr;
      int m_length;
 #ifdef PROFILE
@@ -92,21 +94,21 @@ struct _module {
 };
 
 struct _opcode { 
-     const char *i_name;	/* Name */
-     const char *i_patt;	/* Argument template */
-     int i_arg;			/* Argument packed in opcode */
-     int i_len;			/* Total length in bytes */
+     const char *i_name;        /* Name */
+     const char *i_patt;        /* Argument template */
+     int i_arg;                 /* Argument packed in opcode */
+     int i_len;                 /* Total length in bytes */
 };
 
 
 /* Global variables */
-EXTERN uchar *imem, *dmem;	/* Instruction and data memory arrays */
-EXTERN uchar *stack;		/* Program stack */
-EXTERN int code_size;		/* Size of program code */
-EXTERN int stack_size;		/* Size of main stack */
-EXTERN char *libpath;		/* Path to dynamic library */
-EXTERN value *entry;		/* Program entry point */
-EXTERN value *gcmap;		/* Global pointer map */
+EXTERN uchar *imem, *dmem;      /* Instruction and data memory arrays */
+EXTERN uchar *stack;            /* Program stack */
+EXTERN int code_size;           /* Size of program code */
+EXTERN int stack_size;          /* Size of main stack */
+EXTERN char *libpath;           /* Path to dynamic library */
+EXTERN value *entry;            /* Program entry point */
+EXTERN value *gcmap;            /* Global pointer map */
 
 #define get1(p)  ((int) ((signed char) (p)[0]))
 #define get2(p)  ((int) ((short) (((p)[1]<<8) + (p)[0])))
@@ -120,20 +122,20 @@ extern primitive *primtab[];
 extern char *primname[];
 #endif
 
-EXTERN value _result[2];	/* Procedure result */
+EXTERN value _result[2];        /* Procedure result */
 #define ob_res _result[0]
 #define ob_dres _result[0]
 
-EXTERN value *statlink;		/* Static link for procedure call */
-EXTERN int level;		/* Recursion level in bytecode interp. */
+EXTERN value *statlink;         /* Static link for procedure call */
+EXTERN int level;               /* Recursion level in bytecode interp. */
 #ifdef OBXDEB
-EXTERN value *prim_bp;		/* Base pointer during primitive call */
+EXTERN value *prim_fp;          /* Base pointer during primitive call */
 #endif
 
 EXTERN int dflag;
-EXTERN mybool gflag;
+EXTERN boolean gflag;
 #ifdef PROFILE
-EXTERN mybool lflag;
+EXTERN boolean lflag;
 #endif
 #ifdef TRACE
 EXTERN int qflag;
@@ -143,12 +145,12 @@ EXTERN char *debug_socket;
 #endif
 
 #define divop_decl(t) \
-     t t##_divop(t a, t b, int div) {		\
-	  t quo = a / b, rem = a % b;		\
-	  if (rem != 0 && (rem ^ b) < 0) {	\
-	       rem += b; quo--;			\
-	  }					\
-	  return (div ? quo : rem);		\
+     t t##_divop(t a, t b, int div) {           \
+          t quo = a / b, rem = a % b;           \
+          if (rem != 0 && (rem ^ b) < 0) {      \
+               rem += b; quo--;                 \
+          }                                     \
+          return (div ? quo : rem);             \
      }
 
 
@@ -217,10 +219,10 @@ void make_symbol(const char *kind, char *name, uchar *addr);
 void panic(const char *, ...);
 void obcopy(char *dst, const char *src, int n);
 
-void error_stop(const char *msg, int line, value *bp, uchar *pc);
-void runtime_error(int num, int line, value *bp, uchar *pc);
-void rterror(int num, int line, value *bp);
-#define liberror(msg) error_stop(msg, 0, bp, NULL)
+void error_stop(const char *msg, int line, value *fp, uchar *pc);
+void runtime_error(int num, int line, value *fp, uchar *pc);
+void rterror(int num, int line, value *fp);
+#define liberror(msg) error_stop(msg, 0, fp, NULL)
 
 proc find_symbol(value *p, proc *table, int nelem);
 #define find_proc(cp) find_symbol(cp, proctab, nprocs)
@@ -251,7 +253,7 @@ double flo_convq(longint);
 /* gc.c */
 
 /* scratch_alloc -- allocate memory that will not be freed */
-void *scratch_alloc(unsigned bytes, mybool atomic);
+void *scratch_alloc(unsigned bytes, boolean atomic);
 
 /* gc_alloc -- allocate an object for the managed heap */
 void *gc_alloc(value *desc, unsigned size, value *sp);
@@ -265,19 +267,19 @@ int gc_alloc_size(void *p);
 /* gc_heap_size -- return size of heap */
 int gc_heap_size(void);
 
-extern mybool gcflag;
+extern boolean gcflag;
 void gc_init(void);
 void gc_debug(char *flags);
 void gc_dump(void);
 
 /* debug.c */
 #ifdef OBXDEB
-extern mybool one_shot;
-extern mybool intflag;
+extern boolean one_shot;
+extern boolean intflag;
 
 void debug_init(void);
 void debug_message(char *fmt, ...);
-void debug_break(value *cp, value *bp, uchar *pc, char *fmt, ...);
+void debug_break(value *cp, value *fp, uchar *pc, char *fmt, ...);
 #endif
 
 /* jit.c */
