@@ -16,13 +16,13 @@ static void Lib_Newline(value *sp) {
 
 static void Lib_New(value *sp) {
     value *fp = sp;
+    value *bp = sp;
     FPINIT;
     value *desc = args[1].p, *block;
     int size = args[2].i;
     //
     // ( *args[0].p ).p = NULL;    /* Free old storage */
-    //block = (value * ) gc_alloc(desc, size, bp);
-    block = (value * ) scratch_alloc(size, TRUE);
+    block = (value * ) gc_alloc(desc, size, bp);
     ( *args[0].p ).p = block;
 }
 
