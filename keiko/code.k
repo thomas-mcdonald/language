@@ -14,8 +14,9 @@ END
 
 PROC Program.%main 0 0 0
   CONST 4
+  CONST 0
   GLOBAL Lib.Print
-  CALL 1
+  PCALL 1
   RETURN
 END
 
