@@ -28,7 +28,7 @@ let rec ppExpr e =
   match e.e_guts with
     Number x -> wrap_simple ("Number " ^ string_of_int x)
   | Const x -> wrap_simple ("Const " ^ x)
-  | Ident x -> wrap_simple ("Ident " ^ x)
+  | Ident x -> wrap_simple ("Ident " ^ (ppName x))
   | Binop (Plus, e, e') -> wraplist "Add" [ppExpr e; ppExpr e']
   | Call (o, m, xs) -> wraplist "Call" [ppExpr o; ppExpr m] (* ^ nest (List.map ppExpr xs) *)
   | Nil -> "nil"

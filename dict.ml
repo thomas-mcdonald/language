@@ -29,10 +29,12 @@ and meth_data = {
 
 and var_data = {
   v_offset : int;
-  v_type : type_data
+  v_type : type_data;
+  v_place : var_place;
 }
 
 and type_data = Bool | Int | Object of def ref
+and var_place = ClassVar | MethodVar
 
 let new_env = fun () -> Env (ref EnvMap.empty)
 
@@ -50,6 +52,9 @@ let new_class_data x =
 
 let find_meth_data (d: def) =
   match d.d_type with MethDef(m) -> m | _ -> failwith "find_meth_data"
+
+let find_var_data (d: def) =
+  match d.d_type with VarDef(v) -> v | _ -> failwith "find_var_data"
 
 let add_def env n d =
   match env with

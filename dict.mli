@@ -26,10 +26,13 @@ and meth_data = {
 
 and var_data = {
   v_offset : int;
-  v_type : type_data
+  v_type : type_data;
+  v_place : var_place;
 }
 
 and type_data = Bool | Int | Object of def ref
+(* is the variable on the class or the method? *)
+and var_place = ClassVar | MethodVar
 
 
 (* The initial environment *)
@@ -44,6 +47,8 @@ val find_class_data : def -> class_data
 val add_def : environment -> string -> def -> environment
 
 val find_meth_data : def -> meth_data
+
+val find_var_data : def -> var_data
 
 (* Find a definition in the top level of a given environment *)
 val find_def : environment -> string -> def

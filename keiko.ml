@@ -60,7 +60,7 @@ type icode =
   | BLANK			(* Blank line *)
 
   | INDEX of int		(* PUSH s/BINOP Times/BINOP PlusA *)
-  | LDL of int * int		(* LOCAL n/LOAD s *)
+  | LDLW of int		(* LDWL n *)
   | STL of int * int		(* LOCAL n/STORE s *)
   | LDG of int * int		(* GETK n/LOAD s *)
   | STG of int * int		(* GETK n/STORE s *)
@@ -79,3 +79,5 @@ let string_of_icode (w : icode) : string =
   | END -> "END"
   | DEFINE(s) -> "DEFINE " ^ s
   | WORD(SYM(s)) -> "WORD " ^ s
+
+  | LDLW(i) -> "LDLW " ^ (string_of_int i)

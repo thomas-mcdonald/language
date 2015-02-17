@@ -5,7 +5,7 @@ open Tree
 
 (* temporary output method *)
 let put (s : string) : unit =
-  print_string (s ^ "\n");
+  printf "%s\n" s;
   ()
 
 let gen (w : icode) = printf "%s\n" (string_of_icode w)
@@ -17,7 +17,16 @@ let rec find_hierarchy (d : def) : def list =
     Some(d') -> (find_hierarchy d') @ [d]
   | None -> [d]
 
-let gen_addr (e: expr) = ()
+let gen_addr (e: expr)=
+  match e.e_guts with
+  | Ident(n) ->
+    (* this only prints the offset atm *)
+    let vd = find_var_data n.n_def in
+    begin match vd.v_place with
+    | MethodVar -> LOCAL vd.v_offset
+    (* TODO: class variables. need to workout how references to self are handled *)
+    | ClassVar -> CONST (0,0) (* not sure what this const defn is tho *)
+    end
 
 let gen_expr (e: expr) = ()
 
@@ -33,9 +42,9 @@ let gen_assign (e1: expr) (e2: expr) =
 
 let gen_stmt (s: stmt) =
   match s with
-  | Assign(e1,e2) -> gen_assign e1 e2
+  | Assign(e1,e2) -> ignore (gen_assign e1 e2)
   | Declare(t,e) -> () (* don't do anything for declares *)
-  | _ -> failwith "gen_proc"
+  | _ -> () (* failwith "gen_proc" *)
 
 (* generate the code for each procedure in a class. This is initially iterated
   from the definition
@@ -82,13 +91,18 @@ let gen_class_desc (k : klass) =
   match k with
     Klass(n, _, _) -> gen_descriptor n
 
+let gen_entrypoint () =
+  put "PROC Program.main 0 0 0";
+  put "GLOBAL Main";
+  put "END"
+
 let generate (prog : program) =
-  put "MODULE Main 0 0";
-  put "IMPORT Lib 0";
+  put "MODULE Program 0 0";
+  (* put "IMPORT Lib 0"; *)
   put "ENDHDR";
   match prog with
     Prog(cs) ->
       List.iter gen_procs cs;
-      (* gen_stmts xs; *)
+      gen_entrypoint ();
       List.iter gen_class_desc cs;
-  ()
+      ()

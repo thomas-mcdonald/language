@@ -64,7 +64,7 @@ expr:
   | expr DOT expr   { makeExpr (Call($1, $3, [])) }
 
 ident:
-  IDENT { makeExpr (Ident($1)) }
+  IDENT { makeExpr (Ident(makeName($1))) }
 
 typed:
   TYPE { Object(makeName $1) }
