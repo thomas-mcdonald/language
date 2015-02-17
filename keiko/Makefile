@@ -31,130 +31,78 @@
 #
 
 # Config stuff
-CC = gcc
 AR = ar
 RANLIB = ranlib
 CFLAGS = -g -O2
-LDFLAGS = 
-RTFLAGS = ${CFLAGS} -fno-strict-aliasing
-HAVE_X = 
-XYPRIMS = @XYPRIMS@
+RTFLAGS = $(CFLAGS) -fno-strict-aliasing
 TCLSH = tclsh
-srcdir = .
-top_srcdir = ..
-prefix = /usr/local
-exec_prefix = ${prefix}
-libdir = ${exec_prefix}/lib/obc
-subdir = runtime
-SHELL = /bin/sh
-DEBUG = 
-VPATH = ../lib
-ENABLE_DEBUGGER = 1
-ENABLE_JIT = 1
 GC_PAGESIZE = 4096
 # End
 
-all :: oblink obx.a obx-p.a
+include config.mk
 
-ifdef DEBUG
-  DEBUGDEF = -DDEBUG
-  all :: obx-t.a
-endif
-
-ifdef ENABLE_JIT
-  all :: obx-j.a
-endif
-
-ifdef ENABLE_DEBUGGER
-  all :: obx-d.a
-endif
+all :: ppx pplink
 
 ALL_CFLAGS = $(CFLAGS) -Wall $(INCLUDE)
 ALL_RTFLAGS = $(RTFLAGS) -Wall $(INCLUDE)
-INCLUDE = -I . -I .. -I $(srcdir)
 
-OBLINK = oblink.o linker.o symtab.o template.o
-oblink : $(OBLINK) util.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+PPLINK = oblink.o linker.o symtab.o template.o util.o
+pplink : $(PPLINK) 
+	$(CC) $(CFLAGS) -o $@ $^
 
-$(OBLINK) util.o : %.o : %.c
+$(PPLINK) : %.o : %.c
 	$(CC) $(ALL_CFLAGS) -c $< -o $@
 
-COMMON = support.o loader.o primitives.o
+COMMON = support.o loader.o gc0.o
 OBX = interp.o xmain.o $(COMMON)
-JIT = jit.o jitlab.o jitregs.o jitval.o
-PACK = $(AR) cr $@ $^; $(RANLIB) $@
+PACK = $(AR) cr $@ $^ && $(RANLIB) $@
 
-obx.a :   $(OBX) gc.o;						$(PACK)
-obx-t.a : interp-t.o xmain-t.o trace.o $(COMMON) gc-t.o;	$(PACK)
-obx-p.a : interp-p.o xmain-p.o profile.o $(COMMON) gc.o;	$(PACK)
-obx-d.a : interp-d.o xmain-d.o debug.o $(COMMON) gc.o;		$(PACK)
-obx-j.a : $(JIT) vm386.o xmain-j.o decode.o $(COMMON) gc.o;	$(PACK)
+ppx: obx-t.a lib.o 
+	$(CC) $(ALL_RTFLAGS) $^ -o $@
+
+lib.o: lib.c
+	$(CC) -c $(ALL_RTFLAGS) $< -o $@
+
+obx-t.a : interp-t.o xmain-t.o trace.o $(COMMON);		$(PACK)
 
 # Cancel default rule
 %.o: %.c
 
-vm386.o : %.o : %.c
-	$(CC) $(ALL_RTFLAGS) -DCODEPAGE=$(GC_PAGESIZE) $(DEBUGDEF) -c $< -o $@
-
-$(OBX) $(JIT) decode.o gc.o trace.o profile.o debug.o: %.o : %.c
+$(OBX) trace.o: %.o : %.c
 	$(CC) $(ALL_RTFLAGS) -c $< -o $@
-
-%-n.o : %.c
-	$(CC) $(ALL_RTFLAGS) -DNATIVE -c $< -o $@
 
 %-t.o : %.c
 	$(CC) $(ALL_RTFLAGS) -DTRACE -c $< -o $@
 
-%-p.o : %.c
-	$(CC) $(ALL_RTFLAGS) -DPROFILE -c $< -o $@
+GEN = keiko.h template.c interp.c
 
-%-d.o : %.c
-	$(CC) $(ALL_RTFLAGS) -DOBXDEB -c $< -o $@
+generate : $(GEN)
 
-%-j.o : %.c
-	$(CC) $(ALL_RTFLAGS) -DJIT -c $< -o $@
-
-keiko.h template.c interp.c : keiko.iset iset.tcl util.tcl iparse.tcl iskel.c
-	$(TCLSH) $(srcdir)/iset.tcl $(srcdir)/keiko.iset $(srcdir)/iskel.c \
-		keiko.h template.c interp.c
-
-decode.c : keiko.iset jitgen.tcl util.tcl iparse.tcl 
-	$(TCLSH) $(srcdir)/jitgen.tcl $(srcdir)/keiko.iset decode.c
+keiko.h template.c interp.c : iset.tcl keiko.iset iskel.c config.tcl
+	$(TCLSH) iset.tcl keiko.iset iskel.c keiko.h template.c interp.c
 
 
 ## Cleanup
 
 # clean: remove all object files
 clean:
-	rm -f oblink *.[ao]
+	rm -f pplink ppx *.[ao]
 
-quiteclean: clean
-	rm -f interp.c keiko.h template.c decode.c
-
-# distclean: also remove all non-distributed files
-realclean distclean: quiteclean
-	rm -f Makefile 
+# realclean: remove generated source too
+realclean: clean
+	rm -f $(GEN)
 
 .DELETE_ON_ERROR:
-
-## Configuration and dependencies
 
 ###
 
 support.o interp.o interp-t.o interp-p.o interp-d.o profile.o \
-xmain.o xmain-t.o xmain-p.o xmain-d.o xmain-j.o debug.o gc0.o gc.o gc-t.o \
-trace.o loader.o jit.o jitlab.o: \
-	obx.h obcommon.h exec.h
+xmain.o xmain-t.o xmain-p.o xmain-d.o xmain-j.o debug.o \
+trace.o loader.o jit.o jitlab.o gc0.o: \
+	obx.h obcommon.h config.h exec.h
 
-interp.o interp-t.o interp-p.o interp-d.o \
-xmain.o xmain-t.o xmain-p.o xmain-d.o debug.o jit.o: \
+interp.o interp-t.o xmain.o xmain-t.o trace.o: \
 	keiko.h
 
 linker.o oblink.o symtab.o template.o util.o: \
-	oblink.h obcommon.h exec.h util.h keiko.h
-
-$(JIT) decode.o: decode.h 
-jit.o jitval.o decode.o: keiko.h
-$(JIT): jit.h vm.h
-vm386.o: vm.h
+	oblink.h obcommon.h config.h exec.h util.h keiko.h

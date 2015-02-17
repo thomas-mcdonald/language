@@ -26,6 +26,8 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * $Id: iskel.c 1700 2012-02-09 15:12:08Z mike $
  */
 
 /* This file is the skeleton of the bytecode interpreter; the parts
@@ -47,6 +49,8 @@
 #include <math.h>
 #include "obx.h"
 #include "keiko.h"
+
+const char *iskel_rcsid = "$Id: iskel.c 1700 2012-02-09 15:12:08Z mike $";
 
 #ifdef HAVE_INDEXED_JUMPS
 #define JTABLE 1
@@ -82,14 +86,11 @@ void interp(value *sp0) {
      uchar *pc = cp[CP_CODE].x;
      register uchar *pc0 = NULL;
      register value *sp = sp0;
-#ifndef NOACC
-     register value acc;
-#endif
      register uchar ir = 0;
 #ifdef PROFILE
      register counter ticks = 0;
 #endif
-     register value *bp = NULL;
+     register value *fp = NULL;
      value *base = sp0;
 #ifdef TRACE
      proc thisproc = NULL;
@@ -130,38 +131,34 @@ $$ jump table
 #else
      while (TRUE) {
 #ifdef TRACE
-	  if (dflag > 1) {
-	       int i;
-	       printf("pc=%s+%d(%p) sp=%p bp=%p cp=%p",
-		      thisproc->p_name, pc - cp[1].x, pc, sp, bp, cp);
-	       fflush(stdout);
-#ifdef NOACC
-	       for (i = 0; 
-#else
-	       printf(" %x", acc.i);
-	       for (i = 1; 
-#endif
-		    i < 8; i++) printf(" %x", sp[i].i);
-	       printf("\n");
-	       printf("%6d: %s\n", pc-imem, fmt_inst(pc));
-	       fflush(stdout);
-	  }
+          if (dflag > 1) {
+               int i;
+               printf("pc=%s+%d(%p) sp=%p fp=%p cp=%p",
+                      thisproc->p_name, pc - cp[1].x, pc, sp, fp, cp);
+               fflush(stdout);
+               for (i = 0; i < 8; i++) printf(" %x", sp[i].i);
+               printf("\n");
+               printf("%6d: %s\n", pc-imem, fmt_inst(pc));
+               fflush(stdout);
+          }
 #endif
 
 #ifdef PROFILE
-	  ticks++;
+          ticks++;
 #endif
 
-	  switch (ir = *(pc0 = pc)) {
+          switch (ir = *(pc0 = pc)) {
 #endif
 
 $$ action routines
 
-	  ACTION(ILLEGAL)
-	  DEFAULT
-	       panic("*illegal instruction %d", ir);
+          ACTION(ILLEGAL)
+          DEFAULT
+               panic("*illegal instruction %d", ir);
 #ifndef JTABLE
-	  }
+          }
      }
 #endif
 }
+
+const char *keiko_rcsid = keiko_version;

@@ -26,9 +26,13 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * $Id: symtab.c 1697 2011-11-17 11:29:39Z mike $
  */
 
 #include "oblink.h"
+
+const char *symtab_rcsid = "$Id: symtab.c 1697 2011-11-17 11:29:39Z mike $";
 
 /* This module implements three completely independent symbol tables:
    one for global symbols, another for labels used in branches, and
@@ -41,15 +45,15 @@
 /* GLOBAL SYMBOLS */
 
 struct _symbol {
-     const char *s_name;	/* Name of the symbol */
-     segment s_seg;		/* Segment, or UNDEFINED */
-     int s_kind;		/* Kind of symbol -- X_PROC, etc. */
-     int s_value;		/* Numeric value */
-     unsigned s_check;		/* Checksum for module */
-     int s_nlines;		/* Line count for module */
-     symbol s_next;		/* Next in hash chain */
-     int s_uchain;		/* Start of use chain in data segment */
-     char *s_file;		/* Source file that uses the symbol */
+     const char *s_name;        /* Name of the symbol */
+     segment s_seg;             /* Segment, or UNDEFINED */
+     int s_kind;                /* Kind of symbol -- X_PROC, etc. */
+     int s_value;               /* Numeric value */
+     unsigned s_check;          /* Checksum for module */
+     int s_nlines;              /* Line count for module */
+     symbol s_next;             /* Next in hash chain */
+     int s_uchain;              /* Start of use chain in data segment */
+     char *s_file;              /* Source file that uses the symbol */
 };
 
 #define HSIZE 1024
@@ -63,7 +67,7 @@ static growdecl(dict);
 /* make_symbol -- create a symbol, but don't put it in the hash table */
 symbol make_symbol(const char *name) {
      symbol s = 
-	  (symbol) must_alloc(sizeof(struct _symbol), "symbol table entry");
+          (symbol) must_alloc(sizeof(struct _symbol), "symbol table entry");
      s->s_name = must_strdup(name);
      s->s_seg = UNDEFINED;
      s->s_kind = X_NONE;
@@ -78,25 +82,25 @@ symbol make_symbol(const char *name) {
      return s;
 }
 
-static symbol lookup(const char *name, mybool create) {
+static symbol lookup(const char *name, boolean create) {
      symbol s;
      unsigned h = 0;
      const char *p;
 
      if (dict == NULL)
-	  buf_init(dict, INIT_SMEM, 1, symbol, "symbol table");
+          buf_init(dict, INIT_SMEM, 1, symbol, "symbol table");
 
      for (p = name; *p != '\0'; p++) h = 5 * h + *p;
      h %= HSIZE;
 
      for (s = stable[h]; s != NULL; s = s->s_next)
-	  if (strcmp(name, s->s_name) == 0)
-	       return s;
+          if (strcmp(name, s->s_name) == 0)
+               return s;
 
      if (create) {
-	  s = make_symbol(name);
-	  s->s_next = stable[h];
-	  stable[h] = s;
+          s = make_symbol(name);
+          s->s_next = stable[h];
+          stable[h] = s;
      }
 
      return s;
@@ -108,7 +112,7 @@ symbol find_symbol(const char *name) {
 }
 
 /* known -- test if a symbol has been entered */
-mybool known(const char *name) {
+boolean known(const char *name) {
      symbol s = lookup(name, FALSE);
      return (s != NULL);
 }
@@ -122,9 +126,9 @@ int sym_value(symbol s) {
      if (s->s_file == NULL) s->s_file = err_file;
 
      if (s->s_seg == UNDEFINED) {
-	  err_file = s->s_file;
-	  error("undefined symbol %s", s->s_name);
-	  s->s_seg = ABS;
+          err_file = s->s_file;
+          error("undefined symbol %s", s->s_name);
+          s->s_seg = ABS;
      }
 
      return s->s_value;
@@ -139,7 +143,7 @@ static const char *seg_name[] = {
 /* def_global -- set value of a global symbol */
 void def_global(symbol s, segment seg, int off, int kind) {
      if (s->s_seg != UNDEFINED)
-	  error("multiply defined symbol %s", s->s_name);
+          error("multiply defined symbol %s", s->s_name);
 
      s->s_seg = seg;
      s->s_value = off;
@@ -147,8 +151,8 @@ void def_global(symbol s, segment seg, int off, int kind) {
 
 #ifdef DEBUG
      if (dflag)
-	  fprintf(stderr, "Symbol %s = %d(%s)\n", 
-		  s->s_name, s->s_value, seg_name[s->s_seg]);
+          fprintf(stderr, "Symbol %s = %d(%s)\n", 
+                  s->s_name, s->s_value, seg_name[s->s_seg]);
 #endif
 }
 
@@ -170,25 +174,25 @@ void fix_data(uchar *base, int bss) {
 
      /* Shift BSS symbols by offset bss */
      for (i = 0; i < ndict; i++) {
-	  symbol s = dict[i];
-	  if (s->s_seg == BSS) s->s_value += bss;
+          symbol s = dict[i];
+          if (s->s_seg == BSS) s->s_value += bss;
      }
 
      /* Fix up each symbol */
      for (i = 0; i < ndict; i++) {
-	  symbol s = dict[i];
-	  int val;
+          symbol s = dict[i];
+          int val;
 
-	  if (dflag > 0) printf("Fixing %s\n", s->s_name);
+          if (dflag > 0) printf("Fixing %s\n", s->s_name);
 
-	  val = sym_value(s);
+          val = sym_value(s);
 
-	  /* Run along the use chain, inserting the value */
-	  for (u = s->s_uchain; u != -1; u = v) {
-	       v = *((int *) &base[u]);
-	       put4(&base[u], val);
-	       relocate(u, (s->s_seg == ABS ? R_WORD : R_DATA));
-	  }
+          /* Run along the use chain, inserting the value */
+          for (u = s->s_uchain; u != -1; u = v) {
+               v = *((int *) &base[u]);
+               put4(&base[u], val);
+               relocate(u, (s->s_seg == ABS ? R_WORD : R_DATA));
+          }
      }
 }
 
@@ -209,23 +213,23 @@ int write_symtab(void) {
      int i, n = 0;
 
      qsort(dict, ndict, sizeof(symbol), 
-	   (int (*)(const void *, const void *)) cf_syms);
+           (int (*)(const void *, const void *)) cf_syms);
 
      for (i = 0; i < ndict; i++) {
-	  symbol s = dict[i];
+          symbol s = dict[i];
 
-	  if (s->s_kind == X_SYM) continue;
+          if (s->s_kind == X_SYM) continue;
 
-	  write_int(4, s->s_kind);
-	  write_string(s->s_name);
-	  write_int(4, s->s_value);
+          write_int(4, s->s_kind);
+          write_string(s->s_name);
+          write_int(4, s->s_value);
 
-	  if (s->s_kind == X_MODULE) {
-	       write_int(4, s->s_check);
-	       write_int(4, s->s_nlines);
-	  }
+          if (s->s_kind == X_MODULE) {
+               write_int(4, s->s_check);
+               write_int(4, s->s_nlines);
+          }
 
-	  n++;
+          n++;
      }
 
      return n;
@@ -252,7 +256,7 @@ static growdecl(locdefs);
 
 void init_labels(void) {
      if (locdefs == NULL)
-	  buf_init(locdefs, INIT_LMEM, 1, struct _locdef, "labels");
+          buf_init(locdefs, INIT_LMEM, 1, struct _locdef, "labels");
      n_locs = 0;
 }
 
@@ -274,7 +278,7 @@ void sort_labels(void) {
 
      /* Sort the definitions into ascending order of l_lab */
      qsort(locdefs, n_locs, sizeof(struct _locdef),
-	   (int (*)(const void *, const void *)) cf_labels);
+           (int (*)(const void *, const void *)) cf_labels);
 }
 
 phrase find_label(int n) {
@@ -282,17 +286,17 @@ phrase find_label(int n) {
      int a = 0, b = n_locs;
      
      /* Invariant: 0 <= a <= b <= n_locs,
-  	  locdefs[0..a) < n, locdefs[b..n_locs) >= n */
+          locdefs[0..a) < n, locdefs[b..n_locs) >= n */
      while (a != b) {
-	  int m = (a+b)/2;
-	  if (locdefs[m].l_lab < n)
-	       a = m+1;
-	  else
-	       b = m;
+          int m = (a+b)/2;
+          if (locdefs[m].l_lab < n)
+               a = m+1;
+          else
+               b = m;
      }
 
      if (locdefs[a].l_lab != n) 
-	  error("undefined label %d", n);
+          error("undefined label %d", n);
 
      return locdefs[a].l_val;
 }
@@ -322,13 +326,13 @@ void make_prim(const char *name) {
      if (name[0] == '*') name++;
 
      if (prims == NULL)
-	  buf_init(prims, 256, 1, char *, "primitives");
+          buf_init(prims, 256, 1, char *, "primitives");
 
      buf_grow(prims);
      prims[nprims++] = must_strdup(name);
 
      for (s = name; *s != '\0'; s++)
-	  prim_check = 17 * prim_check + (uchar) *s;
+          prim_check = 17 * prim_check + (uchar) *s;
 }
 
 /* find_prim -- compute index of primitive */
@@ -339,8 +343,8 @@ int find_prim(const char *name) {
      if (name[0] == '*') name++;
 
      for (i = 0; i < nprims; i++)
-	  if (strcmp(name, prims[i]) == 0)
-	       return i;
+          if (strcmp(name, prims[i]) == 0)
+               return i;
 
      return -1;
 }
@@ -354,27 +358,27 @@ void dump_prims(FILE *fp) {
      fprintf(fp, "unsigned prim_check = %#x;\n\n", prim_check);
 
      if (nprims > FIXPRIMS) {
-	  w = fprintf(fp, "PRIMDEF primitive %s", prims[FIXPRIMS]);
-	  for (i = FIXPRIMS+1; i < nprims; i++) {
-	       if (w + 2 + strlen(prims[i]) <= 70) 
-		    w += fprintf(fp, ", %s", prims[i]);
-	       else {
-		    fprintf(fp, ",\n");
-		    w = fprintf(fp, "     %s", prims[i]);
-	       }
-	  }
-	  fprintf(fp, ";\n\n");
+          w = fprintf(fp, "PRIMDEF primitive %s", prims[FIXPRIMS]);
+          for (i = FIXPRIMS+1; i < nprims; i++) {
+               if (w + 2 + strlen(prims[i]) <= 70) 
+                    w += fprintf(fp, ", %s", prims[i]);
+               else {
+                    fprintf(fp, ",\n");
+                    w = fprintf(fp, "     %s", prims[i]);
+               }
+          }
+          fprintf(fp, ";\n\n");
      }
 
      fprintf(fp, "primitive *primtab[] = {\n");
      w = fprintf(fp, "     interp, dltrap");
      for (i = FIXPRIMS; i < nprims; i++) {
-	  if (w + 2 + strlen(prims[i]) <= 70) 
-	       w += fprintf(fp, ", %s", prims[i]);
-	  else {
-	       fprintf(fp, ",\n");
-	       w = fprintf(fp, "     %s", prims[i]);
-	  }
+          if (w + 2 + strlen(prims[i]) <= 70) 
+               w += fprintf(fp, ", %s", prims[i]);
+          else {
+               fprintf(fp, ",\n");
+               w = fprintf(fp, "     %s", prims[i]);
+          }
      }
      fprintf(fp, ",\n     NULL\n};\n\n");
 
@@ -382,12 +386,12 @@ void dump_prims(FILE *fp) {
      fprintf(fp, "const char *primname[] = {\n");
      w = fprintf(fp, "     \"INTERP\", \"DLTRAP\"");
      for (i = FIXPRIMS; i < nprims; i++) {
-	  if (w + 4 + strlen(prims[i]) <= 70) 
-	       w += fprintf(fp, ", \"%s\"", prims[i]);
-	  else {
-	       fprintf(fp, ",\n");
-	       w = fprintf(fp, "     \"%s\"", prims[i]);
-	  }
+          if (w + 4 + strlen(prims[i]) <= 70) 
+               w += fprintf(fp, ", \"%s\"", prims[i]);
+          else {
+               fprintf(fp, ",\n");
+               w = fprintf(fp, "     \"%s\"", prims[i]);
+          }
      }
      fprintf(fp, "\n};\n");
      fprintf(fp, "#endif\n");

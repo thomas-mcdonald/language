@@ -26,6 +26,8 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * $Id: obcommon.h 1694 2011-11-15 20:58:44Z mike $
  */
 
 #ifndef EXTERN
@@ -34,7 +36,7 @@
 
 typedef unsigned char uchar;
 
-typedef int mybool;
+typedef int boolean;
 #define TRUE 1
 #define FALSE 0
 
@@ -69,28 +71,28 @@ typedef union {
 } dblbuf;
 
 /* Stack frame layout */
-#define BP 0			/* Saved base pointer */
-#define PC 1			/* Saved program counter */
-#define CP 2			/* Saved context pointer */
-#define SL -1			/* Static link */
+#define FP 0                    /* Saved frame pointer */
+#define PC 1                    /* Saved program counter */
+#define CP 2                    /* Saved context pointer */
+#define SL -1                   /* Static link */
 #define HEAD 3
-#define FRAME_SHIFT 16		/* Shift for pointer map of stack frame */
+#define FRAME_SHIFT 16          /* Shift for pointer map of stack frame */
 
 /* Constant pool layout */
-#define CP_PRIM 0		/* Primitive address */
-#define CP_CODE 1		/* Bytecode address */
-#define CP_SIZE 2		/* Size of bytecode */
-#define CP_FRAME 3		/* Frame size */
-#define CP_STACK 4		/* Stack size */
-#define CP_MAP 5		/* Frame map */
-#define CP_STKMAP 6		/* Stack map table */
-#define CP_CONST 7		/* First constant */
+#define CP_PRIM 0               /* Primitive address */
+#define CP_CODE 1               /* Bytecode address */
+#define CP_SIZE 2               /* Size of bytecode */
+#define CP_FRAME 3              /* Frame size */
+#define CP_STACK 4              /* Stack size */
+#define CP_MAP 5                /* Frame map */
+#define CP_STKMAP 6             /* Stack map table */
+#define CP_CONST 7              /* First constant */
 
 /* Descriptor layout */
-#define DESC_MAP 0		/* Pointer map */
-#define DESC_DEPTH 1		/* Inheritance depth of record */
-#define DESC_ANCES 2		/* Ancestor list of record */
-#define DESC_BOUND 1		/* First bound for flex array */
+#define DESC_MAP 0              /* Pointer map */
+#define DESC_DEPTH 1            /* Inheritance depth of record */
+#define DESC_ANCES 2            /* Ancestor list of record */
+#define DESC_BOUND 1            /* First bound for flex array */
 
 /* Tokens used in pointer maps: all must be congruent to 2 modulo 4 */
 #define GC_BASE 2

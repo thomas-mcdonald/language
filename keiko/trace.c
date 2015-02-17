@@ -26,11 +26,15 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * $Id: trace.c 1699 2012-02-01 23:04:32Z mike $
  */
 
 #define TRACE
 #include "obx.h"
 #include "keiko.h"
+
+const char *trace_rcsid = "$Id: trace.c 1699 2012-02-01 23:04:32Z mike $";
 
 char *fmt_inst(uchar *pc) {
      uchar *args = pc;
@@ -40,27 +44,27 @@ char *fmt_inst(uchar *pc) {
      char *s = buf;
 
      if (ip->i_name == NULL) {
-	  strcpy(buf, "UNKNOWN");
-	  return buf;
+          strcpy(buf, "UNKNOWN");
+          return buf;
      }
 
      s += sprintf(s, "%s", ip->i_name);
 
      for (p = ip->i_patt; *p != '\0'; p++) {
-	  switch (*p) {
-	  case '1': 
-	       s += sprintf(s, " %d", get1(pc)); pc++; break;
-	  case '2': 
-	       s += sprintf(s, " %d", get2(pc)); pc += 2; break;
-	  case 'R':
-	       s += sprintf(s, " %d", get2(pc)+(args-imem)); pc += 2; break;
-	  case 'S':
-	       s += sprintf(s, " %d", get1(pc)+(args-imem)); pc += 1; break;
-	  case 'N':
-	       s += sprintf(s, " %d", ip->i_arg); break;
-	  default:
-	       s += sprintf(s, " ?%c?", *p);
-	  }
+          switch (*p) {
+          case '1': case 'K':
+               s += sprintf(s, " %d", get1(pc)); pc++; break;
+          case '2': case 'L':
+               s += sprintf(s, " %d", get2(pc)); pc += 2; break;
+          case 'R':
+               s += sprintf(s, " %d", get2(pc)+(args-imem)); pc += 2; break;
+          case 'S':
+               s += sprintf(s, " %d", get1(pc)+(args-imem)); pc += 1; break;
+          case 'N':
+               s += sprintf(s, " %d", ip->i_arg); break;
+          default:
+               s += sprintf(s, " ?%c?", *p);
+          }
      }
 
      return buf;
@@ -70,43 +74,43 @@ void dump(void) {
      int i, k;
 
      for (k = 0; k < nprocs; k++) {
-	  proc p = proctab[k];
-	  value *cp = p->p_addr;
-	  uchar *pc, *limit;
+          proc p = proctab[k];
+          value *cp = p->p_addr;
+          uchar *pc, *limit;
 
-	  if (cp[CP_PRIM].z != interp) continue;
-	  
-	  pc = cp[CP_CODE].x; limit = pc + cp[CP_SIZE].i;
+          if (cp[CP_PRIM].z != interp) continue;
+          
+          pc = cp[CP_CODE].x; limit = pc + cp[CP_SIZE].i;
 
-	  printf("Procedure %s:\n", proctab[k]->p_name);
-	  while (pc < limit) {
-	       int op = *pc;
-	       uchar *pc1 = pc + optable[op].i_len;
+          printf("Procedure %s:\n", proctab[k]->p_name);
+          while (pc < limit) {
+               int op = *pc;
+               uchar *pc1 = pc + optable[op].i_len;
 
-	       printf("%6d: %-30s", pc-imem, fmt_inst(pc));
-	       while (pc < pc1) printf(" %d", *pc++);
-	       printf("\n");
+               printf("%6d: %-30s", pc-imem, fmt_inst(pc));
+               while (pc < pc1) printf(" %d", *pc++);
+               printf("\n");
 
-	       if (op == K_JCASE_1) {
-		    int n = pc[-1];
-		    for (i = 0; i < n; i++) {
-			 printf("%6d:   CASEL %-22d %d %d\n", pc-imem, 
-				get2(pc)+(pc-imem), pc[0], pc[1]);
-			 pc += 2;
-		    }
-	       }
+               if (op == K_JCASE_1) {
+                    int n = pc[-1];
+                    for (i = 0; i < n; i++) {
+                         printf("%6d:   CASEL %-22d %d %d\n", pc-imem, 
+                                get2(pc)+(pc-imem), pc[0], pc[1]);
+                         pc += 2;
+                    }
+               }
 
 #ifdef SPECIALS
- 	       if (op == K_CASEJUMP_1) {
- 		    int n = get2(pc-1);
- 		    for (i = 0; i < n; i++) {
- 			 printf("%6d:   CASEV %d %d\n", pc-imem,
- 				get2(pc), get2(pc+2)+(pc-imem));
- 			 pc += 4;
- 		    }
- 	       }
+               if (op == K_CASEJUMP_1) {
+                    int n = pc[-1];
+                    for (i = 0; i < n; i++) {
+                         printf("%6d:   CASEV %d %d\n", pc-imem,
+                                get2(pc), get2(pc+2)+(pc-imem));
+                         pc += 4;
+                    }
+               }
 #endif
-	  }
+          }
      }
 }
 
@@ -115,8 +119,8 @@ const char *prim_name(value *p) {
      int i;
 
      for (i = 0; primtab[i] != NULL; i++)
-	  if (i != 1 && primtab[i] == z)
-	       return primname[i];
+          if (i != 1 && primtab[i] == z)
+               return primname[i];
 
      if (p[1].x != NULL) return (char *) p[1].x;
 

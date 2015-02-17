@@ -26,19 +26,23 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * $Id: support.c 1695 2011-11-15 21:04:22Z mike $
  */
 
 #include "obx.h"
+
+const char *support_rcsid = "$Id: support.c 1695 2011-11-15 21:04:22Z mike $";
 
 /* Assorted runtime support routines */
 
 void panic(const char *msg, ...) {
      va_list va;
 
-     mybool bug = FALSE;
+     boolean bug = FALSE;
 
      if (*msg == '*') {
-	  bug = TRUE; msg++;
+          bug = TRUE; msg++;
      }
 
      fflush(stdout);
@@ -48,7 +52,7 @@ void panic(const char *msg, ...) {
      va_end(va);
      fprintf(stderr, "\n");
      if (bug)
-	  fprintf(stderr, "Please report bugs to %s\n", PACKAGE_BUGREPORT);
+          fprintf(stderr, "Please report bugs to %s\n", PACKAGE_BUGREPORT);
      fflush(stderr);
      error_exit(3);
 }
@@ -138,9 +142,9 @@ void obcopy(char *dst, const char *src, int n) {
      if (n == 0) return;
 
      while (n-- > 1) {
-	  c = *src++;
-	  if (c == '\0') break;
-	  *dst++ = c;
+          c = *src++;
+          if (c == '\0') break;
+          *dst++ = c;
      }
 
      *dst = '\0';
@@ -185,13 +189,13 @@ proc find_symbol(value *p, proc *table, int nelem) {
 
      /* Binary search */
      /* Inv: 0 <= a < b <= nelem, table[a] <= x < table[b], 
-	where table[nelem] = infinity */
+        where table[nelem] = infinity */
      while (a+1 != b) {
-	  int m = (a+b)/2;
-	  if (table[m]->p_addr <= p)
-	       a = m;
-	  else
-	       b = m;
+          int m = (a+b)/2;
+          if (table[m]->p_addr <= p)
+               a = m;
+          else
+               b = m;
      }
 
      return table[a];
@@ -207,15 +211,15 @@ int pack(value *code, uchar *env) {
      unsigned tag, val;
 
      for (tag = 0; tag < nclo; tag++)
-	  if (clotab[tag] == code) break;
+          if (clotab[tag] == code) break;
 
      if (tag == nclo) {
-	  if (nclo == 256) panic("Out of closure tags");
-	  clotab[nclo++] = code;
+          if (nclo == 256) panic("Out of closure tags");
+          clotab[nclo++] = code;
      }
 
      if (env != NULL && (env <= stack || env > stack + stack_size)) 
-	  panic("Bad luck in pack");
+          panic("Bad luck in pack");
 
      val = (env == NULL ? 0 : env - stack);
 

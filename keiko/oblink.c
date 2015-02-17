@@ -26,24 +26,27 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * $Id: oblink.c 1700 2012-02-09 15:12:08Z mike $
  */
 
 #define EXTERN
 #include "oblink.h"
 #include "keiko.h"
 
-char *copyright = "Copyright (C) 1999 J. M. Spivey";
+const char *copyright = "Copyright (C) 1999 J. M. Spivey";
+const char *oblink_rcsid = "$Id: oblink.c 1700 2012-02-09 15:12:08Z mike $";
 
 /* The module table has one entry for each module that appears in the
    input files.  There's another table kept by the linker itself that
    has one entry for each module actually selected for linking. */
 
 struct _module {
-     char *m_file;		/* Name of the file */
-     char *m_name;		/* Name of the module */
-     mybool m_lib, m_needed;	/* Whether a library module, whether needed */
-     int m_dep;			/* Index of first prerequisite */
-     int m_check;		/* Checksum */
+     char *m_file;              /* Name of the file */
+     char *m_name;              /* Name of the module */
+     boolean m_lib, m_needed;   /* Whether a library module, whether needed */
+     int m_dep;                 /* Index of first prerequisite */
+     int m_check;               /* Checksum */
 };
 
 static growdecl(module);
@@ -71,7 +74,7 @@ static char line[MAXLINE];
 static int nwords;
 static char *words[MAXWORDS];
 
-static mybool stdlib = TRUE;
+static boolean stdlib = TRUE;
 static char *lscript = (char *) "lscript";
 static char *interp = NULL;
 static char *outname = (char *) "a.out";
@@ -82,80 +85,80 @@ static int find_module(char *name) {
      int i;
 
      for (i = 0; i < nmodules; i++)
-	  if (strcmp(name, module[i].m_name) == 0)
-	       return i;
+          if (strcmp(name, module[i].m_name) == 0)
+               return i;
 
      return -1;
 }
 
 /* scan -- scan a file for MODULE and IMPORT directives */
-static void scan(char *name, mybool islib)  {
+static void scan(char *name, boolean islib)  {
      FILE *fp;
      int m = -1, m2, chksum;
 
      err_file = must_strdup(name);
      fp = fopen(name, "r");
      if (fp == NULL) {
-	  perror(name);
-	  exit(2);
+          perror(name);
+          exit(2);
      }
 
      while (fgets(line, MAXLINE, fp) != NULL) {
-	  nwords = split_line(line, words);
-	  if (nwords == 0) continue;
+          nwords = split_line(line, words);
+          if (nwords == 0) continue;
 
-	  if (strcmp(words[0], "MODULE") == 0) {
-	       char *mname = words[1];
-	       m = find_module(mname);
-	       if (m >= 0) {
-		    if (module[m].m_lib)
-			 error("%s has the same name as a library module", 
-			       words[1]);
-		    else 
-			 error("%s is loaded more than once", words[1]);
-	       }
-	       
-	       buf_grow(module);
-	       m = nmodules;
-	       module[m].m_file = name;
-	       module[m].m_name = must_strdup(mname);
-	       module[m].m_lib = islib;
-	       module[m].m_needed = FALSE;
-	       module[m].m_dep = ndeps;
-	       module[m].m_check = strtoul(words[2], NULL, 0);
-	       nmodules++;
-	  } else if (strcmp(words[0], "IMPORT") == 0) {
-	       if (m < 0)
-		    error("IMPORT appears before MODULE in %s", name);
+          if (strcmp(words[0], "MODULE") == 0) {
+               char *mname = words[1];
+               m = find_module(mname);
+               if (m >= 0) {
+                    if (module[m].m_lib)
+                         error("%s has the same name as a library module", 
+                               words[1]);
+                    else 
+                         error("%s is loaded more than once", words[1]);
+               }
+               
+               buf_grow(module);
+               m = nmodules;
+               module[m].m_file = name;
+               module[m].m_name = must_strdup(mname);
+               module[m].m_lib = islib;
+               module[m].m_needed = FALSE;
+               module[m].m_dep = ndeps;
+               module[m].m_check = strtoul(words[2], NULL, 0);
+               nmodules++;
+          } else if (strcmp(words[0], "IMPORT") == 0) {
+               if (m < 0)
+                    error("IMPORT appears before MODULE in %s", name);
 
-	       m2 = find_module(words[1]);
-	       chksum = strtoul(words[2], NULL, 0);
-	       buf_grow(dep);
-	       if (m2 < 0) 
-		    error("%s imports %s -- please load it first",
-			  module[m].m_name, words[1]);
-	       else {
-		    dep[ndeps++] = m2;
-		    if (module[m2].m_check != chksum)
-			 error("checksum of module %s does not match value"
-			       " expected by module %s", 
-			       words[1], module[m].m_name);
-	       }
-	  } else if (strcmp(words[0], "PRIM") == 0) {
-	       if (islib && !custom
+               m2 = find_module(words[1]);
+               chksum = strtoul(words[2], NULL, 0);
+               buf_grow(dep);
+               if (m2 < 0) 
+                    error("%s imports %s -- please load it first",
+                          module[m].m_name, words[1]);
+               else {
+                    dep[ndeps++] = m2;
+                    if (module[m2].m_check != chksum)
+                         error("checksum of module %s does not match value"
+                               " expected by module %s", 
+                               words[1], module[m].m_name);
+               }
+          } else if (strcmp(words[0], "PRIM") == 0) {
+               if (islib && !custom
 #ifdef DYNLINK
-		   && *words[1] != '*'
+                   && *words[1] != '*'
 #endif
-		    ) make_prim(words[1]);
-	  } else if (strcmp(words[0], "ENDHDR") == 0) {
-	       break;
-	  } else {
-	       panic("*bad directive %s in file header", words[0]);
-	  }
+                    ) make_prim(words[1]);
+          } else if (strcmp(words[0], "ENDHDR") == 0) {
+               break;
+          } else {
+               panic("*bad directive %s in file header", words[0]);
+          }
      }
 
      fclose(fp);
-}			       
+}                              
 
 static void scan_files(void) {
      FILE *fp;
@@ -163,24 +166,24 @@ static void scan_files(void) {
      char buf[128];
 
      if (stdlib) {
-	  sprintf(buf, "%s%s%s", libdir, PATHSEP, lscript);
-	  fp = fopen(buf, "r");
-	  if (fp == NULL) {
-	       perror(buf);
-	       exit(2);
-	  }
+          sprintf(buf, "%s%s%s", libdir, PATHSEP, lscript);
+          fp = fopen(buf, "r");
+          if (fp == NULL) {
+               perror(buf);
+               exit(2);
+          }
 
-	  while (fgets(line, MAXLINE, fp) != NULL) {
-	       line[strlen(line)-1] = '\0';
-	       sprintf(buf, "%s%s%s", libdir, PATHSEP, line);
-	       scan(must_strdup(buf), TRUE);
-	  }
+          while (fgets(line, MAXLINE, fp) != NULL) {
+               line[strlen(line)-1] = '\0';
+               sprintf(buf, "%s%s%s", libdir, PATHSEP, line);
+               scan(must_strdup(buf), TRUE);
+          }
 
-	  fclose(fp);
+          fclose(fp);
      }
 
      for (i = 0; i < nfiles; i++)
-	  scan(file[i], FALSE);
+          scan(file[i], FALSE);
 }
 
 /* load_needed -- load files containing needed modules */
@@ -190,23 +193,23 @@ static void load_needed() {
      char *name;
 
      for (i = 0; i < nmodules; i++) {
-	  if (!module[i].m_needed) continue;
+          if (!module[i].m_needed) continue;
 
-	  name = module[i].m_file;
-	  err_file = name;
-	  fp = fopen(name, "r");
-	  if (fp == NULL) {
-	       perror(name);
-	       exit(2);
-	  }
+          name = module[i].m_file;
+          err_file = name;
+          fp = fopen(name, "r");
+          if (fp == NULL) {
+               perror(name);
+               exit(2);
+          }
 
-	  while (fgets(line, MAXLINE, fp) != NULL) {
-	       nwords = split_line(line, words);
-	       if (nwords == 0) continue;
-	       put_inst(words[0], &words[1], nwords-1);
-	  }
+          while (fgets(line, MAXLINE, fp) != NULL) {
+               nwords = split_line(line, words);
+               if (nwords == 0) continue;
+               put_inst(words[0], &words[1], nwords-1);
+          }
 
-	  fclose(fp);
+          fclose(fp);
      }
 }
 
@@ -215,21 +218,21 @@ static void trace_imports(void) {
      int i, j;
 
      for (i = nmodules-1; i >= 0; i--) {
-	  if (!module[i].m_lib || strcmp(module[i].m_name, "_Builtin") == 0) 
-	       module[i].m_needed = TRUE;
+          if (!module[i].m_lib || strcmp(module[i].m_name, "_Builtin") == 0) 
+               module[i].m_needed = TRUE;
 
-	  if (module[i].m_needed)
-	       for (j = module[i].m_dep; j < module[i+1].m_dep; j++)
-		    module[dep[j]].m_needed = TRUE;
+          if (module[i].m_needed)
+               for (j = module[i].m_dep; j < module[i+1].m_dep; j++)
+                    module[dep[j]].m_needed = TRUE;
      }
 
 #ifdef DEBUG
      if (dflag) {
-	  fprintf(stderr, "Needed:");
-	  for (i = 0; i < nmodules; i++)
-	       if (module[i].m_needed)
-		    fprintf(stderr, " %s", module[i].m_name);
-	  fprintf(stderr, "\n");
+          fprintf(stderr, "Needed:");
+          for (i = 0; i < nmodules; i++)
+               if (module[i].m_needed)
+                    fprintf(stderr, " %s", module[i].m_name);
+          fprintf(stderr, "\n");
      }
 #endif
 }
@@ -246,21 +249,21 @@ static void gen_main(void) {
      /* For completeness, generate a header listing all loaded modules. */
      gen_inst("MODULE %%Main 0 0");
      for (i = 0; i < nmodules; i++) {
-	  if (strcmp(module[i].m_name, "_Builtin") == 0 
-	      || !module[i].m_needed) continue;
-	  gen_inst("IMPORT %s %#x", module[i].m_name, module[i].m_check);
+          if (strcmp(module[i].m_name, "_Builtin") == 0 
+              || !module[i].m_needed) continue;
+          gen_inst("IMPORT %s %#x", module[i].m_name, module[i].m_check);
      }
      gen_inst("ENDHDR");
 
      gen_inst("PROC MAIN 0 4 0");
      /* Code to call each module body */
      for (i = 0; i < nmodules; i++) {
-	  if (!module[i].m_needed) continue;
-	  sprintf(buf, "%s.%%main", module[i].m_name);
-	  if (known(buf)) {
-	       gen_inst("GLOBAL %s", buf);
-	       gen_inst("CALL 0");
-	  }
+          if (!module[i].m_needed) continue;
+          sprintf(buf, "%s.%%main", module[i].m_name);
+          if (known(buf)) {
+               gen_inst("CONST %s", buf);
+               gen_inst("CALL 0");
+          }
      }
      gen_inst("RETURN");
      gen_inst("END");
@@ -268,12 +271,12 @@ static void gen_main(void) {
      /* Make global pointer map */
      gen_inst("DEFINE GCMAP");
      for (i = 0; i < nmodules; i++) {
-	  if (!module[i].m_needed) continue;
-	  sprintf(buf, "%s.%%gcmap", module[i].m_name);
-	  if (known(buf)) {
-	       gen_inst("WORD GC_MAP");
-	       gen_inst("WORD %s", buf);
-	  }
+          if (!module[i].m_needed) continue;
+          sprintf(buf, "%s.%%gcmap", module[i].m_name);
+          if (known(buf)) {
+               gen_inst("WORD GC_MAP");
+               gen_inst("WORD %s", buf);
+          }
      }
      gen_inst("WORD GC_END");
 }
@@ -295,47 +298,47 @@ static struct option longopts[] = {
 /* get_options -- analyse arguments */
 static void get_options(int argc, char **argv) {
      for (;;) {
-	  int c = getopt_long_only(argc, argv, "dvsgmi:L:R:o:k:", 
-				   longopts, NULL);
+          int c = getopt_long_only(argc, argv, "dvsgmi:L:R:o:k:", 
+                                   longopts, NULL);
 
-	  if (c == -1) break;
+          if (c == -1) break;
 
-	  switch (c) {
-	  case 'd':
-	       dflag++; break;
-	  case 'v':
-	       printf("Oxford Oberon-2 linker version %s\n", PACKAGE_VERSION);
-	       exit(0);
-	       break;
-	  case 's':
-	       sflag = TRUE; break;
-	  case 'g':
-	       gflag = TRUE; break;
-	  case 'i':
-	       interp = optarg; break;
-	  case 'L':
-	       libdir = optarg; break;
-	  case 'R':
-	       rtlibdir = optarg; break;
-	  case 'o':
-	       outname = optarg; break;
-	  case 'k':
-	       stack_size = atoi(optarg);
-	       if (stack_size < MIN_STACK) stack_size = MIN_STACK;
-	       break;
-	  case 0:
-	       /* Long option with flag */
-	       break;
-	  case SCRIPT:
-	       /* -script */
-	       lscript = optarg; break;
-	  case '?':
-	       /* Error has been reported by getopt */
-	       exit(2);
-	       break;
-	  default:
-	       panic("*bad option");
-	  }
+          switch (c) {
+          case 'd':
+               dflag++; break;
+          case 'v':
+               printf("Oxford Oberon-2 linker version %s\n", PACKAGE_VERSION);
+               exit(0);
+               break;
+          case 's':
+               sflag = TRUE; break;
+          case 'g':
+               gflag = TRUE; break;
+          case 'i':
+               interp = optarg; break;
+          case 'L':
+               libdir = optarg; break;
+          case 'R':
+               rtlibdir = optarg; break;
+          case 'o':
+               outname = optarg; break;
+          case 'k':
+               stack_size = atoi(optarg);
+               if (stack_size < MIN_STACK) stack_size = MIN_STACK;
+               break;
+          case 0:
+               /* Long option with flag */
+               break;
+          case SCRIPT:
+               /* -script */
+               lscript = optarg; break;
+          case '?':
+               /* Error has been reported by getopt */
+               exit(2);
+               break;
+          default:
+               panic("*bad option");
+          }
      }
 
      nfiles = argc - optind;
@@ -351,49 +354,49 @@ static void get_options(int argc, char **argv) {
      buf_init(file, INIT_MODS, 1, char *, "files");
 
      for (i = 1; i < argc; i++) {
-	  if (strcmp(argv[i], "-d") == 0)
-	       dflag++;
-	  else if (strcmp(argv[i], "-v") == 0) {
-	       printf("Oxford Oberon-2 linker version %s\n", PACKAGE_VERSION);
-	       exit(0);
-	  } else if (strcmp(argv[i], "-s") == 0) {
-	       sflag = TRUE;
-	  } else if (strcmp(argv[i], "-g") == 0) {
-	       gflag = TRUE;
-	  } else if (strcmp(argv[i], "-script") == 0) {
-	       if (++i == argc) panic("missing argument after -script");
-	       lscript = argv[i];
-	  } else if (strcmp(argv[i], "-custom") == 0) {
-	       custom = TRUE;
-	  } else if (strcmp(argv[i], "-dump") == 0) {
-	       dump = TRUE;
-	  } else if (strcmp(argv[i], "-nostdlib") == 0) {
-	       stdlib = FALSE;
-	  } else if (strcmp(argv[i], "-pl") == 0) {
-	       linecount = TRUE;
-	  } else if (strcmp(argv[i], "-i") == 0) {
-	       if (++i == argc) panic("missing argument after -i");
-	       interp = argv[i];
-	  } else if (strcmp(argv[i], "-L") == 0) {
-	       if (++i == argc) panic("missing argument after -L");
-	       libdir = argv[i];
-	  } else if (strcmp(argv[i], "-R") == 0) {
-	       if (++i == argc) panic("missing argument after -R");
-	       rtlibdir = argv[i];
-	  } else if (strcmp(argv[i], "-o") == 0) {
-	       if (++i == argc) panic("missing argument after -o");
-	       outname = argv[i];
-	  } else if (strcmp(argv[i], "-k") == 0) {
-	       if (++i == argc) panic("missing argument after -k");
-	       stack_size = atoi(argv[i]);
-	       if (stack_size < MIN_STACK) stack_size = MIN_STACK;
-	  } else if (argv[i][0] == '-') {
-	       panic("unknown switch %s", argv[i]);
-	  } else {
-	       buf_grow(file);
-	       file[nfiles] = argv[i];
-	       nfiles++;
-	  }
+          if (strcmp(argv[i], "-d") == 0)
+               dflag++;
+          else if (strcmp(argv[i], "-v") == 0) {
+               printf("Oxford Oberon-2 linker version %s\n", PACKAGE_VERSION);
+               exit(0);
+          } else if (strcmp(argv[i], "-s") == 0) {
+               sflag = TRUE;
+          } else if (strcmp(argv[i], "-g") == 0) {
+               gflag = TRUE;
+          } else if (strcmp(argv[i], "-script") == 0) {
+               if (++i == argc) panic("missing argument after -script");
+               lscript = argv[i];
+          } else if (strcmp(argv[i], "-custom") == 0) {
+               custom = TRUE;
+          } else if (strcmp(argv[i], "-dump") == 0) {
+               dump = TRUE;
+          } else if (strcmp(argv[i], "-nostdlib") == 0) {
+               stdlib = FALSE;
+          } else if (strcmp(argv[i], "-pl") == 0) {
+               linecount = TRUE;
+          } else if (strcmp(argv[i], "-i") == 0) {
+               if (++i == argc) panic("missing argument after -i");
+               interp = argv[i];
+          } else if (strcmp(argv[i], "-L") == 0) {
+               if (++i == argc) panic("missing argument after -L");
+               libdir = argv[i];
+          } else if (strcmp(argv[i], "-R") == 0) {
+               if (++i == argc) panic("missing argument after -R");
+               rtlibdir = argv[i];
+          } else if (strcmp(argv[i], "-o") == 0) {
+               if (++i == argc) panic("missing argument after -o");
+               outname = argv[i];
+          } else if (strcmp(argv[i], "-k") == 0) {
+               if (++i == argc) panic("missing argument after -k");
+               stack_size = atoi(argv[i]);
+               if (stack_size < MIN_STACK) stack_size = MIN_STACK;
+          } else if (argv[i][0] == '-') {
+               panic("unknown switch %s", argv[i]);
+          } else {
+               buf_grow(file);
+               file[nfiles] = argv[i];
+               nfiles++;
+          }
      }
 }
 #endif
@@ -435,18 +438,18 @@ int main(int argc, char **argv) {
 
      /* Second pass -- link the modules that are needed */
      if (!dump) {
-	  init_linker(outname, interp);
-	  load_needed();
-	  gen_main();
-	  if (rtlibdir != NULL)
-	       save_string("LIBDIR", rtlibdir);
-	  end_linking();
+          init_linker(outname, interp);
+          load_needed();
+          gen_main();
+          if (rtlibdir != NULL)
+               save_string("LIBDIR", rtlibdir);
+          end_linking();
      }
 
      if (dump || custom) {
-	  printf("/* Primitive table -- generated by oblink */\n\n");
-	  printf("#include \"obx.h\"\n\n");
-	  dump_prims(stdout);
+          printf("/* Primitive table -- generated by oblink */\n\n");
+          printf("#include \"obx.h\"\n\n");
+          dump_prims(stdout);
      }
 
      return status;

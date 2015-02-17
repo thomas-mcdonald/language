@@ -26,6 +26,8 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * $Id: xmain.c 1700 2012-02-09 15:12:08Z mike $
  */
 
 #define EXTERN
@@ -33,23 +35,24 @@
 #include "keiko.h"
 #include "exec.h"
 
-char *copyright = "Copyright (C) 1999 J. M. Spivey";
+const char *copyright = "Copyright (C) 1999 J. M. Spivey";
+const char *xmain_rcsid = "$Id: xmain.c 1700 2012-02-09 15:12:08Z mike $";
 
 extern int vm_debug;
 
 /* Helper functions for the loader */
 
 module make_module(char *name, uchar *addr, int chksum, int nlines) {
-     module m = scratch_alloc(sizeof(struct _module), FALSE);
+     module m = (module) scratch_alloc(sizeof(struct _module), FALSE);
      m->m_name = name;
      m->m_addr = addr;
 #ifdef PROFILE
      m->m_nlines = nlines;
      m->m_lcount = NULL;
      if (lflag && nlines > 0) {
-	  m->m_lcount = 
-	       (unsigned *) scratch_alloc(nlines * sizeof(unsigned), TRUE);
-	  memset(m->m_lcount, 0, nlines * sizeof(int));
+          m->m_lcount = 
+               (unsigned *) scratch_alloc(nlines * sizeof(unsigned), TRUE);
+          memset(m->m_lcount, 0, nlines * sizeof(int));
      }
 #endif
 #ifdef OBXDEB
@@ -68,7 +71,7 @@ proc make_proc(char *name, uchar *addr) {
 #endif
 #ifdef OBXDEB
      debug_message("proc %s %#x %#x %d", name, (unsigned) addr, 
-		   (unsigned) p->p_addr[CP_CODE].x, p->p_addr[CP_SIZE].i);
+                   (unsigned) p->p_addr[CP_CODE].x, p->p_addr[CP_SIZE].i);
 #endif
      return p;
 }
@@ -82,13 +85,13 @@ void make_symbol(const char *kind, char *name, uchar *addr) {
 /* Runtime errors */
 
 #ifndef OBXDEB
-#define TOP 5			/* Number of frames shown at top and bottom */
+#define TOP 5                   /* Number of frames shown at top and bottom */
 #define BOT 5
-#define GAP 10			/* Don't omit less than this many frames */
+#define GAP 10                  /* Don't omit less than this many frames */
 #define NBUF (BOT+GAP-1)
 
-static void backtrace(value *bp) {
-     value *fp = bp, *cp = bp[CP].p;
+static void backtrace(value *fp) {
+     value *xp = fp, *cp = fp[CP].p;
      proc p = find_proc(cp);
      int n, j;
      proc fbuf[NBUF];
@@ -96,77 +99,75 @@ static void backtrace(value *bp) {
      fprintf(stderr, "In procedure %s\n", p->p_name);
 
      /* Chain down the stack, printing the first TOP frames,
-	and saving the last NBUF in a circular buffer. */
+        and saving the last NBUF in a circular buffer. */
      for (n = 0; ; n++) {
-	  /* Each frame contains the cp and bp of its caller */
-	  fp = fp[BP].p;	/* Base pointer of next frame */
-	  if (fp == NULL) break;
-	  cp = fp[CP].p;	/* Constant pool of next frame */
-	  fbuf[n%NBUF] = p = find_proc(cp);
-	  if (n < TOP)
-	       fprintf(stderr, "   called from %s\n", p->p_name);
+          /* Each frame contains the cp and fp of its caller */
+          xp = xp[FP].p;        /* Base pointer of next frame */
+          if (xp == NULL) break;
+          cp = xp[CP].p;        /* Constant pool of next frame */
+          fbuf[n%NBUF] = p = find_proc(cp);
+          if (n < TOP)
+               fprintf(stderr, "   called from %s\n", p->p_name);
      }
 
      /* Now the last NBUF frames are f(n-NBUF), ..., f(n-1)
-	where f(i) = fbuf[i%NBUF] -- unless there are fewer
-	then NBUF frames in all. */
+        where f(i) = fbuf[i%NBUF] -- unless there are fewer
+        then NBUF frames in all. */
 
      if (n < TOP+GAP+BOT) 
-	  /* Print the n-TOP frames not printed already */
-	  j = TOP;
+          /* Print the n-TOP frames not printed already */
+          j = TOP;
      else {
-	  /* Omit n-(TOP+BOT) frames (at least GAP) and print the 
-	     last BOT frames */
-	  fprintf(stderr, "   ... %d intervening frames omitted ...\n", 
-		  n-(TOP+BOT));
-	  j = n-BOT;
+          /* Omit n-(TOP+BOT) frames (at least GAP) and print the 
+             last BOT frames */
+          fprintf(stderr, "   ... %d intervening frames omitted ...\n", 
+                  n-(TOP+BOT));
+          j = n-BOT;
      }
 
      /* Print frames j, ..., n-1 */
      for (; j < n; j++)
-	  fprintf(stderr, "   called from %s\n", fbuf[j%NBUF]->p_name);
+          fprintf(stderr, "   called from %s\n", fbuf[j%NBUF]->p_name);
 }
 #endif
 
 static const char *message(int code) {
      switch (code) {
      case E_CAST:
-	  return "dynamic type error in cast";
+          return "dynamic type error in cast";
      case E_ASSIGN:
-	  return "dynamic type error in record assignment";
+          return "dynamic type error in record assignment";
      case E_CASE:
-	  return "no matching label in CASE statement";
+          return "no matching label in CASE statement";
      case E_WITH:
-	  return "no matching type guard in WITH statement";
+          return "no matching type guard in WITH statement";
      case E_ASSERT:
-	  return "assertion failed (%d)";
+          return "assertion failed (%d)";
      case E_RETURN:
-	  return "function failed to return a result";
+          return "function failed to return a result";
      case E_BOUND:
-	  return "array bound error";
+          return "array bound error";
      case E_NULL:
-	  return "null pointer error";
+          return "null pointer error";
      case E_DIV:
-	  return "DIV or MOD by zero";
+          return "DIV or MOD by zero";
      case E_FDIV:
-	  return "division by zero";
+          return "division by zero";
      case E_STACK:
-	  return "stack overflow";
+          return "stack overflow";
      case E_GLOB:
-	  return "assignment of local procedure";
+          return "assignment of local procedure";
      default:
-	  return "the impossible has happened";
+          return "the impossible has happened";
      }
 }
 
 /* error_stop -- runtime error with explicit message text */
-void error_stop(const char *msg, int line, value *bp, uchar *pc) {
-     value *cp = bp[CP].p;
+void error_stop(const char *msg, int line, value *fp, uchar *pc) {
+     value *cp = fp[CP].p;
 
 #ifdef OBXDEB
-     char buf[256];
-     sprintf(buf, msg, ob_res.i);
-     debug_break(cp, bp, pc, "error %d %s", line, buf);
+     debug_break(cp, fp, pc, "error %d %s", line, msg);
 #else
      module mod = find_module(cp);
 
@@ -174,14 +175,14 @@ void error_stop(const char *msg, int line, value *bp, uchar *pc) {
      fprintf(stderr, msg, ob_res.i);
      if (line > 0) fprintf(stderr, " on line %d", line);
      if (mod != NULL && strcmp(mod->m_name, "_Builtin") != 0) 
-	  fprintf(stderr, " in module %s", mod->m_name);
+          fprintf(stderr, " in module %s", mod->m_name);
      fprintf(stderr, "\n");
      fflush(stderr);
 
      if (nprocs == 0)
-	  fprintf(stderr, "(No debugging information available)\n");
-     else if (bp != NULL)
-	  backtrace(bp);
+          fprintf(stderr, "(No debugging information available)\n");
+     else if (fp != NULL)
+          backtrace(fp);
 
      fflush(stderr);
 #endif
@@ -190,25 +191,25 @@ void error_stop(const char *msg, int line, value *bp, uchar *pc) {
 }
 
 /* runtime_error -- report a runtime error */
-void runtime_error(int m, int line, value *bp, uchar *pc) {
-     error_stop(message(m), line, bp, pc);
+void runtime_error(int m, int line, value *fp, uchar *pc) {
+     error_stop(message(m), line, fp, pc);
 }
 
 /* rterror -- simple version of runtime_error for JIT */
-void rterror(int num, int line, value *bp) {
-     runtime_error(num, line, bp, NULL);
+void rterror(int num, int line, value *fp) {
+     runtime_error(num, line, fp, NULL);
 }
 
 #ifdef JIT
 /* jit_trap -- translate procedure on first call */
-void jit_trap(value *bp) {
-     value *cp = bp[CP].p;
+void jit_trap(value *fp) {
+     value *cp = fp[CP].p;
      jit_compile(cp);
-     cp[CP_PRIM].z(bp);
+     cp[CP_PRIM].z(fp);
 }
 
 /* interp -- dummy interpreter */
-void interp(value *bp) {
+void interp(value *fp) {
      panic("no interpreter");
 }
 #endif
@@ -223,28 +224,28 @@ static void run(value *prog) {
      sp = (value *) (stack + stack_size) - 32; 
 
      sp -= HEAD; 
-     sp[BP].p = NULL; 
+     sp[FP].p = NULL; 
      sp[PC].x = NULL; 
      sp[CP].p = prog;
      (*(prog[CP_PRIM].z))(sp);
 }
 
-mybool custom_file(char *name) {
+boolean custom_file(char *name) {
      char buf[4];
      FILE *fp;
      int nread;
-     mybool result;
+     boolean result;
 
      fp = fopen(name, "rb");
      if (fp == NULL) return FALSE;
      fseek(fp, -sizeof(trailer), SEEK_END);
      nread = fread(buf, 1, 4, fp);
      if (nread < 4 || strncmp(buf, MAGIC, 4) != 0)
-	  result = FALSE;
+          result = FALSE;
      else {
-	  fseek(fp, 0, SEEK_SET);
-	  nread = fread(buf, 1, 2, fp);
-	  result = (strncmp(buf, "#!", 2) != 0);
+          fseek(fp, 0, SEEK_SET);
+          nread = fread(buf, 1, 2, fp);
+          result = (nread == 2 && strncmp(buf, "#!", 2) != 0);
      }
      fclose(fp);
      return result;
@@ -259,7 +260,7 @@ char *search_path(char *name) {
      char *filepart;
 
      if (SearchPath(NULL, name, ".exe", _MAX_PATH, buf, &filepart) == 0)
-	  return NULL;
+          return NULL;
 
      return buf;
 }
@@ -280,20 +281,20 @@ char *search_path(char *name) {
      if (path == NULL) return NULL;
 
      for (p = path; p != NULL; p = q) {
-	  q = strchr(p, ':');
-	  if (q == NULL) {
-	       strcpy(buf, p);
-	       r = buf + strlen(p);
-	  } else {
-	       strncpy(buf, p, q-p);
-	       r = buf + (q-p); q++;
-	  }
-	  if (r > buf) *r++ = '/';
-	  strcpy(r, name);
+          q = strchr(p, ':');
+          if (q == NULL) {
+               strcpy(buf, p);
+               r = buf + strlen(p);
+          } else {
+               strncpy(buf, p, q-p);
+               r = buf + (q-p); q++;
+          }
+          if (r > buf) *r++ = '/';
+          strcpy(r, name);
 
-	  if (access(buf, R_OK) == 0 && stat(buf, &stbuf) == 0
-	      && S_ISREG(stbuf.st_mode))
-	       return buf;
+          if (access(buf, R_OK) == 0 && stat(buf, &stbuf) == 0
+              && S_ISREG(stbuf.st_mode))
+               return buf;
      }
 
      return NULL;
@@ -322,8 +323,8 @@ static const char *dumpname = "obprof.out";
 static void usage(void) {
 #ifdef PROFILE
      fprintf(stderr, 
-	     "Usage: %s [-g] [-pl] [-o file] program [arg ...]\n", 
-	     progname);
+             "Usage: %s [-g] [-pl] [-o file] program [arg ...]\n", 
+             progname);
 #else
      fprintf(stderr, "Usage: %s program [arg ...]\n", progname);
 #endif
@@ -334,55 +335,55 @@ static void usage(void) {
 /* read_flags -- interpret flags */
 static void read_flags(void) {
      for (;;) {
-	  argc--; argv++;
-	  if (argc == 0 || argv[0][0] != '-') return;
+          argc--; argv++;
+          if (argc == 0 || argv[0][0] != '-') return;
 
-	  if (strcmp(argv[0], "--") == 0) {
-	       argc--; argv++;
-	       return;
-	  } else if (strcmp(argv[0], "-d") == 0) {
-	       dflag++;
-	  } else if (strcmp(argv[0], "-v") == 0) {
-	       fprintf(stderr, "Oxford Oberon-2 %s version %s%s%s\n",
-		       MYNAME, PACKAGE_VERSION,
+          if (strcmp(argv[0], "--") == 0) {
+               argc--; argv++;
+               return;
+          } else if (strcmp(argv[0], "-d") == 0) {
+               dflag++;
+          } else if (strcmp(argv[0], "-v") == 0) {
+               fprintf(stderr, "Oxford Oberon-2 %s version %s%s%s\n",
+                       MYNAME, PACKAGE_VERSION,
 #ifdef JIT
-		       " (JIT)",
+                       " (JIT)",
 #else
-		       "",
+                       "",
 #endif
 #ifdef DEBUG
-		       " (debug)"
+                       " (debug)"
 #else
-		       ""
+                       ""
 #endif
-		    );
-	       exit(0);
-	  }
+                    );
+               exit(0);
+          }
 #ifdef PROFILE
-	  else if (argc >= 2 && strcmp(argv[0], "-o") == 0) {
-	       profout = argv[1];	
-	       argc--; argv++;
-	  } else if (strcmp(argv[0], "-g") == 0) {
-	       gflag = TRUE;
-	  } else if (strcmp(argv[0], "-l") == 0 
-		     || strcmp(argv[0], "-pl") == 0) {
-	       lflag = TRUE;
-	  }
+          else if (argc >= 2 && strcmp(argv[0], "-o") == 0) {
+               profout = argv[1];       
+               argc--; argv++;
+          } else if (strcmp(argv[0], "-g") == 0) {
+               gflag = TRUE;
+          } else if (strcmp(argv[0], "-l") == 0 
+                     || strcmp(argv[0], "-pl") == 0) {
+               lflag = TRUE;
+          }
 #endif
 #ifdef TRACE
-	  else if (strcmp(argv[0], "-q") == 0) {
-	       qflag++;
-	  }
+          else if (strcmp(argv[0], "-q") == 0) {
+               qflag++;
+          }
 #endif
 #ifdef OBXDEB
-	  else if (argc >= 2 && strcmp(argv[0], "-p") == 0) {
-	       debug_socket = argv[1];
-	       argc--; argv++;
-	  }
+          else if (argc >= 2 && strcmp(argv[0], "-p") == 0) {
+               debug_socket = argv[1];
+               argc--; argv++;
+          }
 #endif
-	  else {
-	       usage();
-	  }
+          else {
+               usage();
+          }
      }
 }
 
@@ -393,15 +394,15 @@ static void dump_lcounts(void) {
 
      fp = fopen(dumpname, "w");
      if (fp == NULL) {
-	  fprintf(stderr, "%s: cannot write\n", dumpname);
-	  exit(1);
+          fprintf(stderr, "%s: cannot write\n", dumpname);
+          exit(1);
      }
 
      for (m = 0; m < nmods; m++)
-	  for (n = 1; n <= modtab[m]->m_nlines; n++)
-	       if (modtab[m]->m_lcount[n-1] > 0)
-		    fprintf(fp, "%s %d %u\n", modtab[m]->m_name, n, 
-			    modtab[m]->m_lcount[n-1]);
+          for (n = 1; n <= modtab[m]->m_nlines; n++)
+               if (modtab[m]->m_lcount[n-1] > 0)
+                    fprintf(fp, "%s %d %u\n", modtab[m]->m_name, n, 
+                            modtab[m]->m_lcount[n-1]);
 
      fclose(fp);
 }
@@ -411,17 +412,17 @@ static void print_profile(void) {
      int i;
 
      if (profout != NULL) {
-	  fp = fopen(profout, "w");
-	  if (fp == NULL) {
-	       fprintf(stderr, "%s: cannot write\n", profout);
-	       exit(1);
-	  }
+          fp = fopen(profout, "w");
+          if (fp == NULL) {
+               fprintf(stderr, "%s: cannot write\n", profout);
+               exit(1);
+          }
 
-	  fprintf(fp, "Command line:\n\n");
-	  fprintf(fp, "  %s", saved_argv[0]);
-	  for (i = 1; i < saved_argc; i++)
-	       fprintf(fp, " %s", saved_argv[i]);
-	  fprintf(fp, "\n\n");
+          fprintf(fp, "Command line:\n\n");
+          fprintf(fp, "  %s", saved_argv[0]);
+          for (i = 1; i < saved_argc; i++)
+               fprintf(fp, " %s", saved_argv[i]);
+          fprintf(fp, "\n\n");
      }
 
      profile(fp);
@@ -479,16 +480,16 @@ int main(int ac, char *av[]) {
      codefile = search_path(argv[0]);
      if (codefile != NULL && custom_file(codefile)) {
 #ifdef PROFILE
-	  char *prog = argv[0];
-	  read_flags();
-	  /* Fill the program name back in as argv[0] */
-	  argc++; argv--;
-	  argv[0] = prog;
+          char *prog = argv[0];
+          read_flags();
+          /* Fill the program name back in as argv[0] */
+          argc++; argv--;
+          argv[0] = prog;
 #endif
      } else {
-	  read_flags();
-	  if (argc < 1) usage();
-	  codefile = search_path(argv[0]);     
+          read_flags();
+          if (argc < 1) usage();
+          codefile = search_path(argv[0]);     
      }
 
 #ifdef OBXDEB
@@ -517,17 +518,17 @@ int main(int ac, char *av[]) {
 
 #ifdef PROFILE
      if (nprocs == 0) 
-	  panic("no symbol table in object file");
+          panic("no symbol table in object file");
 
      prof_init();
-#endif	  
+#endif    
 
 #ifdef OBXDEB
      debug_break(NULL, NULL, NULL, "ready");
 #endif
 #ifdef DEBUG
      if (dflag)
-	  printf("Starting program at address %d\n", ((uchar *) entry) - dmem);
+          printf("Starting program at address %d\n", ((uchar *) entry) - dmem);
 #endif
      run(entry);
      xmain_exit(0);
@@ -543,15 +544,15 @@ int main(int ac, char *av[]) {
 int obgetc(FILE *fp) {
 #ifdef OBGETC
      /* Even if Ctrl-C is trapped, it causes a getc() call on the console
-	to return EOF. */
+        to return EOF. */
      for (;;) {
-	  int c = getc(fp);
-	  if (c == EOF && intflag && prim_bp != NULL) {
-	       value *cp = prim_bp[CP].p;
-	       debug_break(cp , prim_bp, NULL, "interrupt");
-	       continue;
-	  }
-	  return c;
+          int c = getc(fp);
+          if (c == EOF && intflag && prim_fp != NULL) {
+               value *cp = prim_fp[CP].p;
+               debug_break(cp , prim_fp, NULL, "interrupt");
+               continue;
+          }
+          return c;
      }
 #else
      return getc(fp);

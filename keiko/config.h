@@ -1,20 +1,19 @@
 /* config.h.  Generated from config.h.in by configure.  */
 /* config.h.in.  Generated from configure.in by autoheader.  */
 
+#define SPECIALS 1
+
 /* Define if building universal (internal helper macro) */
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
 /* Define to set up for debugging */
-/* #undef DEBUG */
+#define DEBUG 1
 
 /* Extension for dynamic libraries */
 #define DLEXT ".so"
 
 /* Define if dynamic linking enabled */
 #define DYNLINK 1
-
-/* Whether JIT is enabled */
-#define ENABLE_JIT 1
 
 /* Page size */
 #define GC_PAGESIZE 4096
@@ -88,14 +87,13 @@
 /* Define to 1 if you have the `vprintf' function. */
 #define HAVE_VPRINTF 1
 
-/* Define for Linux */
-/* #undef LINUX */
-
 /* Log2 of page size */
 #define LOG_GC_PAGESIZE 12
 
 /* Define to enable hacks for MacOS X */
+#ifdef __APPLE__
 #define MACOS 1
+#endif
 
 /* Magic number for trailer */
 #define MAGIC "OBCX"
@@ -104,13 +102,13 @@
 #define NORETURN __attribute__ ((noreturn))
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "mike@cs.ox.ac.uk"
+#define PACKAGE_BUGREPORT "mike@comlab.ox.ac.uk"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "obc"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "obc 2.9.4"
+#define PACKAGE_STRING "obc 2.9.99"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "obc"
@@ -119,13 +117,13 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.9.4"
+#define PACKAGE_VERSION "2.9.99"
 
 /* Directory separator in file names */
 #define PATHSEP "/"
 
 /* Version signature for symbol tables */
-#define SIG 0x00020904
+#define SIG 0x00020999
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
@@ -155,7 +153,7 @@
 #endif
 
 /* Define to 1 if the X Window System is missing or not being used. */
-#define X_DISPLAY_MISSING 1
+/* #undef X_DISPLAY_MISSING */
 
 /* Define to empty if `const' does not conform to ANSI C. */
 /* #undef const */

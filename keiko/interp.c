@@ -28,6 +28,8 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * $Id: iskel.c 1700 2012-02-09 15:12:08Z mike $
  */
 
 /* This file is the skeleton of the bytecode interpreter; the parts
@@ -49,6 +51,8 @@
 #include <math.h>
 #include "obx.h"
 #include "keiko.h"
+
+const char *iskel_rcsid = "$Id: iskel.c 1700 2012-02-09 15:12:08Z mike $";
 
 #ifdef HAVE_INDEXED_JUMPS
 #define JTABLE 1
@@ -322,42 +326,25 @@ struct _opcode optable[256] = {
      { "RETURN", "", 0, 1 },
      { "LNUM", "2", 0, 3 },
      { "BREAK", "2", 0, 3 },
+     { "CASEJUMP", "1", 0, 2 },
+     { "PACK", "", 0, 1 },
+     { "UNPACK", "", 0, 1 },
 };
 #endif
 
 
+#define keiko_version  "$Id: keiko.iset 1704 2012-05-02 08:05:11Z mike $"
 
-/* Macros for caching the stack top in an accumulator */
-#define M(k)  		sp += k
-#ifdef NOACC
-#define P(k)		sp += k
-#define S(k)		
-#define G
-#define A(k)		sp[k]
-#else
-#define P(k)		sp[0] = acc; sp += k
-#define S(k)		sp[k] = acc
-#define G		acc = sp[0]
-#define A(k)		acc
-#endif
-
-#define local(n) 	((uchar *) bp + (n))
-#define parent(a, t)	indir(bp[SL].x + a, t)
-#define indir(p, t) 	(* (t *) (p))
-#define subs(p, n, t)	(* (((t *) (p)) + n))
-#define const(n)	cp[CP_CONST+n]
-
-#define type(t) type##t
-#define typei int
-#define typef float
-#define typex uchar *
-#define typep value *
-
-#define jump(lab)	pc = pc0 + lab
+#define local(n)        ((uchar *) fp + (n))
+#define parent(a, t)    indir(fp[SL].x + a, t)
+#define indir(p, t)     (* (t *) (p))
+#define subs(p, n, t)   ((t *) (p))[n]
+#define const(n)        cp[CP_CONST+n]
+#define jump(lab)       pc = pc0 + lab
 
 
-#define dup(n, sp) 	P(-1); A(0) = sp[n+1]
-#define swap(sp) 	sp[-1] = sp[1]; sp[1] = A(0); A(0) = sp[-1]
+#define dup(n, sp)      sp--; sp[0] = sp[n+1]
+#define swap(sp)        sp[-1] = sp[1]; sp[1] = sp[0]; sp[0] = sp[-1]
 
 
 /* The DIV and MOD instructions must give the correct results, even if 
@@ -417,22 +404,22 @@ static inline void putlong(value *v, longint x) {
 #endif
 
 
-#define signext(x) 	((int) (x) << 16 >> 16)
+#define signext(x)      ((int) (x) << 16 >> 16)
 
 
-static inline int boundcheck(unsigned i, unsigned n, int line,		     
-			     value *bp, uchar *pc) {	     
-     if (i >= n) runtime_error(E_BOUND, line, bp, pc);
-     return i;						     
+static inline int boundcheck(unsigned i, unsigned n, int line,               
+                             value *fp, uchar *pc) {         
+     if (i >= n) runtime_error(E_BOUND, line, fp, pc);
+     return i;                                               
 }
 
-#define checkdef(name, type, arg, extra, test, msg)			 static inline type name(type arg extra, int line, 		     	 value *bp, uchar *pc) {			 if (test) runtime_error(msg, line, bp, pc);	   		 return arg;						     	 }
+#define checkdef(name, type, arg, test, msg)                             static inline type name(type arg, int line,                         value *fp, uchar *pc) {                     if (test) runtime_error(msg, line, fp, pc);                    return arg;                                                    }
 
-checkdef(nullcheck, uchar *, p,, p == NULL, E_NULL)
-checkdef(zerocheck, int, n,, n == 0, E_DIV)
-checkdef(fzerocheck, double, x,, x == 0.0, E_FDIV)
-checkdef(lzerocheck, longint, n,, n == 0, E_DIV)
-checkdef(globcheck, value *, p,, p != NULL, E_GLOB)
+checkdef(nullcheck, uchar *, p, p == NULL, E_NULL)
+checkdef(zerocheck, int, n, n == 0, E_DIV)
+checkdef(fzerocheck, double, x, x == 0.0, E_FDIV)
+checkdef(lzerocheck, longint, n, n == 0, E_DIV)
+checkdef(globcheck, value *, p, p != NULL, E_GLOB)
 
 /* TYPETEST n expects two descriptor addresses d1 and d2:
    it test whether the ancestor of d1 at level n is d2. */
@@ -440,20 +427,20 @@ static inline int typetest(value *d1, value *d2, int n) {
      return (d1[DESC_DEPTH].i >= n && d1[DESC_ANCES].p[n].p == d2);
 }
 
-#define czech(chk, a, n) chk(a, n, bp, pc0)
-#define czech2(chk, a, b, n) chk(a, b, n, bp, pc0)
-#define error(msg, n) runtime_error(msg, n, bp, pc0);
+#define czech(chk, a, n) chk(a, n, fp, pc0)
+#define czech2(chk, a, b, n) chk(a, b, n, fp, pc0)
+#define error(msg, n) runtime_error(msg, n, fp, pc0);
 
 
 #ifdef WORDS_BIGENDIAN
-#define alignx(a, n) 	(a <<= (32-n))
+#define alignx(a, n)    (a <<= (32-n))
 #else
-#define alignx(a, n)	a
+#define alignx(a, n)    a
 #endif
 
 
 #ifdef PROFILE
-#define prof_charge(n) 	ticks += n
+#define prof_charge(n)  ticks += n
 #else
 #define prof_charge(n)
 #endif
@@ -462,26 +449,22 @@ static inline int typetest(value *d1, value *d2, int n) {
 #define fixcopy(a, b, n) prof_charge(n/4); memcpy(a, b, n)
 
 
-#ifdef NOACC
-#define FLEXA sp
-#define FLEXB
-#else
-#define FLEXA (sp+1)
-#define FLEXB sp[0].i = 0
-#endif
-#define flexcopy(d0, size0)						 { value *d = (value *) d0; int size = size0;			 int sizew = (size+3)/4; prof_charge(sizew);			 sp -= sizew;							 if ((uchar *) sp < stack + SLIMIT)				 error(E_STACK, 0);						 memcpy(FLEXA, d[0].x, size);					 d[0].x = (uchar *) FLEXA; FLEXB; }
+#define flexcopy(d0, size0)                                              { value *d = (value *) d0; int size = size0;                        int sizew = (size+3)/4; prof_charge(sizew);                       sp -= sizew;                                                      if ((uchar *) sp < stack + SLIMIT)                                error(E_STACK, 0);                                           memcpy(sp, d[0].x, size);                                         d[0].x = (uchar *) sp;}
 
 
-#define frame()								 bp = sp;								 sp = (value *) bp - cp[CP_FRAME].i - 1;				 if ((uchar *) sp < stack + SLIMIT) error(E_STACK, 0);		 memset(sp, 0, 4*(cp[CP_FRAME].i + 1));				 A(0).i = 0;
+#define frame()                                                          fp = sp;                                                            sp = (value *) ((uchar *) fp - cp[CP_FRAME].i);                     if ((uchar *) sp < stack + SLIMIT) error(E_STACK, 0);               memset(sp, 0, cp[CP_FRAME].i);
 
 #ifdef OBXDEB
-#define cond_break()  if (one_shot && *pc != K_LNUM_2 && *pc != K_BREAK_2)  debug_break(cp, bp, pc, "stop")
+#define cond_break()  if (one_shot && *pc != K_LNUM_2 && *pc != K_BREAK_2)  debug_break(cp, fp, pc, "stop")
 #else
 #define cond_break()
 #endif
 
 
-#define slide(nargs) sp += HEAD + nargs; G; cond_break();
+#define slide(nargs) sp += HEAD + nargs; cond_break();
+
+
+#define casejump(x, n0)                                  {                                                   int n = n0;                                    pc0 = pc; pc += 4*n;                           while (n > 0) {                                if (x == get2(pc0)) {                     jump(get2(pc0+2));                   break;                               }                                         pc0 += 4; n--;                            }                                              }
 
 
 
@@ -491,14 +474,11 @@ void interp(value *sp0) {
      uchar *pc = cp[CP_CODE].x;
      register uchar *pc0 = NULL;
      register value *sp = sp0;
-#ifndef NOACC
-     register value acc;
-#endif
      register uchar ir = 0;
 #ifdef PROFILE
      register counter ticks = 0;
 #endif
-     register value *bp = NULL;
+     register value *fp = NULL;
      value *base = sp0;
 #ifdef TRACE
      proc thisproc = NULL;
@@ -757,9 +737,9 @@ void interp(value *sp0) {
           &&lbl_RETURN,
           &&lbl_LNUM_2,
           &&lbl_BREAK_2,
-          &&lbl_ILLEGAL,
-          &&lbl_ILLEGAL,
-          &&lbl_ILLEGAL,
+          &&lbl_CASEJUMP_1,
+          &&lbl_PACK,
+          &&lbl_UNPACK,
           &&lbl_ILLEGAL,
           &&lbl_ILLEGAL,
           &&lbl_ILLEGAL,
@@ -794,29 +774,23 @@ void interp(value *sp0) {
 #else
      while (TRUE) {
 #ifdef TRACE
-	  if (dflag > 1) {
-	       int i;
-	       printf("pc=%s+%d(%p) sp=%p bp=%p cp=%p",
-		      thisproc->p_name, pc - cp[1].x, pc, sp, bp, cp);
-	       fflush(stdout);
-#ifdef NOACC
-	       for (i = 0; 
-#else
-	       printf(" %x", acc.i);
-	       for (i = 1; 
-#endif
-		    i < 8; i++) printf(" %x", sp[i].i);
-	       printf("\n");
-	       printf("%6d: %s\n", pc-imem, fmt_inst(pc));
-	       fflush(stdout);
-	  }
+          if (dflag > 1) {
+               int i;
+               printf("pc=%s+%d(%p) sp=%p fp=%p cp=%p",
+                      thisproc->p_name, pc - cp[1].x, pc, sp, fp, cp);
+               fflush(stdout);
+               for (i = 0; i < 8; i++) printf(" %x", sp[i].i);
+               printf("\n");
+               printf("%6d: %s\n", pc-imem, fmt_inst(pc));
+               fflush(stdout);
+          }
 #endif
 
 #ifdef PROFILE
-	  ticks++;
+          ticks++;
 #endif
 
-	  switch (ir = *(pc0 = pc)) {
+          switch (ir = *(pc0 = pc)) {
 #endif
 
           ACTION(PUSH_x1)
@@ -828,107 +802,107 @@ void interp(value *sp0) {
           ALSO(PUSH_x1+6)
           ALSO(PUSH_x1+7)
                pc = pc0 + 1;
-               P(-1); A(0).i = ir-2;
+               sp--; sp[0].i = ir-2;
                NEXT;
 
           ACTION(PUSH_1)
                pc = pc0 + 2;
-               P(-1); A(0).i = get1(pc0+1);
+               sp--; sp[0].i = get1(pc0+1);
                NEXT;
 
           ACTION(PUSH_2)
                pc = pc0 + 3;
-               P(-1); A(0).i = get2(pc0+1);
+               sp--; sp[0].i = get2(pc0+1);
                NEXT;
 
           ACTION(LDKW_1)
                pc = pc0 + 2;
-               P(-1); A(0).i = const(get1(pc0+1)).i;
+               sp--; sp[0].i = const(get1(pc0+1)).i;
                NEXT;
 
           ACTION(LDKW_2)
                pc = pc0 + 3;
-               P(-1); A(0).i = const(get2(pc0+1)).i;
+               sp--; sp[0].i = const(get2(pc0+1)).i;
                NEXT;
 
           ACTION(LDKF_1)
                pc = pc0 + 2;
-               P(-1); A(0).f = const(get1(pc0+1)).f;
+               sp--; sp[0].f = const(get1(pc0+1)).f;
                NEXT;
 
           ACTION(LDKF_2)
                pc = pc0 + 3;
-               P(-1); A(0).f = const(get2(pc0+1)).f;
+               sp--; sp[0].f = const(get2(pc0+1)).f;
                NEXT;
 
           ACTION(LOCAL_1)
                pc = pc0 + 2;
-               P(-1); A(0).x = local(get1(pc0+1));
+               sp--; sp[0].x = local(get1(pc0+1));
                NEXT;
 
           ACTION(LOCAL_2)
                pc = pc0 + 3;
-               P(-1); A(0).x = local(get2(pc0+1));
+               sp--; sp[0].x = local(get2(pc0+1));
                NEXT;
 
           ACTION(INDEXC)
                pc = pc0 + 1;
-               M(1); A(0).x = sp[0].x + A(-1).i;
+               sp++; sp[0].x = sp[0].x + sp[-1].i;
                NEXT;
 
           ACTION(INDEXS)
                pc = pc0 + 1;
-               M(1); A(0).x = sp[0].x + (A(-1).i<<1);
+               sp++; sp[0].x = sp[0].x + (sp[-1].i<<1);
                NEXT;
 
           ACTION(INDEXW)
                pc = pc0 + 1;
-               M(1); A(0).x = sp[0].x + (A(-1).i<<2);
+               sp++; sp[0].x = sp[0].x + (sp[-1].i<<2);
                NEXT;
 
           ACTION(INDEXD)
                pc = pc0 + 1;
-               M(1); A(0).x = sp[0].x + (A(-1).i<<3);
+               sp++; sp[0].x = sp[0].x + (sp[-1].i<<3);
                NEXT;
 
           ACTION(LOADW)
                pc = pc0 + 1;
-               A(0).i = indir(A(0).x, int);
+               sp[0].i = indir(sp[0].x, int);
                NEXT;
 
           ACTION(LOADS)
                pc = pc0 + 1;
-               A(0).i = indir(A(0).x, short);
+               sp[0].i = indir(sp[0].x, short);
                NEXT;
 
           ACTION(LOADC)
                pc = pc0 + 1;
-               A(0).i = indir(A(0).x, uchar);
+               sp[0].i = indir(sp[0].x, uchar);
                NEXT;
 
           ACTION(LOADF)
                pc = pc0 + 1;
-               A(0).f = indir(A(0).x, float);
+               sp[0].f = indir(sp[0].x, float);
                NEXT;
 
           ACTION(STOREW)
                pc = pc0 + 1;
-               M(2); { indir(A(-2).x, int) = sp[-1].i; } G;
+               sp += 2; { indir(sp[-2].x, int) = sp[-1].i; }
                NEXT;
 
           ACTION(STORES)
                pc = pc0 + 1;
-               M(2); { indir(A(-2).x, short) = sp[-1].i; } G;
+               sp += 2; { indir(sp[-2].x, short) = sp[-1].i; }
                NEXT;
 
           ACTION(STOREC)
                pc = pc0 + 1;
-               M(2); { indir(A(-2).x, uchar) = sp[-1].i; } G;
+               sp += 2; { indir(sp[-2].x, uchar) = sp[-1].i; }
                NEXT;
 
           ACTION(STOREF)
                pc = pc0 + 1;
-               M(2); { indir(A(-2).x, float) = sp[-1].f; } G;
+               sp += 2; { indir(sp[-2].x, float) = sp[-1].f; }
                NEXT;
 
           ACTION(LDLW_x1)
@@ -938,7 +912,7 @@ void interp(value *sp0) {
           ALSO(LDLW_x1+4)
           ALSO(LDLW_x1+5)
                pc = pc0 + 1;
-               P(-1); A(0).i = indir(local(ir*4-140), type(i));
+               sp--; sp[0].i = indir(local(ir*4-140), int);
                NEXT;
 
           ACTION(LDLW_x2)
@@ -948,47 +922,47 @@ void interp(value *sp0) {
           ALSO(LDLW_x2+4)
           ALSO(LDLW_x2+5)
                pc = pc0 + 1;
-               P(-1); A(0).i = indir(local(ir*4-128), type(i));
+               sp--; sp[0].i = indir(local(ir*4-128), int);
                NEXT;
 
           ACTION(LDLW_1)
                pc = pc0 + 2;
-               P(-1); A(0).i = indir(local(get1(pc0+1)), type(i));
+               sp--; sp[0].i = indir(local(get1(pc0+1)), int);
                NEXT;
 
           ACTION(LDLW_2)
                pc = pc0 + 3;
-               P(-1); A(0).i = indir(local(get2(pc0+1)), type(i));
+               sp--; sp[0].i = indir(local(get2(pc0+1)), int);
                NEXT;
 
           ACTION(LDLS_1)
                pc = pc0 + 2;
-               P(-1); A(0).i = indir(local(get1(pc0+1)), short);
+               sp--; sp[0].i = indir(local(get1(pc0+1)), short);
                NEXT;
 
           ACTION(LDLS_2)
                pc = pc0 + 3;
-               P(-1); A(0).i = indir(local(get2(pc0+1)), short);
+               sp--; sp[0].i = indir(local(get2(pc0+1)), short);
                NEXT;
 
           ACTION(LDLC_1)
                pc = pc0 + 2;
-               P(-1); A(0).i = indir(local(get1(pc0+1)), uchar);
+               sp--; sp[0].i = indir(local(get1(pc0+1)), uchar);
                NEXT;
 
           ACTION(LDLC_2)
                pc = pc0 + 3;
-               P(-1); A(0).i = indir(local(get2(pc0+1)), uchar);
+               sp--; sp[0].i = indir(local(get2(pc0+1)), uchar);
                NEXT;
 
           ACTION(LDLF_1)
                pc = pc0 + 2;
-               P(-1); A(0).f = indir(local(get1(pc0+1)), float);
+               sp--; sp[0].f = indir(local(get1(pc0+1)), float);
                NEXT;
 
           ACTION(LDLF_2)
                pc = pc0 + 3;
-               P(-1); A(0).f = indir(local(get2(pc0+1)), float);
+               sp--; sp[0].f = indir(local(get2(pc0+1)), float);
                NEXT;
 
           ACTION(STLW_x1)
@@ -998,7 +972,7 @@ void interp(value *sp0) {
           ALSO(STLW_x1+4)
           ALSO(STLW_x1+5)
                pc = pc0 + 1;
-               M(1); { indir(local(ir*4-220), type(i)) = A(-1).i; } G;
+               sp += 1; { indir(local(ir*4-220), int) = sp[-1].i; }
                NEXT;
 
           ACTION(STLW_x2)
@@ -1008,127 +982,127 @@ void interp(value *sp0) {
           ALSO(STLW_x2+4)
           ALSO(STLW_x2+5)
                pc = pc0 + 1;
-               M(1); { indir(local(ir*4-208), type(i)) = A(-1).i; } G;
+               sp += 1; { indir(local(ir*4-208), int) = sp[-1].i; }
                NEXT;
 
           ACTION(STLW_1)
                pc = pc0 + 2;
-               M(1); { indir(local(get1(pc0+1)), type(i)) = A(-1).i; } G;
+               sp += 1; { indir(local(get1(pc0+1)), int) = sp[-1].i; }
                NEXT;
 
           ACTION(STLW_2)
                pc = pc0 + 3;
-               M(1); { indir(local(get2(pc0+1)), type(i)) = A(-1).i; } G;
+               sp += 1; { indir(local(get2(pc0+1)), int) = sp[-1].i; }
                NEXT;
 
           ACTION(STLS_1)
                pc = pc0 + 2;
-               M(1); { indir(local(get1(pc0+1)), short) = A(-1).i; } G;
+               sp += 1; { indir(local(get1(pc0+1)), short) = sp[-1].i; }
                NEXT;
 
           ACTION(STLS_2)
                pc = pc0 + 3;
-               M(1); { indir(local(get2(pc0+1)), short) = A(-1).i; } G;
+               sp += 1; { indir(local(get2(pc0+1)), short) = sp[-1].i; }
                NEXT;
 
           ACTION(STLC_1)
                pc = pc0 + 2;
-               M(1); { indir(local(get1(pc0+1)), uchar) = A(-1).i; } G;
+               sp += 1; { indir(local(get1(pc0+1)), uchar) = sp[-1].i; }
                NEXT;
 
           ACTION(STLC_2)
                pc = pc0 + 3;
-               M(1); { indir(local(get2(pc0+1)), uchar) = A(-1).i; } G;
+               sp += 1; { indir(local(get2(pc0+1)), uchar) = sp[-1].i; }
                NEXT;
 
           ACTION(STLF_1)
                pc = pc0 + 2;
-               M(1); { indir(local(get1(pc0+1)), float) = A(-1).f; } G;
+               sp += 1; { indir(local(get1(pc0+1)), float) = sp[-1].f; }
                NEXT;
 
           ACTION(STLF_2)
                pc = pc0 + 3;
-               M(1); { indir(local(get2(pc0+1)), float) = A(-1).f; } G;
+               sp += 1; { indir(local(get2(pc0+1)), float) = sp[-1].f; }
                NEXT;
 
           ACTION(LDGW_K)
                pc = pc0 + 2;
-               P(-1); A(0).i = indir(const(get1(pc0+1)).x, type(i));
+               sp--; sp[0].i = indir(const(get1(pc0+1)).x, int);
                NEXT;
 
           ACTION(LDGW_L)
                pc = pc0 + 3;
-               P(-1); A(0).i = indir(const(get2(pc0+1)).x, type(i));
+               sp--; sp[0].i = indir(const(get2(pc0+1)).x, int);
                NEXT;
 
           ACTION(LDGS_K)
                pc = pc0 + 2;
-               P(-1); A(0).i = indir(const(get1(pc0+1)).x, short);
+               sp--; sp[0].i = indir(const(get1(pc0+1)).x, short);
                NEXT;
 
           ACTION(LDGS_L)
                pc = pc0 + 3;
-               P(-1); A(0).i = indir(const(get2(pc0+1)).x, short);
+               sp--; sp[0].i = indir(const(get2(pc0+1)).x, short);
                NEXT;
 
           ACTION(LDGC_K)
                pc = pc0 + 2;
-               P(-1); A(0).i = indir(const(get1(pc0+1)).x, uchar);
+               sp--; sp[0].i = indir(const(get1(pc0+1)).x, uchar);
                NEXT;
 
           ACTION(LDGC_L)
                pc = pc0 + 3;
-               P(-1); A(0).i = indir(const(get2(pc0+1)).x, uchar);
+               sp--; sp[0].i = indir(const(get2(pc0+1)).x, uchar);
                NEXT;
 
           ACTION(LDGF_K)
                pc = pc0 + 2;
-               P(-1); A(0).f = indir(const(get1(pc0+1)).x, float);
+               sp--; sp[0].f = indir(const(get1(pc0+1)).x, float);
                NEXT;
 
           ACTION(LDGF_L)
                pc = pc0 + 3;
-               P(-1); A(0).f = indir(const(get2(pc0+1)).x, float);
+               sp--; sp[0].f = indir(const(get2(pc0+1)).x, float);
                NEXT;
 
           ACTION(STGW_K)
                pc = pc0 + 2;
-               M(1); { indir(const(get1(pc0+1)).x, type(i)) = A(-1).i; } G;
+               sp += 1; { indir(const(get1(pc0+1)).x, int) = sp[-1].i; }
                NEXT;
 
           ACTION(STGW_L)
                pc = pc0 + 3;
-               M(1); { indir(const(get2(pc0+1)).x, type(i)) = A(-1).i; } G;
+               sp += 1; { indir(const(get2(pc0+1)).x, int) = sp[-1].i; }
                NEXT;
 
           ACTION(STGS_K)
                pc = pc0 + 2;
-               M(1); { indir(const(get1(pc0+1)).x, short) = A(-1).i; } G;
+               sp += 1; { indir(const(get1(pc0+1)).x, short) = sp[-1].i; }
                NEXT;
 
           ACTION(STGS_L)
                pc = pc0 + 3;
-               M(1); { indir(const(get2(pc0+1)).x, short) = A(-1).i; } G;
+               sp += 1; { indir(const(get2(pc0+1)).x, short) = sp[-1].i; }
                NEXT;
 
           ACTION(STGC_K)
                pc = pc0 + 2;
-               M(1); { indir(const(get1(pc0+1)).x, uchar) = A(-1).i; } G;
+               sp += 1; { indir(const(get1(pc0+1)).x, uchar) = sp[-1].i; }
                NEXT;
 
           ACTION(STGC_L)
                pc = pc0 + 3;
-               M(1); { indir(const(get2(pc0+1)).x, uchar) = A(-1).i; } G;
+               sp += 1; { indir(const(get2(pc0+1)).x, uchar) = sp[-1].i; }
                NEXT;
 
           ACTION(STGF_K)
                pc = pc0 + 2;
-               M(1); { indir(const(get1(pc0+1)).x, float) = A(-1).f; } G;
+               sp += 1; { indir(const(get1(pc0+1)).x, float) = sp[-1].f; }
                NEXT;
 
           ACTION(STGF_L)
                pc = pc0 + 3;
-               M(1); { indir(const(get2(pc0+1)).x, float) = A(-1).f; } G;
+               sp += 1; { indir(const(get2(pc0+1)).x, float) = sp[-1].f; }
                NEXT;
 
           ACTION(LDNW_x1)
@@ -1147,17 +1121,17 @@ void interp(value *sp0) {
           ALSO(LDNW_x1+13)
           ALSO(LDNW_x1+14)
                pc = pc0 + 1;
-               A(0).i = indir(A(0).x + ir*4-356, type(i));
+               sp[0].i = indir(sp[0].x + ir*4-356, int);
                NEXT;
 
           ACTION(LDNW_1)
                pc = pc0 + 2;
-               A(0).i = indir(A(0).x + get1(pc0+1), type(i));
+               sp[0].i = indir(sp[0].x + get1(pc0+1), int);
                NEXT;
 
           ACTION(LDNW_2)
                pc = pc0 + 3;
-               A(0).i = indir(A(0).x + get2(pc0+1), type(i));
+               sp[0].i = indir(sp[0].x + get2(pc0+1), int);
                NEXT;
 
           ACTION(STNW_x1)
@@ -1171,117 +1145,117 @@ void interp(value *sp0) {
           ALSO(STNW_x1+8)
           ALSO(STNW_x1+9)
                pc = pc0 + 1;
-               M(2); { indir(A(-2).x + ir*4-424, type(i)) = sp[-1].i; } G;
+               sp += 2; { indir(sp[-2].x + ir*4-424, int) = sp[-1].i; }
                NEXT;
 
           ACTION(STNW_1)
                pc = pc0 + 2;
-               M(2); { indir(A(-2).x + get1(pc0+1), type(i)) = sp[-1].i; } G;
+               sp += 2; { indir(sp[-2].x + get1(pc0+1), int) = sp[-1].i; }
                NEXT;
 
           ACTION(STNW_2)
                pc = pc0 + 3;
-               M(2); { indir(A(-2).x + get2(pc0+1), type(i)) = sp[-1].i; } G;
+               sp += 2; { indir(sp[-2].x + get2(pc0+1), int) = sp[-1].i; }
                NEXT;
 
           ACTION(LDIW)
                pc = pc0 + 1;
-               M(1); A(0).i = subs(sp[0].x, A(-1).i, type(i));
+               sp++; sp[0].i = subs(sp[0].x, sp[-1].i, int);
                NEXT;
 
           ACTION(LDIF)
                pc = pc0 + 1;
-               M(1); A(0).f = subs(sp[0].x, A(-1).i, float);
+               sp++; sp[0].f = subs(sp[0].x, sp[-1].i, float);
                NEXT;
 
           ACTION(LDIS)
                pc = pc0 + 1;
-               M(1); A(0).i = subs(sp[0].x, A(-1).i, short);
+               sp++; sp[0].i = subs(sp[0].x, sp[-1].i, short);
                NEXT;
 
           ACTION(LDIC)
                pc = pc0 + 1;
-               M(1); A(0).i = subs(sp[0].x, A(-1).i, uchar);
+               sp++; sp[0].i = subs(sp[0].x, sp[-1].i, uchar);
                NEXT;
 
           ACTION(STIW)
                pc = pc0 + 1;
-               M(3); { subs(sp[-2].x, A(-3).i, type(i)) = sp[-1].i; } G;
+               sp += 3; { subs(sp[-2].x, sp[-3].i, int) = sp[-1].i; }
                NEXT;
 
           ACTION(STIF)
                pc = pc0 + 1;
-               M(3); { subs(sp[-2].x, A(-3).i, float) = sp[-1].f; } G;
+               sp += 3; { subs(sp[-2].x, sp[-3].i, float) = sp[-1].f; }
                NEXT;
 
           ACTION(STIS)
                pc = pc0 + 1;
-               M(3); { subs(sp[-2].x, A(-3).i, short) = sp[-1].i; } G;
+               sp += 3; { subs(sp[-2].x, sp[-3].i, short) = sp[-1].i; }
                NEXT;
 
           ACTION(STIC)
                pc = pc0 + 1;
-               M(3); { subs(sp[-2].x, A(-3).i, uchar) = sp[-1].i; } G;
+               sp += 3; { subs(sp[-2].x, sp[-3].i, uchar) = sp[-1].i; }
                NEXT;
 
           ACTION(LDEW_1)
                pc = pc0 + 2;
-               P(-1); A(0).i = parent(get1(pc0+1), type(i));
+               sp--; sp[0].i = parent(get1(pc0+1), int);
                NEXT;
 
           ACTION(LDEW_2)
                pc = pc0 + 3;
-               P(-1); A(0).i = parent(get2(pc0+1), type(i));
+               sp--; sp[0].i = parent(get2(pc0+1), int);
                NEXT;
 
           ACTION(STEW_1)
                pc = pc0 + 2;
-               M(1); { parent(get1(pc0+1), type(i)) = A(-1).i; } G;
+               sp += 1; { parent(get1(pc0+1), int) = sp[-1].i; }
                NEXT;
 
           ACTION(STEW_2)
                pc = pc0 + 3;
-               M(1); { parent(get2(pc0+1), type(i)) = A(-1).i; } G;
+               sp += 1; { parent(get2(pc0+1), int) = sp[-1].i; }
                NEXT;
 
           ACTION(LOADD)
                pc = pc0 + 1;
-               M(-1); putdbl(&sp[0], getdbl(A(1).p)); G;
+               sp--; putdbl(&sp[0], getdbl(sp[1].p));
                NEXT;
 
           ACTION(STORED)
                pc = pc0 + 1;
-               M(3); { putdbl(A(-3).p, getdbl(&sp[-2])); } G;
+               sp += 3; { putdbl(sp[-3].p, getdbl(&sp[-2])); }
                NEXT;
 
           ACTION(LDKD_1)
                pc = pc0 + 2;
-               P(-2); putdbl(&sp[0], getdbl(&const(get1(pc0+1)))); G;
+               sp -= 2; putdbl(&sp[0], getdbl(&const(get1(pc0+1))));
                NEXT;
 
           ACTION(LDKD_2)
                pc = pc0 + 3;
-               P(-2); putdbl(&sp[0], getdbl(&const(get2(pc0+1)))); G;
+               sp -= 2; putdbl(&sp[0], getdbl(&const(get2(pc0+1))));
                NEXT;
 
           ACTION(LOADQ)
                pc = pc0 + 1;
-               M(-1); putlong(&sp[0], getlong(A(1).p)); G;
+               sp--; putlong(&sp[0], getlong(sp[1].p));
                NEXT;
 
           ACTION(STOREQ)
                pc = pc0 + 1;
-               M(3); { putlong(A(-3).p, getlong(&sp[-2])); } G;
+               sp += 3; { putlong(sp[-3].p, getlong(&sp[-2])); }
                NEXT;
 
           ACTION(LDKQ_1)
                pc = pc0 + 2;
-               P(-2); putlong(&sp[0], getlong(&const(get1(pc0+1)))); G;
+               sp -= 2; putlong(&sp[0], getlong(&const(get1(pc0+1))));
                NEXT;
 
           ACTION(LDKQ_2)
                pc = pc0 + 3;
-               P(-2); putlong(&sp[0], getlong(&const(get2(pc0+1)))); G;
+               sp -= 2; putlong(&sp[0], getlong(&const(get2(pc0+1))));
                NEXT;
 
           ACTION(INCL_1)
@@ -1308,237 +1282,237 @@ void interp(value *sp0) {
 
           ACTION(POP_1)
                pc = pc0 + 2;
-               { M(get1(pc0+1)); G; }
+               { sp += get1(pc0+1); }
                NEXT;
 
           ACTION(PLUS)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i + A(-1).i;
+               sp++; sp[0].i = sp[0].i + sp[-1].i;
                NEXT;
 
           ACTION(MINUS)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i - A(-1).i;
+               sp++; sp[0].i = sp[0].i - sp[-1].i;
                NEXT;
 
           ACTION(TIMES)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i * A(-1).i;
+               sp++; sp[0].i = sp[0].i * sp[-1].i;
                NEXT;
 
           ACTION(UMINUS)
                pc = pc0 + 1;
-               A(0).i = - A(0).i;
+               sp[0].i = - sp[0].i;
                NEXT;
 
           ACTION(AND)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i && A(-1).i;
+               sp++; sp[0].i = sp[0].i && sp[-1].i;
                NEXT;
 
           ACTION(OR)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i || A(-1).i;
+               sp++; sp[0].i = sp[0].i || sp[-1].i;
                NEXT;
 
           ACTION(NOT)
                pc = pc0 + 1;
-               A(0).i = ! A(0).i;
+               sp[0].i = ! sp[0].i;
                NEXT;
 
           ACTION(INC)
                pc = pc0 + 1;
-               A(0).i = A(0).i + 1;
+               sp[0].i = sp[0].i + 1;
                NEXT;
 
           ACTION(DEC)
                pc = pc0 + 1;
-               A(0).i = A(0).i - 1;
+               sp[0].i = sp[0].i - 1;
                NEXT;
 
           ACTION(BITAND)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i & A(-1).i;
+               sp++; sp[0].i = sp[0].i & sp[-1].i;
                NEXT;
 
           ACTION(BITOR)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i | A(-1).i;
+               sp++; sp[0].i = sp[0].i | sp[-1].i;
                NEXT;
 
           ACTION(BITXOR)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i ^ A(-1).i;
+               sp++; sp[0].i = sp[0].i ^ sp[-1].i;
                NEXT;
 
           ACTION(BITNOT)
                pc = pc0 + 1;
-               A(0).i = ~ A(0).i;
+               sp[0].i = ~ sp[0].i;
                NEXT;
 
           ACTION(BITSUB)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i & ~A(-1).i;
+               sp++; sp[0].i = sp[0].i & ~sp[-1].i;
                NEXT;
 
           ACTION(BIT)
                pc = pc0 + 1;
-               A(0).i = bit[A(0).i];
+               sp[0].i = bit[sp[0].i];
                NEXT;
 
           ACTION(LSL)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i << A(-1).i;
+               sp++; sp[0].i = sp[0].i << sp[-1].i;
                NEXT;
 
           ACTION(LSR)
                pc = pc0 + 1;
-               M(1); A(0).i = ((unsigned) sp[0].i) >> A(-1).i;
+               sp++; sp[0].i = ((unsigned) sp[0].i) >> sp[-1].i;
                NEXT;
 
           ACTION(ASR)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i >> A(-1).i;
+               sp++; sp[0].i = sp[0].i >> sp[-1].i;
                NEXT;
 
           ACTION(DIV)
                pc = pc0 + 1;
-               M(1); A(0).i = int_divop(sp[0].i, A(-1).i, 1);
+               sp++; sp[0].i = int_divop(sp[0].i, sp[-1].i, 1);
                NEXT;
 
           ACTION(MOD)
                pc = pc0 + 1;
-               M(1); A(0).i = int_divop(sp[0].i, A(-1).i, 0);
+               sp++; sp[0].i = int_divop(sp[0].i, sp[-1].i, 0);
                NEXT;
 
           ACTION(EQ)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i == A(-1).i;
+               sp++; sp[0].i = sp[0].i == sp[-1].i;
                NEXT;
 
           ACTION(LT)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i < A(-1).i;
+               sp++; sp[0].i = sp[0].i < sp[-1].i;
                NEXT;
 
           ACTION(GT)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i > A(-1).i;
+               sp++; sp[0].i = sp[0].i > sp[-1].i;
                NEXT;
 
           ACTION(LEQ)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i <= A(-1).i;
+               sp++; sp[0].i = sp[0].i <= sp[-1].i;
                NEXT;
 
           ACTION(GEQ)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i >= A(-1).i;
+               sp++; sp[0].i = sp[0].i >= sp[-1].i;
                NEXT;
 
           ACTION(NEQ)
                pc = pc0 + 1;
-               M(1); A(0).i = sp[0].i != A(-1).i;
+               sp++; sp[0].i = sp[0].i != sp[-1].i;
                NEXT;
 
           ACTION(JEQ_S)
                pc = pc0 + 2;
-               M(2); { if (sp[-1].i == A(-2).i) jump(get1(pc0+1)); } G;
+               sp += 2; { if (sp[-1].i == sp[-2].i) jump(get1(pc0+1)); }
                NEXT;
 
           ACTION(JEQ_R)
                pc = pc0 + 3;
-               M(2); { if (sp[-1].i == A(-2).i) jump(get2(pc0+1)); } G;
+               sp += 2; { if (sp[-1].i == sp[-2].i) jump(get2(pc0+1)); }
                NEXT;
 
           ACTION(JLT_S)
                pc = pc0 + 2;
-               M(2); { if (sp[-1].i < A(-2).i) jump(get1(pc0+1)); } G;
+               sp += 2; { if (sp[-1].i < sp[-2].i) jump(get1(pc0+1)); }
                NEXT;
 
           ACTION(JLT_R)
                pc = pc0 + 3;
-               M(2); { if (sp[-1].i < A(-2).i) jump(get2(pc0+1)); } G;
+               sp += 2; { if (sp[-1].i < sp[-2].i) jump(get2(pc0+1)); }
                NEXT;
 
           ACTION(JGT_S)
                pc = pc0 + 2;
-               M(2); { if (sp[-1].i > A(-2).i) jump(get1(pc0+1)); } G;
+               sp += 2; { if (sp[-1].i > sp[-2].i) jump(get1(pc0+1)); }
                NEXT;
 
           ACTION(JGT_R)
                pc = pc0 + 3;
-               M(2); { if (sp[-1].i > A(-2).i) jump(get2(pc0+1)); } G;
+               sp += 2; { if (sp[-1].i > sp[-2].i) jump(get2(pc0+1)); }
                NEXT;
 
           ACTION(JLEQ_S)
                pc = pc0 + 2;
-               M(2); { if (sp[-1].i <= A(-2).i) jump(get1(pc0+1)); } G;
+               sp += 2; { if (sp[-1].i <= sp[-2].i) jump(get1(pc0+1)); }
                NEXT;
 
           ACTION(JLEQ_R)
                pc = pc0 + 3;
-               M(2); { if (sp[-1].i <= A(-2).i) jump(get2(pc0+1)); } G;
+               sp += 2; { if (sp[-1].i <= sp[-2].i) jump(get2(pc0+1)); }
                NEXT;
 
           ACTION(JGEQ_S)
                pc = pc0 + 2;
-               M(2); { if (sp[-1].i >= A(-2).i) jump(get1(pc0+1)); } G;
+               sp += 2; { if (sp[-1].i >= sp[-2].i) jump(get1(pc0+1)); }
                NEXT;
 
           ACTION(JGEQ_R)
                pc = pc0 + 3;
-               M(2); { if (sp[-1].i >= A(-2).i) jump(get2(pc0+1)); } G;
+               sp += 2; { if (sp[-1].i >= sp[-2].i) jump(get2(pc0+1)); }
                NEXT;
 
           ACTION(JNEQ_S)
                pc = pc0 + 2;
-               M(2); { if (sp[-1].i != A(-2).i) jump(get1(pc0+1)); } G;
+               sp += 2; { if (sp[-1].i != sp[-2].i) jump(get1(pc0+1)); }
                NEXT;
 
           ACTION(JNEQ_R)
                pc = pc0 + 3;
-               M(2); { if (sp[-1].i != A(-2).i) jump(get2(pc0+1)); } G;
+               sp += 2; { if (sp[-1].i != sp[-2].i) jump(get2(pc0+1)); }
                NEXT;
 
           ACTION(JLTZ_S)
                pc = pc0 + 2;
-               M(1); { if (A(-1).i < 0) jump(get1(pc0+1)); } G;
+               sp += 1; { if (sp[-1].i < 0) jump(get1(pc0+1)); }
                NEXT;
 
           ACTION(JGTZ_S)
                pc = pc0 + 2;
-               M(1); { if (A(-1).i > 0) jump(get1(pc0+1)); } G;
+               sp += 1; { if (sp[-1].i > 0) jump(get1(pc0+1)); }
                NEXT;
 
           ACTION(JLEQZ_S)
                pc = pc0 + 2;
-               M(1); { if (A(-1).i <= 0) jump(get1(pc0+1)); } G;
+               sp += 1; { if (sp[-1].i <= 0) jump(get1(pc0+1)); }
                NEXT;
 
           ACTION(JGEQZ_S)
                pc = pc0 + 2;
-               M(1); { if (A(-1).i >= 0) jump(get1(pc0+1)); } G;
+               sp += 1; { if (sp[-1].i >= 0) jump(get1(pc0+1)); }
                NEXT;
 
           ACTION(JNEQZ_S)
                pc = pc0 + 2;
-               M(1); { if (A(-1).i != 0) jump(get1(pc0+1)); } G;
+               sp += 1; { if (sp[-1].i != 0) jump(get1(pc0+1)); }
                NEXT;
 
           ACTION(JNEQZ_R)
                pc = pc0 + 3;
-               M(1); { if (A(-1).i != 0) jump(get2(pc0+1)); } G;
+               sp += 1; { if (sp[-1].i != 0) jump(get2(pc0+1)); }
                NEXT;
 
           ACTION(JEQZ_S)
                pc = pc0 + 2;
-               M(1); { if (A(-1).i == 0) jump(get1(pc0+1)); } G;
+               sp += 1; { if (sp[-1].i == 0) jump(get1(pc0+1)); }
                NEXT;
 
           ACTION(JEQZ_R)
                pc = pc0 + 3;
-               M(1); { if (A(-1).i == 0) jump(get2(pc0+1)); } G;
+               sp += 1; { if (sp[-1].i == 0) jump(get2(pc0+1)); }
                NEXT;
 
           ACTION(JUMP_S)
@@ -1553,202 +1527,202 @@ void interp(value *sp0) {
 
           ACTION(QPLUS)
                pc = pc0 + 1;
-               P(2); putlong(&sp[0], getlong(&sp[0]) + getlong(&sp[-2])); G;
+               sp += 2; putlong(&sp[0], getlong(&sp[0]) + getlong(&sp[-2]));
                NEXT;
 
           ACTION(QMINUS)
                pc = pc0 + 1;
-               P(2); putlong(&sp[0], getlong(&sp[0]) - getlong(&sp[-2])); G;
+               sp += 2; putlong(&sp[0], getlong(&sp[0]) - getlong(&sp[-2]));
                NEXT;
 
           ACTION(QTIMES)
                pc = pc0 + 1;
-               P(2); putlong(&sp[0], getlong(&sp[0]) * getlong(&sp[-2])); G;
+               sp += 2; putlong(&sp[0], getlong(&sp[0]) * getlong(&sp[-2]));
                NEXT;
 
           ACTION(QUMINUS)
                pc = pc0 + 1;
-               P(0); putlong(&sp[0], - getlong(&sp[0])); G;
+               putlong(&sp[0], - getlong(&sp[0]));
                NEXT;
 
           ACTION(QDIV)
                pc = pc0 + 1;
-               P(2); putlong(&sp[0], longint_divop(getlong(&sp[0]), getlong(&sp[-2]), 1)); G;
+               sp += 2; putlong(&sp[0], longint_divop(getlong(&sp[0]), getlong(&sp[-2]), 1));
                NEXT;
 
           ACTION(QMOD)
                pc = pc0 + 1;
-               P(2); putlong(&sp[0], longint_divop(getlong(&sp[0]), getlong(&sp[-2]), 0)); G;
+               sp += 2; putlong(&sp[0], longint_divop(getlong(&sp[0]), getlong(&sp[-2]), 0));
                NEXT;
 
           ACTION(JCASE_1)
                pc = pc0 + 2;
-               M(1); { jcase(A(-1).i, get1(pc0+1)); } G;
+               sp += 1; { jcase(sp[-1].i, get1(pc0+1)); }
                NEXT;
 
           ACTION(JRANGE_S)
                pc = pc0 + 2;
-               M(3); { if (sp[-1].i >= sp[-2].i && sp[-1].i <= A(-3).i) jump(get1(pc0+1)); } G;
+               sp += 3; { if (sp[-1].i >= sp[-2].i && sp[-1].i <= sp[-3].i) jump(get1(pc0+1)); }
                NEXT;
 
           ACTION(JRANGE_R)
                pc = pc0 + 3;
-               M(3); { if (sp[-1].i >= sp[-2].i && sp[-1].i <= A(-3).i) jump(get2(pc0+1)); } G;
+               sp += 3; { if (sp[-1].i >= sp[-2].i && sp[-1].i <= sp[-3].i) jump(get2(pc0+1)); }
                NEXT;
 
           ACTION(TESTGEQ_S)
                pc = pc0 + 2;
-               M(1); { if (sp[0].i >= A(-1).i) jump(get1(pc0+1)); } G;
+               sp++; { if (sp[0].i >= sp[-1].i) jump(get1(pc0+1)); }
                NEXT;
 
           ACTION(TESTGEQ_R)
                pc = pc0 + 3;
-               M(1); { if (sp[0].i >= A(-1).i) jump(get2(pc0+1)); } G;
+               sp++; { if (sp[0].i >= sp[-1].i) jump(get2(pc0+1)); }
                NEXT;
 
           ACTION(FPLUS)
                pc = pc0 + 1;
-               M(1); A(0).f = sp[0].f + A(-1).f;
+               sp++; sp[0].f = sp[0].f + sp[-1].f;
                NEXT;
 
           ACTION(FMINUS)
                pc = pc0 + 1;
-               M(1); A(0).f = sp[0].f - A(-1).f;
+               sp++; sp[0].f = sp[0].f - sp[-1].f;
                NEXT;
 
           ACTION(FTIMES)
                pc = pc0 + 1;
-               M(1); A(0).f = sp[0].f * A(-1).f;
+               sp++; sp[0].f = sp[0].f * sp[-1].f;
                NEXT;
 
           ACTION(FDIV)
                pc = pc0 + 1;
-               M(1); A(0).f = sp[0].f / A(-1).f;
+               sp++; sp[0].f = sp[0].f / sp[-1].f;
                NEXT;
 
           ACTION(FUMINUS)
                pc = pc0 + 1;
-               A(0).f = - A(0).f;
+               sp[0].f = - sp[0].f;
                NEXT;
 
           ACTION(FCMP)
                pc = pc0 + 1;
-               M(1); A(0).i = fcmp(sp[0].f, A(-1).f);
+               sp++; sp[0].i = fcmp(sp[0].f, sp[-1].f);
                NEXT;
 
           ACTION(DPLUS)
                pc = pc0 + 1;
-               P(2); putdbl(&sp[0], getdbl(&sp[0]) + getdbl(&sp[-2])); G;
+               sp += 2; putdbl(&sp[0], getdbl(&sp[0]) + getdbl(&sp[-2]));
                NEXT;
 
           ACTION(DMINUS)
                pc = pc0 + 1;
-               P(2); putdbl(&sp[0], getdbl(&sp[0]) - getdbl(&sp[-2])); G;
+               sp += 2; putdbl(&sp[0], getdbl(&sp[0]) - getdbl(&sp[-2]));
                NEXT;
 
           ACTION(DTIMES)
                pc = pc0 + 1;
-               P(2); putdbl(&sp[0], getdbl(&sp[0]) * getdbl(&sp[-2])); G;
+               sp += 2; putdbl(&sp[0], getdbl(&sp[0]) * getdbl(&sp[-2]));
                NEXT;
 
           ACTION(DDIV)
                pc = pc0 + 1;
-               P(2); putdbl(&sp[0], getdbl(&sp[0]) / getdbl(&sp[-2])); G;
+               sp += 2; putdbl(&sp[0], getdbl(&sp[0]) / getdbl(&sp[-2]));
                NEXT;
 
           ACTION(DUMINUS)
                pc = pc0 + 1;
-               P(0); putdbl(&sp[0], - getdbl(&sp[0])); G;
+               putdbl(&sp[0], - getdbl(&sp[0]));
                NEXT;
 
           ACTION(DCMP)
                pc = pc0 + 1;
-               P(3); A(0).i = fcmp(getdbl(&sp[-1]), getdbl(&sp[-3]));
+               sp += 3; sp[0].i = fcmp(getdbl(&sp[-1]), getdbl(&sp[-3]));
                NEXT;
 
           ACTION(QCMP)
                pc = pc0 + 1;
-               P(3); A(0).i = lcmp(getlong(&sp[-1]), getlong(&sp[-3]));
+               sp += 3; sp[0].i = lcmp(getlong(&sp[-1]), getlong(&sp[-3]));
                NEXT;
 
           ACTION(CONVNF)
                pc = pc0 + 1;
-               A(0).f = flo_conv(A(0).i);
+               sp[0].f = flo_conv(sp[0].i);
                NEXT;
 
           ACTION(CONVND)
                pc = pc0 + 1;
-               M(-1); putdbl(&sp[0], flo_conv(A(1).i)); G;
+               sp--; putdbl(&sp[0], flo_conv(sp[1].i));
                NEXT;
 
           ACTION(CONVFD)
                pc = pc0 + 1;
-               M(-1); putdbl(&sp[0], A(1).f); G;
+               sp--; putdbl(&sp[0], sp[1].f);
                NEXT;
 
           ACTION(CONVDF)
                pc = pc0 + 1;
-               P(1); A(0).f = (float) getdbl(&sp[-1]);
+               sp++; sp[0].f = (float) getdbl(&sp[-1]);
                NEXT;
 
           ACTION(CONVNC)
                pc = pc0 + 1;
-               A(0).i = A(0).i & 0xff;
+               sp[0].i = sp[0].i & 0xff;
                NEXT;
 
           ACTION(CONVNS)
                pc = pc0 + 1;
-               A(0).i = signext(A(0).i);
+               sp[0].i = signext(sp[0].i);
                NEXT;
 
           ACTION(CONVNQ)
                pc = pc0 + 1;
-               M(-1); putlong(&sp[0], A(1).i); G;
+               sp--; putlong(&sp[0], sp[1].i);
                NEXT;
 
           ACTION(CONVQN)
                pc = pc0 + 1;
-               P(1); A(0).i = (int) getlong(&sp[-1]);
+               sp++; sp[0].i = (int) getlong(&sp[-1]);
                NEXT;
 
           ACTION(CONVQD)
                pc = pc0 + 1;
-               P(0); putdbl(&sp[0], flo_convq(getlong(&sp[0]))); G;
+               putdbl(&sp[0], flo_convq(getlong(&sp[0])));
                NEXT;
 
           ACTION(BOUND_2)
                pc = pc0 + 3;
-               M(1); A(0).i = czech2(boundcheck, sp[0].i, A(-1).i, get2(pc0+1));
+               sp++; sp[0].i = czech2(boundcheck, sp[0].i, sp[-1].i, get2(pc0+1));
                NEXT;
 
           ACTION(NCHECK_2)
                pc = pc0 + 3;
-               A(0).x = czech(nullcheck, A(0).x, get2(pc0+1));
+               sp[0].x = czech(nullcheck, sp[0].x, get2(pc0+1));
                NEXT;
 
           ACTION(GCHECK_2)
                pc = pc0 + 3;
-               M(1); { czech(globcheck, A(-1).p, get2(pc0+1)); } G;
+               sp += 1; { czech(globcheck, sp[-1].p, get2(pc0+1)); }
                NEXT;
 
           ACTION(ZCHECK_2)
                pc = pc0 + 3;
-               A(0).i = czech(zerocheck, A(0).i, get2(pc0+1));
+               sp[0].i = czech(zerocheck, sp[0].i, get2(pc0+1));
                NEXT;
 
           ACTION(FZCHECK_2)
                pc = pc0 + 3;
-               A(0).f = czech(fzerocheck, A(0).f, get2(pc0+1));
+               sp[0].f = czech(fzerocheck, sp[0].f, get2(pc0+1));
                NEXT;
 
           ACTION(DZCHECK_2)
                pc = pc0 + 3;
-               P(0); putdbl(&sp[0], czech(fzerocheck, getdbl(&sp[0]), get2(pc0+1))); G;
+               putdbl(&sp[0], czech(fzerocheck, getdbl(&sp[0]), get2(pc0+1)));
                NEXT;
 
           ACTION(QZCHECK_2)
                pc = pc0 + 3;
-               P(0); putlong(&sp[0], czech(lzerocheck, getlong(&sp[0]), get2(pc0+1))); G;
+               putlong(&sp[0], czech(lzerocheck, getlong(&sp[0]), get2(pc0+1)));
                NEXT;
 
           ACTION(ERROR_12)
@@ -1758,130 +1732,128 @@ void interp(value *sp0) {
 
           ACTION(ALIGNC)
                pc = pc0 + 1;
-               A(0).i = alignx(A(0).i, 8);
+               sp[0].i = alignx(sp[0].i, 8);
                NEXT;
 
           ACTION(ALIGNS)
                pc = pc0 + 1;
-               A(0).i = alignx(A(0).i, 16);
+               sp[0].i = alignx(sp[0].i, 16);
                NEXT;
 
           ACTION(FIXCOPY)
                pc = pc0 + 1;
-               M(3); { fixcopy(sp[-1].x, sp[-2].x, A(-3).i); } G;
+               sp += 3; { fixcopy(sp[-1].x, sp[-2].x, sp[-3].i); }
                NEXT;
 
           ACTION(FLEXCOPY)
                pc = pc0 + 1;
-               M(2); { flexcopy(sp[-1].x, A(-2).i); } G;
+               sp += 2; { flexcopy(sp[-1].x, sp[-2].i); }
                NEXT;
 
           ACTION(TYPETEST_1)
                pc = pc0 + 2;
-               M(1); A(0).i = typetest(sp[0].p, A(-1).p, get1(pc0+1));
+               sp++; sp[0].i = typetest(sp[0].p, sp[-1].p, get1(pc0+1));
                NEXT;
 
           ACTION(LINK)
                pc = pc0 + 1;
-               M(1); { statlink = A(-1).p; } G;
+               sp += 1; { statlink = sp[-1].p; }
                NEXT;
 
           ACTION(SAVELINK)
                pc = pc0 + 1;
-               { bp[SL].p = statlink; }
+               { fp[SL].p = statlink; }
                NEXT;
 
           ACTION(JPROC)
                pc = pc0 + 1;
                { 
-     value *p = A(0).p;
-     sp -= HEAD-1; sp[BP].p = bp; sp[PC].x = pc; sp[CP].p = p;
+     value *p = sp[0].p;
+     sp -= HEAD-1; sp[FP].p = fp; sp[PC].x = pc; sp[CP].p = p;
      if (p[CP_PRIM].z != interp) {
 #ifdef PROFILE
-	  /* Calling a native-code routine */
-	  prof_enter(p, ticks, PROF_PRIM);
-	  ticks = 0;
+          /* Calling a native-code routine */
+          prof_enter(p, ticks, PROF_PRIM);
+          ticks = 0;
 #endif
 #ifdef OBXDEB
-	  prim_bp = sp;
+          prim_fp = sp;
 #endif
-	  (*(p[CP_PRIM].z))(sp);
+          (*(p[CP_PRIM].z))(sp);
 #ifdef OBXDEB
-	  prim_bp = NULL;
+          prim_fp = NULL;
 #endif
      }
      else {
 #ifdef PROFILE
-	  prof_enter(p, ticks, PROF_CALL);
+          prof_enter(p, ticks, PROF_CALL);
 #endif
-	  cp = p; pc = cp[CP_CODE].x;
-	  do_find_proc;
-	  frame();
+          cp = p; pc = cp[CP_CODE].x;
+          do_find_proc;
+          frame();
      }
  }
                NEXT;
 
           ACTION(SLIDE_1)
                pc = pc0 + 2;
-               { slide(get1(pc0+1)); G; }
+               { slide(get1(pc0+1)); }
                NEXT;
 
           ACTION(SLIDEW_1)
                pc = pc0 + 2;
-               { slide(get1(pc0+1)); P(-1); A(0).i = ob_res.i; }
+               { slide(get1(pc0+1)); sp--; sp[0].i = ob_res.i; }
                NEXT;
 
           ACTION(SLIDED_1)
                pc = pc0 + 2;
-               { slide(get1(pc0+1)); P(-2); 
-     	    			putdbl(&sp[0], getdbl(&ob_dres)); G; }
+               { slide(get1(pc0+1)); sp -= 2; 
+                                putdbl(&sp[0], getdbl(&ob_dres)); }
                NEXT;
 
           ACTION(SLIDEF_1)
                pc = pc0 + 2;
-               { slide(get1(pc0+1)); P(-1); A(0).f = ob_res.f; }
+               { slide(get1(pc0+1)); sp--; sp[0].f = ob_res.f; }
                NEXT;
 
           ACTION(SLIDEQ_1)
                pc = pc0 + 2;
-               { slide(get1(pc0+1)); P(-2);
-				putlong(&sp[0], getlong(&ob_dres)); G; }
+               { slide(get1(pc0+1)); sp -= 2;
+                                putlong(&sp[0], getlong(&ob_dres)); }
                NEXT;
 
           ACTION(RESULTW)
                pc = pc0 + 1;
-               M(1); { ob_res = A(-1); } G;
+               sp += 1; { ob_res = sp[-1]; }
                NEXT;
 
           ACTION(RESULTD)
                pc = pc0 + 1;
-               P(2); { putdbl(&ob_dres, getdbl(&sp[-2])); } G;
+               sp += 2; { putdbl(&ob_dres, getdbl(&sp[-2])); }
                NEXT;
 
           ACTION(RESULTF)
                pc = pc0 + 1;
-               M(1); { ob_res.f = A(-1).f; } G;
+               sp += 1; { ob_res.f = sp[-1].f; }
                NEXT;
 
           ACTION(RESULTQ)
                pc = pc0 + 1;
-               P(2); { putlong(&ob_dres, getlong(&sp[-2])); } G;
+               sp += 2; { putlong(&ob_dres, getlong(&sp[-2])); }
                NEXT;
 
           ACTION(RETURN)
                pc = pc0 + 1;
                { 
-     S(0);
-
-     if (bp == base) {
-	  level--;
+     if (fp == base) {
+          level--;
 #ifdef PROFILE
-	  prof_exit(NULL, ticks);
+          prof_exit(NULL, ticks);
 #endif
-	  return;
+          return;
      }
 
-     sp = bp; pc = sp[PC].x; bp = sp[BP].p; cp = bp[CP].p;
+     sp = fp; pc = sp[PC].x; fp = sp[FP].p; cp = fp[CP].p;
      do_find_proc;
 #ifdef PROFILE
      prof_exit(cp, ticks);
@@ -1896,20 +1868,20 @@ void interp(value *sp0) {
                { 
 #ifdef PROFILE
      if (lflag) { 
-	  static module m = NULL; /* Cache most recent module */
-	  ticks--;
-	  if (m == NULL || cp < (value *) m->m_addr 
-		|| cp >= (value *) (m->m_addr + m->m_length)) {
-	       m = find_module(cp);
-	  }
-	  m->m_lcount[get2(pc0+1)-1]++; 
+          static module m = NULL; /* Cache most recent module */
+          ticks--;
+          if (m == NULL || cp < (value *) m->m_addr 
+                || cp >= (value *) (m->m_addr + m->m_length)) {
+               m = find_module(cp);
+          }
+          m->m_lcount[get2(pc0+1)-1]++; 
      }
 #endif
 #ifdef OBXDEB
      if (intflag)
-     	  debug_break(cp, bp, pc0, "interrupt");
+          debug_break(cp, fp, pc0, "interrupt");
      else if (one_shot) 
-          debug_break(cp, bp, pc0, "stop");
+          debug_break(cp, fp, pc0, "stop");
 #endif
  }
                NEXT;
@@ -1918,17 +1890,35 @@ void interp(value *sp0) {
                pc = pc0 + 3;
                { 
 #ifdef OBXDEB
-     debug_break(cp, bp, pc0, "break");
+     debug_break(cp, fp, pc0, "break");
 #endif
  }
                NEXT;
 
+          ACTION(CASEJUMP_1)
+               pc = pc0 + 2;
+               sp += 1; { casejump(sp[-1].i, get1(pc0+1)); }
+               NEXT;
 
-	  ACTION(ILLEGAL)
-	  DEFAULT
-	       panic("*illegal instruction %d", ir);
+          ACTION(PACK)
+               pc = pc0 + 1;
+               sp++; sp[0].i = pack(sp[-1].p, sp[0].x);
+               NEXT;
+
+          ACTION(UNPACK)
+               pc = pc0 + 1;
+               { sp--; sp[0].p = getcode(sp[1].i); 
+                                   sp[1].x = getenvt(sp[1].i); }
+               NEXT;
+
+
+          ACTION(ILLEGAL)
+          DEFAULT
+               panic("*illegal instruction %d", ir);
 #ifndef JTABLE
-	  }
+          }
      }
 #endif
 }
+
+const char *keiko_rcsid = keiko_version;

@@ -27,6 +27,8 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+# $Id: iparse.tcl 1646 2010-12-15 11:39:11Z mike $
+#
 
 # PARSER FOR INSTRUCTION SET DEFINITIONS
 
@@ -41,9 +43,9 @@
 #  * An action, written as a fragment of C code.
 #
 # Patterns:
-# 	1/2		Integer (1/2 bytes)
-#       [lo,hi,step]	Integer encoded in opcode
-#	R/S		Branch displacement (1/2 bytes)
+#       1/2             Integer (1/2 bytes)
+#       [lo,hi,step]    Integer encoded in opcode
+#       R/S             Branch displacement (1/2 bytes)
 # 
 # A rule may contain a list of patterns, and produces one template for
 # each pattern.  A template corresponds to one opcode or (with the
@@ -67,12 +69,12 @@ proc syntax {msg {n -1}} {
     set status 1
 }
 
-set ncodes 0;			# No. of opcodes used
-set ntempl 0;			# No. of templates
-set ndir 0;			# No. of directives
-set ninstr 0;			# No. of instructions
-set maxargs 0;			# Max args of any template
-set status 0;			# Exit status
+set ncodes 0;                   # No. of opcodes used
+set ntempl 0;                   # No. of templates
+set ndir 0;                     # No. of directives
+set ninstr 0;                   # No. of instructions
+set maxargs 0;                  # Max args of any template
+set status 0;                   # Exit status
 set instrs {}; set dirs {}; set ops {}
 set defs {}
 
@@ -129,14 +131,14 @@ proc make_opcode {op inst patt arg len} {
 proc range_arg {bounds base} {
     # The expression is "ir * step + off", where lo = base * step + off.
     with $bounds {lo hi step} {
-	set off [expr {$lo - $base * $step}]
-	set exp "ir"
-	if {$step != 1} {set exp "$exp*$step"}
-	if {$off > 0} {
-	    set exp "$exp+$off"
-	} elseif {$off < 0} {
-	    set exp "$exp-[expr {-$off}]"
-	}
+        set off [expr {$lo - $base * $step}]
+        set exp "ir"
+        if {$step != 1} {set exp "$exp*$step"}
+        if {$off > 0} {
+            set exp "$exp+$off"
+        } elseif {$off < 0} {
+            set exp "$exp-[expr {-$off}]"
+        }
     }
     return $exp
 }
@@ -146,12 +148,12 @@ proc map_args {patt bounds base vargs} {
 
     set off 1; set args {}
     foreach p [split $patt {}] {
-	switch -glob $p {
-	    N       {lappend args [range_arg $bounds $base]}
-	    [1SK]   {lappend args "get1(pc0+$off)"; incr off 1}
-	    [2RTL]  {lappend args "get2(pc0+$off)"; incr off 2}
-	    default {syntax "Bad pattern code $p"}
-	}
+        switch -glob $p {
+            N       {lappend args [range_arg $bounds $base]}
+            [1SK]   {lappend args "get1(pc0+$off)"; incr off 1}
+            [2RTL]  {lappend args "get2(pc0+$off)"; incr off 2}
+            default {syntax "Bad pattern code $p"}
+        }
     }
     return [expr {$off - 1}]
 }
@@ -165,39 +167,39 @@ proc process {inst patts key action} {
 
     set j 0
     foreach patt $patts {
-	if {[regexp {^\[(.*),(.*),(.*)\]} $patt _ lo hi step]} {
-	    regsub {^\[.*\]} $patt "N" patt
-	    if {[llength $patts] == 1} {
-		set op $inst
-	    } else {
-		set op "${inst}_x[incr j]"
-	    }
-	} else {
-	    set lo 0; set hi 0; set step 0
-	    if {$patt == ""} {
-		set op $inst
-	    } else {
-		set op "${inst}_$patt"
-	    }
-	}	
+        if {[regexp {^\[(.*),(.*),(.*)\]} $patt _ lo hi step]} {
+            regsub {^\[.*\]} $patt "N" patt
+            if {[llength $patts] == 1} {
+                set op $inst
+            } else {
+                set op "${inst}_x[incr j]"
+            }
+        } else {
+            set lo 0; set hi 0; set step 0
+            if {$patt == ""} {
+                set op $inst
+            } else {
+                set op "${inst}_$patt"
+            }
+        }       
 
-	if {![regexp {^[12RSTNKL]*$} $patt]} {
-	    syntax "Bad pattern $patt"
-	}
+        if {![regexp {^[12RSTNKL]*$} $patt]} {
+            syntax "Bad pattern $patt"
+        }
 
-	# Compute offsets for the arguments
-	set base $ncodes; set n 0
-	set bounds [list $lo $hi $step]
-	set arglen [map_args $patt $bounds $base args]
-	set totlen [expr {$arglen+1}]
+        # Compute offsets for the arguments
+        set base $ncodes; set n 0
+        set bounds [list $lo $hi $step]
+        set arglen [map_args $patt $bounds $base args]
+        set totlen [expr {$arglen+1}]
 
-	for {set arg $lo} {$arg <= $hi} {incr arg [expr {$step>0?$step:1}]} {
-	    make_opcode $op $inst $patt $arg $totlen
-	    incr n
-	}
+        for {set arg $lo} {$arg <= $hi} {incr arg [expr {$step>0?$step:1}]} {
+            make_opcode $op $inst $patt $arg $totlen
+            incr n
+        }
 
-	make_template $inst $patt $bounds $op $arglen
-	make_action $op $base $n $inst $key $action $args $totlen
+        make_template $inst $patt $bounds $op $arglen
+        make_action $op $base $n $inst $key $action $args $totlen
     }
 }
 
@@ -215,8 +217,8 @@ proc inst {inst patts key act} {
 proc zinst {inst template} {
     make_inst $inst
     if {$template != "0"} {
-	set arglen [map_args $template none 0 args]
-	make_template $inst $template {0 0 0} NOP $arglen
+        set arglen [map_args $template none 0 args]
+        make_template $inst $template {0 0 0} NOP $arglen
     }
 }
 
@@ -233,9 +235,9 @@ proc equiv {inst patt equiv} {
     global ncodes status
 
     if {$patt == "0"} {
-	set patt ""; set op $inst
+        set patt ""; set op $inst
     } else {
-	set op "${inst}_$patt"
+        set op "${inst}_$patt"
     }
 
     set arglen [map_args $patt none 0 args]
