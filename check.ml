@@ -41,7 +41,7 @@ let add_method_variable (m: def) (name: string) (t: type_data) =
     If we are then we rewrite it in place, else we append the method to the end of the list
 *)
 let add_method (c : def) (d : def) =
-  let matcher = (fun x -> x.d_name = d.d_name)
+  let matcher x = x.d_name = d.d_name
   and cd = find_class_data c in
   if List.exists matcher cd.c_methods then
     cd.c_methods <- List.map (fun x -> if matcher x then d else x) cd.c_methods
@@ -125,22 +125,22 @@ let populate_class_variable (dec : stmt) (klass: name) env : environment =
   | _ -> error "check variable called with a non var"
 
 let populate_variables env klass : environment =
-  let statement_filter = (fun x -> match x with Declare(_) -> true | _ -> false) in
+  let statement_filter x = match x with Declare(_) -> true | _ -> false in
   match klass with
     Klass(n, _, xs) ->
-      let var_accu = (fun env x -> populate_class_variable x n env) in
-      let statements = List.filter statement_filter xs in
+      let var_accu env x = populate_class_variable x n env
+      and statements = List.filter statement_filter xs in
       List.fold_left var_accu env statements
 
 
 let populate_method (meth: stmt) class_name env : environment =
-  let statement_filter = (fun x -> match x with Declare(_) -> true | _ -> false)
+  let statement_filter x = match x with Declare(_) -> true | _ -> false
   and c = find_def env class_name in
   match meth with
     MethodDecl(n, args, xs) ->
       let name = n.n_name
       and meth_data = { m_receiver = c; m_size = 0 }
-      and variable_acc = (fun env x -> populate_method_variable x n env) in
+      and variable_acc env x = populate_method_variable x n env in
       let d = { d_name = name; d_type = MethDef(meth_data); d_env = new_env () } in
         n.n_def <- d;
         List.fold_left variable_acc env (List.filter statement_filter xs);
@@ -157,12 +157,12 @@ let add_parent_methods env (n : name) (s : name) =
   cd.c_methods <- (find_class_data superclass).c_methods
 
 let populate_methods env klass : environment =
-  let method_filter = (fun x -> match x with MethodDecl(_) -> true | _ -> false) in
+  let method_filter x = match x with MethodDecl(_) -> true | _ -> false in
   match klass with
     Klass(n, s, xs) ->
       add_parent_methods env n s;
-      let meth_accu = (fun env x -> populate_method x n.n_name env) in
-      let statements = List.filter method_filter xs in
+      let meth_accu env x = populate_method x n.n_name env
+      and statements = List.filter method_filter xs in
       List.fold_left meth_accu env statements
 
 (*
@@ -189,7 +189,7 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
   | Number(x) -> e.e_type <- Integer
   | Boolean(x) -> e.e_type <- Bool
   | Ident(n) ->
-    let search_environment = (fun env failure ->
+    let search_environment env failure =
       begin try
         let d = find_def env n.n_name in
         n.n_def <- d;
@@ -200,8 +200,7 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
         end
       with Not_found ->
         failure ()
-      end
-    ) in
+      end in
     search_environment menv (fun () ->
       search_environment cenv (fun () ->
         error "not a variable"))

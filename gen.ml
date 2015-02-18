@@ -78,7 +78,7 @@ let gen_descriptor (n: name) =
     ClassDef(cd) ->
       put (sprintf "! size - %d" cd.c_size);
       (* print method list *)
-      let print_meth = (fun m -> gen (gen_method_descriptor m)) in
+      let print_meth m = gen (gen_method_descriptor m) in
       List.map print_meth cd.c_methods;
       (* print class hierarchy *)
       gen (DEFINE (n.n_name ^ ".%super"));
