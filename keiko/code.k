@@ -14,6 +14,10 @@ END
 
 PROC Program.%main 0 0 0
   CONST 4
+  GLOBAL Delegate
+  CONST 0
+  GLOBAL Lib.New
+  CALL 3
   CONST 0
   GLOBAL Lib.Print
   PCALL 1

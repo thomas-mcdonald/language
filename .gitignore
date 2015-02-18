@@ -9,4 +9,5 @@ language
 
 keiko/*.a
 keiko/*.o
-keiko/oblink
+keiko/pplink
+keiko/ppx
