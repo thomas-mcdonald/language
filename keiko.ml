@@ -73,11 +73,16 @@ type icode =
   | JUMPCZ of kind * op * codelab  (* PUSH 0/JUMPC *)
   | TESTGEQ of codelab		(* Case split = DUP 1/JUMPC Lt *)
 
+  | SEQ of icode list
+  | NEWLINE
+
 let string_of_icode (w : icode) : string =
   match w with
     PROC(s,f,_) -> Printf.sprintf "PROC %s %d 0 0" s f
-  | END -> "END"
+  | END -> "END\n"
   | DEFINE(s) -> "DEFINE " ^ s
   | WORD(SYM(s)) -> "WORD " ^ s
 
   | LDLW(i) -> "LDLW " ^ (string_of_int i)
+
+  | NEWLINE -> ""

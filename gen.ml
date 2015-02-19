@@ -8,7 +8,10 @@ let put (s : string) : unit =
   printf "%s\n" s;
   ()
 
-let gen (w : icode) = printf "%s\n" (string_of_icode w)
+let rec gen (w : icode) =
+  match w with
+  | SEQ xs -> List.iter gen xs
+  | _ -> printf "%s\n" (string_of_icode w)
 
 (* get a list of all parents, Object at the top *)
 let rec find_hierarchy (d : def) : def list =
@@ -17,7 +20,7 @@ let rec find_hierarchy (d : def) : def list =
     Some(d') -> (find_hierarchy d') @ [d]
   | None -> [d]
 
-let gen_addr (e: expr)=
+let gen_addr (e: expr) : icode =
   match e.e_guts with
   | Ident(n) ->
     (* this only prints the offset atm *)
@@ -28,7 +31,7 @@ let gen_addr (e: expr)=
     | ClassVar -> CONST (0,0) (* not sure what this const defn is tho *)
     end
 
-let gen_expr (e: expr) = ()
+let gen_expr (e: expr) : icode = SEQ []
 
 (* assignment generation *)
 (*
@@ -36,34 +39,34 @@ let gen_expr (e: expr) = ()
    find the location of e1
    store value on stack in location
 *)
-let gen_assign (e1: expr) (e2: expr) =
-  gen_expr e2;
-  gen_addr e1
+let gen_assign (e1: expr) (e2: expr) : icode =
+  SEQ [gen_expr e2; gen_addr e1]
 
-let gen_stmt (s: stmt) =
+let gen_stmt (s: stmt) : icode =
   match s with
-  | Assign(e1,e2) -> ignore (gen_assign e1 e2)
-  | Declare(t,e) -> () (* don't do anything for declares *)
-  | _ -> () (* failwith "gen_proc" *)
+  | Assign(e1,e2) -> gen_assign e1 e2
+  | Declare(t,e) -> SEQ [] (* don't do anything for declares *)
+  | _ -> SEQ [] (* failwith "gen_proc" *)
 
 (* generate the code for each procedure in a class. This is initially iterated
   from the definition
   *)
-let gen_proc (c : name) (stmt : stmt) =
+let gen_proc (c : name) (stmt : stmt) : icode =
   match stmt with
   | MethodDecl(n,args,xs) ->
     let md = find_meth_data n.n_def in
       (* PROC name nargs fsize gcmap *)
-      gen (PROC ((c.n_name ^ "." ^ n.n_name), md.m_size, INT(Int32.zero)));
-      List.iter gen_stmt xs;
-      gen END;
-      put ""
-  | Declare(t,e) -> ()
+      SEQ [
+        PROC ((c.n_name ^ "." ^ n.n_name), md.m_size, INT(Int32.zero));
+        SEQ (List.map gen_stmt xs);
+        END;
+      ]
+  | Declare(t,e) -> SEQ []
   | _ -> failwith "gen_proc"
 
 let gen_procs (klass : klass) =
   match klass with
-    Klass(n,s,xs) -> List.iter (gen_proc n) xs
+    Klass(n,s,xs) -> gen (SEQ (List.map (gen_proc n) xs))
 
 (* generate a method descriptor given a method def *)
 let gen_method_descriptor (d : def) : icode =
@@ -81,9 +84,11 @@ let gen_descriptor (n: name) =
       let print_meth m = gen (gen_method_descriptor m) in
       List.map print_meth cd.c_methods;
       (* print class hierarchy *)
-      gen (DEFINE (n.n_name ^ ".%super"));
-      List.map (fun c -> gen (WORD (SYM c.d_name))) (find_hierarchy n.n_def);
-      put ""
+      gen (SEQ [
+        DEFINE (n.n_name ^ ".%super");
+        SEQ (List.map (fun c -> WORD (SYM c.d_name)) (find_hierarchy n.n_def));
+        NEWLINE
+      ]);
   | _ -> failwith "gen_descriptor"
 
 (* pull out the name from a class and call gen_descriptor on it *)

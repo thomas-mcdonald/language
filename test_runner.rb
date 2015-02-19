@@ -26,7 +26,7 @@ Dir["test/*_test.aa"].each do |file|
   if result == expected_output
     print "."
   else
-    errors << Diffy::Diff.new(result, expected_output)
+    errors << Diffy::Diff.new(expected_output, result)
     print "F"
   end
 end
