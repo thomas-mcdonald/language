@@ -1,4 +1,5 @@
 open Dict
+open Keiko
 open Printf
 open Tree
 
@@ -38,7 +39,7 @@ let add_method_variable (m: def) (name: string) (t: type_data) =
   let v = { v_offset = md.m_size; v_type = t; v_place = MethodVar } in
   let d = { d_name = name; d_type = VarDef(v); d_env = new_env () } in
     md.m_size <- md.m_size + (sizeof t);
-    add_def m.d_env name d
+    ignore (add_def m.d_env name d)
 
 (* add a method to a class record.
     We first check whether the method is already in the list - if we are overriding a method
@@ -59,7 +60,7 @@ let add_variable (c : def) (name : string) (t : type_data) =
   let d = { d_name = name; d_type = VarDef(v); d_env = new_env () } in
     cd.c_size <- cd.c_size + (sizeof t);
     cd.c_variables <- cd.c_variables @ [d];
-    add_def c.d_env name d
+    ignore (add_def c.d_env name d)
 
 let populate_klass (env : environment) (klass : klass) : environment =
   match klass with
@@ -77,55 +78,61 @@ let populate_klass (env : environment) (klass : klass) : environment =
 let populate_method_variable (dec: stmt) (m: name) env : environment =
   let d = m.n_def in
   match dec with
-    Declare(Object(t), e) ->
-      (match e.e_guts with
-        Ident(n) ->
-          let type_name = t.n_name in
-          if not (class_exists env type_name) then
-            error ("can't define variable of type " ^ type_name ^ " as class not defined");
-          ensure_unique d.d_env n.n_name;
-          let ct = find_def env type_name in
-          add_method_variable d n.n_name (Object (ref ct));
-          t.n_def <- ct;
-          env
-        | _ -> error "unsupported variable name")
+  | Declare(Object(t), e) ->
+    begin match e.e_guts with
+    | Ident(n) ->
+      let type_name = t.n_name in
+      if not (class_exists env type_name) then
+        error ("can't define variable of type " ^ type_name ^ " as class not defined");
+      ensure_unique d.d_env n.n_name;
+      let ct = find_def env type_name in
+        add_method_variable d n.n_name (Object (ref ct));
+        t.n_def <- ct;
+        env
+    | _ -> error "unsupported variable name"
+    end
   | Declare(p, e) ->
-      match e.e_guts with
-        Ident(n) ->
-          ensure_unique d.d_env n.n_name;
-          begin match p with
-          | Bool -> add_method_variable d n.n_name Bool
-          | Integer -> add_method_variable d n.n_name Int
-          | _ -> error "other primitive type reached populate_variable"
-          end;
-          env
+    begin match e.e_guts with
+    | Ident(n) ->
+      ensure_unique d.d_env n.n_name;
+      begin match p with
+      | Bool -> add_method_variable d n.n_name Bool
+      | Integer -> add_method_variable d n.n_name Int
+      | _ -> error "other primitive type reached populate_variable"
+      end;
+      env
+    | _ -> error "unsupported variable name"
+    end
   | _ -> error "check variable called with a non var"
 
 let populate_class_variable (dec : stmt) (klass: name) env : environment =
   let c = find_def env klass.n_name in
   match dec with
-    Declare(Object(t), e) ->
-      (match e.e_guts with
-        Ident(n) ->
-          let type_name = t.n_name in
-          if not (class_exists env type_name) then
-            error ("can't define variable of type " ^ type_name ^ " as class not defined");
-          ensure_unique c.d_env n.n_name;
-          let ct = find_def env type_name in
-          add_variable c n.n_name (Object (ref ct));
-          t.n_def <- ct;
-          env
-        | _ -> error "unsupported variable name")
+  | Declare(Object(t), e) ->
+    begin match e.e_guts with
+    | Ident(n) ->
+      let type_name = t.n_name in
+      if not (class_exists env type_name) then
+        error ("can't define variable of type " ^ type_name ^ " as class not defined");
+      ensure_unique c.d_env n.n_name;
+      let ct = find_def env type_name in
+        add_variable c n.n_name (Object (ref ct));
+        t.n_def <- ct;
+        env
+    | _ -> error "unsupported variable name"
+    end
   | Declare(p, e) ->
-      match e.e_guts with
-        Ident(n) ->
-          ensure_unique c.d_env n.n_name;
-          begin match p with
-          | Bool -> add_variable c n.n_name Bool
-          | Integer -> add_variable c n.n_name Int
-          | _ -> error "other primitive type reached populate_variable"
-          end;
-          env
+    begin match e.e_guts with
+    | Ident(n) ->
+      ensure_unique c.d_env n.n_name;
+      begin match p with
+      | Bool -> add_variable c n.n_name Bool
+      | Integer -> add_variable c n.n_name Int
+      | _ -> error "other primitive type reached populate_variable"
+      end;
+      env
+    | _ -> error "unsupported variable name"
+    end
   | _ -> error "check variable called with a non var"
 
 let populate_variables env klass : environment =
@@ -147,9 +154,9 @@ let populate_method (meth: stmt) class_name env : environment =
       and variable_acc env x = populate_method_variable x n env in
       let d = { d_name = name; d_type = MethDef(meth_data); d_env = new_env () } in
         n.n_def <- d;
-        List.fold_left variable_acc env (List.filter statement_filter xs);
+        ignore @@ List.fold_left variable_acc env (List.filter statement_filter xs);
         ensure_unique c.d_env name;
-        add_def c.d_env name d;
+        ignore @@ add_def c.d_env name d;
         add_method c d;
         env
   | _ -> error "check_method called with a non-method stmt"
@@ -192,10 +199,11 @@ let check_method_call (e: expr) (t: typed) =
   let cenv = match t with Object(n) -> n.n_def.d_env | _ -> failwith "check_method_call" in
   match e.e_guts with
   | Ident(n) ->
-    try let d = find_def cenv n.n_name in
+    begin try let d = find_def cenv n.n_name in
       n.n_def <- d;
     with Not_found ->
       failwith (sprintf "method %s does not exist" n.n_name)
+    end
   | _ -> failwith "check_method_call"
 
 let rec check_expr (cenv: environment) (menv: environment) (e : expr) =

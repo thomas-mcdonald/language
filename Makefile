@@ -43,8 +43,8 @@ main.cmo : tree.cmo print.cmo parser.cmi lexer.cmo gen.cmo config.cmo \
     check.cmo
 main.cmx : tree.cmx print.cmx parser.cmx lexer.cmx gen.cmx config.cmx \
     check.cmx
-check.cmo : tree.cmo dict.cmi
-check.cmx : tree.cmx dict.cmx
+check.cmo : tree.cmo keiko.cmo dict.cmi
+check.cmx : tree.cmx keiko.cmx dict.cmx
 dict.cmo : dict.cmi
 dict.cmx : dict.cmi
 lexer.cmo : tree.cmo parser.cmi keiko.cmo
