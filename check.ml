@@ -191,8 +191,10 @@ let populate_class_info (classes : klass list) (env : environment) : environment
 let check_method_call (cenv: environment) (e: expr) =
   match e.e_guts with
   | Ident(n) ->
-    let d = find_def cenv n.n_name in
-    n.n_def <- d;
+    try let d = find_def cenv n.n_name in
+      n.n_def <- d;
+    with Not_found ->
+      failwith (sprintf "method %s does not exist" n.n_name)
   | _ -> failwith "check_method_call"
 
 let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
