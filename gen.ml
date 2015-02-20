@@ -82,6 +82,7 @@ let gen_proc (c : name) (stmt : stmt) : icode =
       SEQ [
         PROC ((c.n_name ^ "." ^ n.n_name), md.m_size, INT(Int32.zero));
         SEQ (List.map gen_stmt xs);
+        RETURN;
         END;
       ]
   | Declare(t,e) -> SEQ []
@@ -132,6 +133,7 @@ let gen_entrypoint main =
     (* now call the main method on that object *)
     CONST 0;
     GLOBAL "Main.main";
+    PCALL 1;
     RETURN;
     END;
     NEWLINE; (* add a couple line gap *)
