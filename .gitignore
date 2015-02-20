@@ -11,3 +11,7 @@ keiko/*.a
 keiko/*.o
 keiko/pplink
 keiko/ppx
+
+# files used for testing
+keiko/code.k
+example
