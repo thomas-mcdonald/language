@@ -55,9 +55,10 @@ let rec gen_expr (e: expr) : icode =
     (* e1 = object instance *)
     (* e2 = method - ident *)
     SEQ [
-      gen_expr e1;
+      gen_addr e1;
+      CONST 0;
       gen_method_addr e2 e1.e_type;
-      STOREW;
+      PCALL 1; (* TODO: needs parameterizing *)
     ]
   | New(t) ->
     begin match t with
@@ -81,7 +82,7 @@ let rec gen_expr (e: expr) : icode =
    store value on stack in location
 *)
 let gen_assign (e1: expr) (e2: expr) : icode =
-  SEQ [gen_expr e2; gen_addr e1]
+  SEQ [gen_expr e2; gen_addr e1; STOREW]
 
 let gen_stmt (s: stmt) : icode =
   match s with

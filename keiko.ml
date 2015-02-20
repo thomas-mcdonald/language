@@ -53,6 +53,7 @@ let string_of_icode (w : icode) : string =
   | GLOBAL(s) -> Printf.sprintf "GLOBAL %s" s
   | LOCAL(i) -> Printf.sprintf "LOCAL %d" i
   | LOADW -> "LOADW"
+  | STOREW -> "STOREW"
   | PCALL(i) -> Printf.sprintf "PCALL %d" i
   | BINOP(op) -> print_op op
 
