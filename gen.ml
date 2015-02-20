@@ -108,7 +108,8 @@ let gen_procs (klass : klass) =
 (* generate a method descriptor given a method def *)
 let gen_method_descriptor (d : def) : icode =
   match d.d_type with
-    MethDef(md) -> WORD (SYM (md.m_receiver.d_name ^ "." ^ d.d_name))
+  | MethDef(md) -> WORD (SYM (md.m_receiver.d_name ^ "." ^ d.d_name))
+  | _ -> failwith "gen_method_descriptor"
 
 (* generate a descriptor *)
 let gen_descriptor (n: name) =
@@ -119,7 +120,7 @@ let gen_descriptor (n: name) =
       put (sprintf "! size - %d" cd.c_size);
       (* print method list *)
       let print_meth m = gen (gen_method_descriptor m) in
-      List.map print_meth cd.c_methods;
+      List.iter print_meth cd.c_methods;
       (* print class hierarchy *)
       gen (SEQ [
         DEFINE (n.n_name ^ ".%super");
