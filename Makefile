@@ -49,8 +49,8 @@ dict.cmo : dict.cmi
 dict.cmx : dict.cmi
 lexer.cmo : tree.cmo parser.cmi keiko.cmo
 lexer.cmx : tree.cmx parser.cmx keiko.cmx
-parser.cmo : tree.cmo dict.cmi parser.cmi
-parser.cmx : tree.cmx dict.cmx parser.cmi
+parser.cmo : tree.cmo keiko.cmo dict.cmi parser.cmi
+parser.cmx : tree.cmx keiko.cmx dict.cmx parser.cmi
 keiko.cmo :
 keiko.cmx :
 tree.cmo : keiko.cmo dict.cmi

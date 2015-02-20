@@ -38,6 +38,7 @@ rule token =
   | "="               { EQUALS }
   | "<"               { GT }
   | "("               { LPAREN }
+  | "-"               { MINUS }
   | "+"               { PLUS }
   | ")"               { RPAREN }
   | [' ''\t']+        { token lexbuf }

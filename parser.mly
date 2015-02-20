@@ -1,11 +1,13 @@
 %{
 open Dict
+open Keiko
 open Tree
 %}
 
 %token <int> NUMBER
 %token <string> IDENT TYPE
-%token CLASS COMMA DEF DOT EQUALS EOF END GT NEW LPAREN PLUS RPAREN SEMI
+%token CLASS COMMA DEF DOT EQUALS EOF END GT NEW LPAREN RPAREN SEMI
+%token MINUS PLUS
 /* todo - should these be specialcased? */
 %token BOOL FALSE INT PUTS TRUE
 
@@ -61,6 +63,7 @@ expr:
   | FALSE { makeExpr (Boolean(0)) }
   | TRUE  { makeExpr (Boolean(1)) }
   | expr PLUS expr   { makeExpr (Binop(Plus, $1, $3)) }
+  | expr MINUS expr  { makeExpr (Binop(Minus, $1, $3)) }
   | expr DOT ident   { makeExpr (Call($1, $3, [])) }
   | NEW typed        { makeExpr (New($2)) }
   | PUTS expr        { makeExpr (Puts($2)) }

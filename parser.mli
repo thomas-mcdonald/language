@@ -12,9 +12,10 @@ type token =
   | GT
   | NEW
   | LPAREN
-  | PLUS
   | RPAREN
   | SEMI
+  | MINUS
+  | PLUS
   | BOOL
   | FALSE
   | INT
