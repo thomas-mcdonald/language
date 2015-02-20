@@ -30,12 +30,12 @@ let gen_addr (e: expr) : icode =
     (* TODO: class variables. need to workout how references to self are handled *)
     | ClassVar -> CONST 0
     end
+  | _ -> failwith "gen_addr"
 
 (* gen_method_call generates the address of a method *)
 let gen_method_addr (e: expr) (t: typed) : icode =
   match e.e_guts with
   | Ident(n) ->
-    let md = find_meth_data n.n_def in
     begin match t with
     | Object(s) ->
         GLOBAL (sprintf "%s.%s" s.n_name n.n_name)
@@ -53,6 +53,19 @@ let rec gen_expr (e: expr) : icode =
       gen_expr e1;
       gen_method_addr e2 e1.e_type;
     ]
+  | New(t) ->
+    begin match t with
+    | Object(n) ->
+      let cd = find_class_data n.n_def in
+        SEQ [
+          CONST cd.c_size;
+          GLOBAL n.n_name;
+          CONST 0;
+          GLOBAL "Lib.New";
+          PCALL 2;
+        ]
+    | _ -> failwith "gen_expr#new"
+    end
   | _ -> SEQ []
 
 (* assignment generation *)

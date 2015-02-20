@@ -228,7 +228,8 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
     begin match t with
     | Object(n) ->
       let d = find_def !top_env n.n_name in
-      e.e_type <- type_data_to_typed (Object (ref d))
+      e.e_type <- type_data_to_typed (Object (ref d));
+      n.n_def <- d
     | _ -> failwith "check_expr new"
     end
   | _ -> ()
