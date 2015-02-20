@@ -191,13 +191,19 @@ int split_line(char *line, char **words) {
      /* Set the words array */
      while (1) {
           while (*s == ' ' || *s == '\t' || *s == '\r') s++;
-          if (*s == '\0') panic("line too long");
+          if (*s == '\0') {
+            fprintf(stderr, "%s", line);
+            panic("line too long");
+          }
           if (*s == '\n') break;
           if (nwords == MAXWORDS) panic("too many words");
           words[nwords++] = s;
           while (! isspace((int) *s) && *s != '\0') s++;
           if (*s == '\n') { *s = '\0'; break; }
-          if (*s == '\0') panic("line too long");
+          if (*s == '\0') {
+            fprintf(stderr, "%s", line);
+            panic("line too long");
+          }
           *s++ = '\0';
      }
 

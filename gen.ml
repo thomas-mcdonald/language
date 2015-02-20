@@ -119,23 +119,34 @@ let gen_class_desc (k : klass) =
   match k with
     Klass(n, _, _) -> gen_descriptor n
 
-let gen_entrypoint () =
+let gen_entrypoint main =
+  let cd = find_class_data main in
   put "PROC Program.%main 0 0 0";
-  put "CONST 4";
-  put "GLOBAL Main";
   gen (SEQ [
+    (* create a main object, address goes on stack *)
+    CONST cd.c_size;
+    GLOBAL "Main";
     CONST 0;
     GLOBAL "Lib.New";
+    PCALL 2;
+    (* now call the main method on that object *)
+    CONST 0;
+    GLOBAL "Main.main";
+    RETURN;
     END;
     NEWLINE; (* add a couple line gap *)
   ])
 
 let generate (prog : program) =
+  let main_match c = match c with Klass(n,_,_) -> n.n_name = "Main"
+  and extract_def c = match c with Klass(n,_,_) -> n.n_def in
   put "MODULE Program 0 0";
   put "ENDHDR";
   match prog with
     Prog(cs) ->
+      let mainclass = extract_def (List.find main_match cs) in
       List.iter gen_procs cs;
-      gen_entrypoint ();
+      gen_entrypoint mainclass;
       List.iter gen_class_desc cs;
+      gen NEWLINE;
       ()

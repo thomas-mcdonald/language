@@ -39,6 +39,7 @@ type icode =
   | WORD of literal
 
   (* Extra instructions *)
+  | RETURN
   | SEQ of icode list
   | NEWLINE
 
@@ -48,10 +49,12 @@ let string_of_icode (w : icode) : string =
   | GLOBAL(s) -> Printf.sprintf "GLOBAL %s" s
   | LOCAL(i) -> Printf.sprintf "LOCAL %d" i
   | LOADW -> "LOADW"
+  | PCALL(i) -> Printf.sprintf "PCALL %d" i
 
   | PROC(s,f,_) -> Printf.sprintf "PROC %s %d 0 0" s f
   | END -> "END\n"
   | DEFINE(s) -> "DEFINE " ^ s
   | WORD(SYM(s)) -> "WORD " ^ s
 
+  | RETURN -> "RETURN"
   | NEWLINE -> ""
