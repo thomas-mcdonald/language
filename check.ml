@@ -188,7 +188,8 @@ let populate_class_info (classes : klass list) (env : environment) : environment
   let env'' = List.fold_left populate_variables env' classes in
   List.fold_left populate_methods env'' classes
 
-let check_method_call (cenv: environment) (e: expr) =
+let check_method_call (e: expr) (t: typed) =
+  let cenv = match t with Object(n) -> n.n_def.d_env | _ -> failwith "check_method_call" in
   match e.e_guts with
   | Ident(n) ->
     try let d = find_def cenv n.n_name in
@@ -224,7 +225,7 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
     e.e_type <- e1.e_type (* will be an integer*)
   | Call(e1, e2, es) ->
     check_expr cenv menv e1;
-    check_method_call cenv e2;
+    check_method_call e2 e1.e_type;
     (* e2 is the method identifier *)
   | New(t) ->
     begin match t with
