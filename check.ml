@@ -236,11 +236,17 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
 
 (* check_assign ensures that the lhs is an identifier and that the types match up *)
 let check_assign (cenv: environment) (menv: environment) (e1: expr) (e2: expr) =
+  (* required to simplify comparison of typed objects *)
+  let differing_type x y =
+    match x,y with
+    | Object(s), Object(t) ->
+      t.n_name <> s.n_name
+    | _ -> false in
   match e1.e_guts with
   | Ident(i) ->
     check_expr cenv menv e1;
     check_expr cenv menv e2;
-    if e1.e_type <> e2.e_type then error "assignment types mismatched"
+    if differing_type e1.e_type e2.e_type then error "assignment types mismatched"
   | _ -> () (* only identifiers are allowed in the parser *)
 
 let rec check_stmt (cenv: environment) (menv: environment) (s: stmt) =
