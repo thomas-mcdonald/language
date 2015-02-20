@@ -13,6 +13,9 @@ let sizeof (t : type_data) =
   | Int -> 4
   | Object(_) -> 4
 
+(* top level environment *)
+let top_env = ref initial_env
+
 let ensure_unique env x =
   if def_exists env x then error (x ^ " is already defined")
 
@@ -180,10 +183,10 @@ let populate_methods env klass : environment =
       * Names are not duplicate
     TODO: look into fusing some of these methods together
 *)
-let populate_class_info (classes : klass list) (env : environment) : unit =
+let populate_class_info (classes : klass list) (env : environment) : environment =
   let env' = List.fold_left populate_klass env classes in
   let env'' = List.fold_left populate_variables env' classes in
-  ignore (List.fold_left populate_methods env'' classes)
+  List.fold_left populate_methods env'' classes
 
 let check_method_call (cenv: environment) (e: expr) =
   match e.e_guts with
@@ -221,6 +224,13 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
     check_expr cenv menv e1;
     check_method_call cenv e2;
     (* e2 is the method identifier *)
+  | New(t) ->
+    begin match t with
+    | Object(n) ->
+      let d = find_def !top_env n.n_name in
+      e.e_type <- type_data_to_typed (Object (ref d))
+    | _ -> failwith "check_expr new"
+    end
   | _ -> ()
 
 (* check_assign ensures that the lhs is an identifier and that the types match up *)
@@ -245,8 +255,8 @@ let check_class (env : environment) (klass : klass) =
       List.iter (check_stmt n.n_def.d_env (new_env ())) xs
 
 let annotate (program : program) : unit =
-  let env = initial_env in
+  let env = !top_env in
   match program with
     Prog(cs) ->
-      populate_class_info cs env;
+      top_env := populate_class_info cs env;
       List.iter (check_class env) cs

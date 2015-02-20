@@ -1,35 +1,10 @@
 class Test
-  int x
-  Delegate y
-
-  def initialize
-    x = 0
-  end
-
-  def increment
-    x = x + 1
-  end
-
-  def allow
-    int y
-    y = 1
-  end
-end
-
-class Delegate < Test
-  Test counter
-  Delegate x
-
-  def increment
-    counter.increment
-  end
 end
 
 class Main
-  int x
+  Test test
 
   def main
-    x = 0
-    x.increment
+    test = new Test
   end
 end

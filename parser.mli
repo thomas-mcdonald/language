@@ -10,6 +10,7 @@ type token =
   | EOF
   | END
   | GT
+  | NEW
   | LPAREN
   | PLUS
   | RPAREN

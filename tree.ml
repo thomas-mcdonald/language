@@ -32,6 +32,7 @@ and expr_guts = Number of int
          | Boolean of int
          | Binop of op * expr * expr
          | Call of expr * expr * expr list (* object.method(args) *)
+         | New of typed
          | Nil
 
 and op = Plus

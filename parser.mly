@@ -5,7 +5,7 @@ open Tree
 
 %token <int> NUMBER
 %token <string> IDENT TYPE
-%token CLASS COMMA DEF DOT EQUALS EOF END GT LPAREN PLUS RPAREN SEMI
+%token CLASS COMMA DEF DOT EQUALS EOF END GT NEW LPAREN PLUS RPAREN SEMI
 /* todo - should these be specialcased? */
 %token BOOL FALSE INT TRUE
 
@@ -60,8 +60,9 @@ expr:
   | number { $1 }
   | FALSE { makeExpr (Boolean(0)) }
   | TRUE  { makeExpr (Boolean(1)) }
-  | expr PLUS expr  { makeExpr (Binop(Plus, $1, $3)) }
+  | expr PLUS expr   { makeExpr (Binop(Plus, $1, $3)) }
   | expr DOT ident   { makeExpr (Call($1, $3, [])) }
+  | NEW typed        { makeExpr (New($2)) }
 
 ident:
   IDENT { makeExpr (Ident(makeName($1))) }
