@@ -27,8 +27,13 @@ let gen_addr (e: expr) : icode =
     let vd = find_var_data n.n_def in
     begin match vd.v_place with
     | MethodVar -> LOCAL vd.v_offset
-    (* TODO: class variables. need to workout how references to self are handled *)
-    | ClassVar -> CONST 0
+    | ClassVar ->
+      SEQ [
+        LOCAL 16; (* object location is first argument *)
+        LOADW;
+        CONST vd.v_offset;
+        BINOP Plus;
+      ]
     end
   | _ -> failwith "gen_addr"
 
@@ -52,6 +57,7 @@ let rec gen_expr (e: expr) : icode =
     SEQ [
       gen_expr e1;
       gen_method_addr e2 e1.e_type;
+      STOREW;
     ]
   | New(t) ->
     begin match t with

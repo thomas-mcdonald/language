@@ -43,6 +43,10 @@ type icode =
   | SEQ of icode list
   | NEWLINE
 
+let print_op (op: op) =
+  match op with
+  | Plus -> "PLUS"
+
 let string_of_icode (w : icode) : string =
   match w with
   | CONST(i) -> Printf.sprintf "CONST %d" i
@@ -50,6 +54,7 @@ let string_of_icode (w : icode) : string =
   | LOCAL(i) -> Printf.sprintf "LOCAL %d" i
   | LOADW -> "LOADW"
   | PCALL(i) -> Printf.sprintf "PCALL %d" i
+  | BINOP(op) -> print_op op
 
   | PROC(s,f,_) -> Printf.sprintf "PROC %s %d 0 0" s f
   | END -> "END\n"
