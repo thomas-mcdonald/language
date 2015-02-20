@@ -18,6 +18,7 @@ type token =
   | BOOL
   | FALSE
   | INT
+  | PUTS
   | TRUE
 
 val program :

@@ -53,8 +53,8 @@ parser.cmo : tree.cmo dict.cmi parser.cmi
 parser.cmx : tree.cmx dict.cmx parser.cmi
 keiko.cmo :
 keiko.cmx :
-tree.cmo : dict.cmi
-tree.cmx : dict.cmx
+tree.cmo : keiko.cmo dict.cmi
+tree.cmx : keiko.cmx dict.cmx
 print.cmo : tree.cmo
 print.cmx : tree.cmx
 gen.cmo : tree.cmo keiko.cmo dict.cmi

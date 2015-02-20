@@ -51,6 +51,8 @@ let gen_method_addr (e: expr) (t: typed) : icode =
 
 let rec gen_expr (e: expr) : icode =
   match e.e_guts with
+  | Binop(op, e1, e2) ->
+    SEQ [gen_expr e1; gen_expr e2; BINOP(op)]
   | Call(e1, e2, es) ->
     (* e1 = object instance *)
     (* e2 = method - ident *)
@@ -60,6 +62,7 @@ let rec gen_expr (e: expr) : icode =
       gen_method_addr e2 e1.e_type;
       PCALL 1; (* TODO: needs parameterizing *)
     ]
+  | Ident(_) -> SEQ [gen_addr e; LOADW]
   | New(t) ->
     begin match t with
     | Object(n) ->
@@ -73,6 +76,8 @@ let rec gen_expr (e: expr) : icode =
         ]
     | _ -> failwith "gen_expr#new"
     end
+  | Number(x) -> CONST x
+  | Puts(e) -> SEQ [gen_expr e; CONST 0; GLOBAL "Lib.Print"; PCALL 1]
   | _ -> SEQ []
 
 (* assignment generation *)

@@ -1,4 +1,17 @@
 class Test
+  int x
+
+  def initialize
+    x = 0
+  end
+
+  def increment
+    x = x + 1
+  end
+
+  def print
+    puts x
+  end
 end
 
 class Main
@@ -6,5 +19,11 @@ class Main
 
   def main
     test = new Test
+    test.initialize
+    test.print
+    test.increment
+    test.print
+    test.increment
+    test.print
   end
 end

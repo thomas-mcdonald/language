@@ -235,6 +235,7 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
       n.n_def <- d
     | _ -> failwith "check_expr new"
     end
+  | Puts(e) -> check_expr cenv menv e;
   | _ -> ()
 
 (* check_assign ensures that the lhs is an identifier and that the types match up *)

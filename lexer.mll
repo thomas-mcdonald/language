@@ -15,6 +15,7 @@ let keywords =
   Hashtbl.add t "false" FALSE;
   Hashtbl.add t "int" INT;
   Hashtbl.add t "new" NEW;
+  Hashtbl.add t "puts" PUTS;
   Hashtbl.add t "true" TRUE;
   t
 

@@ -32,6 +32,7 @@ let rec ppExpr e =
   | Binop (Plus, e, e') -> wraplist "Add" [ppExpr e; ppExpr e']
   | Call (o, m, xs) -> wraplist "Call" [ppExpr o; ppExpr m] (* ^ nest (List.map ppExpr xs) *)
   | New(t) -> wrap_simple ("New " ^ ppType t)
+  | Puts(e) -> wraplist "Puts" [ppExpr e]
   | Nil -> "nil"
 
 let rec ppStmt =
