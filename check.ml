@@ -73,6 +73,7 @@ let populate_klass (env : environment) (klass : klass) : environment =
       (* TODO: pull this logic out of Dict and into a method, works for now... *)
       else let env' = define_class env name s.n_name in
       n.n_def <- find_def env' name;
+      s.n_def <- find_def env' s.n_name;
       env';;
 
 let populate_method_variable (dec: stmt) (m: name) env : environment =
