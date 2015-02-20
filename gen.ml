@@ -28,10 +28,32 @@ let gen_addr (e: expr) : icode =
     begin match vd.v_place with
     | MethodVar -> LOCAL vd.v_offset
     (* TODO: class variables. need to workout how references to self are handled *)
-    | ClassVar -> CONST (0,0) (* not sure what this const defn is tho *)
+    | ClassVar -> CONST 0
     end
 
-let gen_expr (e: expr) : icode = SEQ []
+(* gen_method_call generates the address of a method *)
+let gen_method_addr (e: expr) (t: typed) : icode =
+  match e.e_guts with
+  | Ident(n) ->
+    let md = find_meth_data n.n_def in
+    begin match t with
+    | Object(s) ->
+        GLOBAL (sprintf "%s.%s" s.n_name n.n_name)
+    | Unknown -> failwith "type failure"
+    | _ -> failwith "gen_method_addr"
+    end
+  | _ -> failwith "gen_method_addr"
+
+let rec gen_expr (e: expr) : icode =
+  match e.e_guts with
+  | Call(e1, e2, es) ->
+    (* e1 = object instance *)
+    (* e2 = method - ident *)
+    SEQ [
+      gen_expr e1;
+      gen_method_addr e2 e1.e_type;
+    ]
+  | _ -> SEQ []
 
 (* assignment generation *)
 (*
@@ -46,6 +68,7 @@ let gen_stmt (s: stmt) : icode =
   match s with
   | Assign(e1,e2) -> gen_assign e1 e2
   | Declare(t,e) -> SEQ [] (* don't do anything for declares *)
+  | Expr(e) -> gen_expr e
   | _ -> SEQ [] (* failwith "gen_proc" *)
 
 (* generate the code for each procedure in a class. This is initially iterated
@@ -97,13 +120,18 @@ let gen_class_desc (k : klass) =
     Klass(n, _, _) -> gen_descriptor n
 
 let gen_entrypoint () =
-  put "PROC Program.main 0 0 0";
+  put "PROC Program.%main 0 0 0";
+  put "CONST 4";
   put "GLOBAL Main";
-  put "END"
+  gen (SEQ [
+    CONST 0;
+    GLOBAL "Lib.New";
+    END;
+    NEWLINE; (* add a couple line gap *)
+  ])
 
 let generate (prog : program) =
   put "MODULE Program 0 0";
-  (* put "IMPORT Lib 0"; *)
   put "ENDHDR";
   match prog with
     Prog(cs) ->

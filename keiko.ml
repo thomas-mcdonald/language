@@ -45,6 +45,7 @@ type icode =
 let string_of_icode (w : icode) : string =
   match w with
   | CONST(i) -> Printf.sprintf "CONST %d" i
+  | GLOBAL(s) -> Printf.sprintf "GLOBAL %s" s
   | LOCAL(i) -> Printf.sprintf "LOCAL %d" i
   | LOADW -> "LOADW"
 

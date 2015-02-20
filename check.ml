@@ -1,4 +1,5 @@
 open Dict
+open Printf
 open Tree
 
 (* utility methods for extraction etc *)
@@ -184,6 +185,13 @@ let populate_class_info (classes : klass list) (env : environment) : unit =
   let env'' = List.fold_left populate_variables env' classes in
   ignore (List.fold_left populate_methods env'' classes)
 
+let check_method_call (cenv: environment) (e: expr) =
+  match e.e_guts with
+  | Ident(n) ->
+    let d = find_def cenv n.n_name in
+    n.n_def <- d;
+  | _ -> failwith "check_method_call"
+
 let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
   match e.e_guts with
   | Number(x) -> e.e_type <- Integer
@@ -196,7 +204,7 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
         begin match d.d_type with
         | VarDef(v) ->
           e.e_type <- type_data_to_typed v.v_type
-        | _ -> error "identifier does not refer to a variable"
+        | _ -> error (sprintf "identifier %s does not refer to a variable" n.n_name)
         end
       with Not_found ->
         failure ()
@@ -209,6 +217,10 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
     check_expr cenv menv e2;
     if e1.e_type <> Integer || e2.e_type <> Integer then error "plus only works on integers";
     e.e_type <- e1.e_type (* will be an integer*)
+  | Call(e1, e2, es) ->
+    check_expr cenv menv e1;
+    check_method_call cenv e2;
+    (* e2 is the method identifier *)
   | _ -> ()
 
 (* check_assign ensures that the lhs is an identifier and that the types match up *)
