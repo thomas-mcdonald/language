@@ -61,7 +61,7 @@ expr:
   | FALSE { makeExpr (Boolean(0)) }
   | TRUE  { makeExpr (Boolean(1)) }
   | expr PLUS expr  { makeExpr (Binop(Plus, $1, $3)) }
-  | expr DOT expr   { makeExpr (Call($1, $3, [])) }
+  | expr DOT ident   { makeExpr (Call($1, $3, [])) }
 
 ident:
   IDENT { makeExpr (Ident(makeName($1))) }
