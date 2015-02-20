@@ -139,9 +139,17 @@ let populate_class_variable (dec : stmt) (klass: name) env : environment =
 let populate_variables env klass : environment =
   let statement_filter x = match x with Declare(_) -> true | _ -> false in
   match klass with
-    Klass(n, _, xs) ->
-      let var_accu env x = populate_class_variable x n env
-      and statements = List.filter statement_filter xs in
+  | Klass(n, s, xs) ->
+    let var_accu env x = populate_class_variable x n env
+    and statements = List.filter statement_filter xs
+    and scd = find_class_data s.n_def
+    and cd = find_class_data n.n_def in
+      (* copy over variables from superclass *)
+      cd.c_size <- scd.c_size;
+      cd.c_variables <- scd.c_variables;
+      let def_adder v = ignore (add_def n.n_def.d_env v.d_name v) in
+      List.iter def_adder cd.c_variables;
+      (* add new variables *)
       List.fold_left var_accu env statements
 
 
