@@ -2,5 +2,5 @@
 
 ROOT=`pwd`
 
-keiko/pplink -custom -g -nostdlib -i "/usr/bin/env $ROOT/keiko/ppx" "$ROOT/keiko/lib.k" $1 -o a.out >/dev/null \
+./language $1 > code.k && keiko/pplink -custom -g -nostdlib -i "/usr/bin/env $ROOT/keiko/ppx" "$ROOT/keiko/lib.k" code.k -o a.out >/dev/null \
   && chmod +x a.out && ./a.out
