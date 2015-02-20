@@ -149,6 +149,7 @@ let generate (prog : program) =
       let mainclass = extract_def (List.find main_match cs) in
       List.iter gen_procs cs;
       gen_entrypoint mainclass;
+      gen (DEFINE "Object"); (* TODO: this is hacky *)
       List.iter gen_class_desc cs;
       gen NEWLINE;
       ()
