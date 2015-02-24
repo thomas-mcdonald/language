@@ -280,7 +280,7 @@ let check_assign (cenv: environment) (menv: environment) (e1: expr) (e2: expr) =
     match x,y with
     | Object(s), Object(t) ->
       t.n_name <> s.n_name
-    | _ -> false in
+    | _ -> x <> y in
   match e1.e_guts with
   | Ident(i) ->
     check_expr cenv menv e1;
