@@ -127,16 +127,14 @@ let gen_method_descriptor (d : def) : icode =
 let gen_descriptor (n: name) =
   match n.n_def.d_type with
     ClassDef(cd) ->
-      (* print method list *)
-      let print_meth m = gen (gen_method_descriptor m) in
+      let print_meth m = gen_method_descriptor m in
       gen (SEQ [
         COMMENT (sprintf "Descriptor for %s" n.n_name);
         DEFINE n.n_name;
-        COMMENT (sprintf "size - %d" cd.c_size)
-      ]);
-      List.iter print_meth cd.c_methods;
-      (* print class hierarchy *)
-      gen (SEQ [
+        COMMENT (sprintf "size - %d" cd.c_size);
+        (* print method list *)
+        SEQ (List.map print_meth cd.c_methods);
+        (* print class hierarchy *)
         DEFINE (n.n_name ^ ".%super");
         SEQ (List.map (fun c -> WORD (SYM c.d_name)) (find_hierarchy n.n_def));
         NEWLINE
