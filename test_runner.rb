@@ -11,6 +11,20 @@ require 'diffy'
 
 errors = []
 
+class Error
+  attr_accessor :name, :diff
+
+  def initialize(name, diff)
+    @name = name
+    @diff = diff
+  end
+
+  def inspect
+    %(#{@name}\n\n#{@diff}\n\n)
+  end
+end
+
+
 Dir["test/*_test.aa"].each do |file|
   test_data = File.read(file)
   comment, code, expected_output = test_data.split('#-#-#').collect(&:strip)
@@ -26,7 +40,7 @@ Dir["test/*_test.aa"].each do |file|
   if result == expected_output
     print "."
   else
-    errors << Diffy::Diff.new(expected_output, result)
+    errors << Error.new(comment,Diffy::Diff.new(expected_output, result))
     print "F"
   end
 end
@@ -36,6 +50,6 @@ File.delete './test/test.aa'
 print "\n"
 
 if errors.length > 0
-  errors.map { |str| puts str }
+  errors.map { |obj| puts obj.inspect }
   exit 1
 end

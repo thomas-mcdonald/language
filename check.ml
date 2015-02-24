@@ -155,6 +155,8 @@ let populate_variables env klass : environment =
 
 let populate_method (meth: stmt) class_name env : environment =
   let statement_filter x = match x with Declare(_) -> true | _ -> false
+  and already_defined n = Printf.sprintf "%s is already defined" n
+  and class_compare a b = a.d_name = b.d_name
   and c = find_def env class_name in
   match meth with
     MethodDecl(n, args, xs) ->
@@ -164,8 +166,21 @@ let populate_method (meth: stmt) class_name env : environment =
       let d = { d_name = name; d_type = MethDef(meth_data); d_env = new_env () } in
         n.n_def <- d;
         ignore @@ List.fold_left variable_acc env (List.filter statement_filter xs);
-        ensure_unique c.d_env name;
-        ignore @@ add_def c.d_env name d;
+        (* check if the method has been defined in this class already *)
+        begin try
+          let old = find_def c.d_env name in
+          let md = find_meth_data old in
+          if class_compare md.m_receiver meth_data.m_receiver
+            then error (already_defined name);
+          (* method is from inheritance, overwrite it  *)
+          remove_def c.d_env name;
+          ignore @@ add_def c.d_env name d
+        with
+        | Not_found ->
+          ignore @@ add_def c.d_env name d
+        | Not_method ->
+          error (already_defined name)
+        end;
         add_method c d;
         env
   | _ -> error "check_method called with a non-method stmt"
@@ -174,7 +189,10 @@ let populate_method (meth: stmt) class_name env : environment =
 let add_parent_methods env (n : name) (s : name) =
   let superclass = find_def env s.n_name in
   let cd = find_class_data n.n_def in
-  cd.c_methods <- (find_class_data superclass).c_methods
+  let method_adder m = ignore (add_def n.n_def.d_env m.d_name m) in
+  let scd = find_class_data superclass in
+  List.iter method_adder scd.c_methods;
+  cd.c_methods <- scd.c_methods
 
 let populate_methods env klass : environment =
   let method_filter x = match x with MethodDecl(_) -> true | _ -> false in

@@ -25,22 +25,42 @@ class Hilux < Toyota
   def mpg
   end
 end
+
+class Main
+end
 #-#-#
-MODULE Main 0 0
-IMPORT Lib 0
+MODULE Program 0 0
 ENDHDR
 PROC Toyota.mpg 0 0 0
+RETURN
 END
 
 PROC Toyota.recharge 0 0 0
+RETURN
 END
 
 PROC Prius.recharge 0 0 0
+RETURN
 END
 
 PROC Hilux.mpg 0 0 0
+RETURN
 END
 
+PROC Program.%main 0 0 0
+CONST 0
+GLOBAL Main
+CONST 0
+GLOBAL Lib.New
+PCALL 2
+CONST 0
+GLOBAL Main.main
+PCALL 1
+RETURN
+END
+
+
+DEFINE Object
 ! Descriptor for Car
 DEFINE Car
 ! size - 0
@@ -79,3 +99,10 @@ WORD Object
 WORD Car
 WORD Toyota
 WORD Hilux
+
+! Descriptor for Main
+DEFINE Main
+! size - 0
+DEFINE Main.%super
+WORD Object
+WORD Main

@@ -36,6 +36,9 @@ and var_data = {
 and type_data = Bool | Int | Object of def ref
 and var_place = ClassVar | MethodVar
 
+exception Not_method
+
+
 let new_env = fun () -> Env (ref EnvMap.empty)
 
 (* pull class_data out of a def *)
@@ -51,7 +54,7 @@ let new_class_data x =
   | None ->     { c_depth = 0; c_methods = []; c_super = x; c_size = 0; c_variables = [] }
 
 let find_meth_data (d: def) =
-  match d.d_type with MethDef(m) -> m | _ -> failwith "find_meth_data"
+  match d.d_type with MethDef(m) -> m | _ -> raise Not_method
 
 let find_var_data (d: def) =
   match d.d_type with VarDef(v) -> v | _ -> failwith "find_var_data"
@@ -59,6 +62,10 @@ let find_var_data (d: def) =
 let add_def env n d =
   match env with
     Env(m) -> m := EnvMap.add n d !m; env
+
+let remove_def env n =
+  match env with
+    Env(m) -> m := EnvMap.remove n !m; env
 
 (* the initial environment. contains the object godclass *)
 let initial_env : environment =

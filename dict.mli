@@ -34,6 +34,7 @@ and type_data = Bool | Int | Object of def ref
 (* is the variable on the class or the method? *)
 and var_place = ClassVar | MethodVar
 
+exception Not_method
 
 (* The initial environment *)
 val initial_env : environment
@@ -45,6 +46,8 @@ val find_class_data : def -> class_data
 
 (* add the definition to the environment *)
 val add_def : environment -> string -> def -> environment
+
+val remove_def : environment -> string -> environment
 
 val find_meth_data : def -> meth_data
 
