@@ -43,15 +43,19 @@ let add_method_variable (m: def) (name: string) (t: type_data) =
 
 (* add a method to a class record.
     We first check whether the method is already in the list - if we are overriding a method
-    If we are then we rewrite it in place, else we append the method to the end of the list
+    If we are then we rewrite it in place (and set the new m_offset appropriately), else we
+    append the method to the end of the list
 *)
 let add_method (c : def) (d : def) =
   let matcher x = x.d_name = d.d_name
+  and offset d = (find_meth_data d).m_offset
+  and set_offset d v = (find_meth_data d).m_offset <- v; d in
+  let searcher x = if matcher x then set_offset d (offset x) else x
   and cd = find_class_data c in
-  if List.exists matcher cd.c_methods then
-    cd.c_methods <- List.map (fun x -> if matcher x then d else x) cd.c_methods
-  else
-    cd.c_methods <- cd.c_methods @ [d]
+    if List.exists matcher cd.c_methods then
+      cd.c_methods <- List.map searcher cd.c_methods
+    else
+      cd.c_methods <- cd.c_methods @ [set_offset d ((List.length cd.c_methods + 1) * 4)]
 
 (* add a variable to a class - populates with variable offset & updates class size *)
 let add_variable (c : def) (name : string) (t : type_data) =
@@ -161,7 +165,7 @@ let populate_method (meth: stmt) class_name env : environment =
   match meth with
     MethodDecl(n, args, xs) ->
       let name = n.n_name
-      and meth_data = { m_receiver = c; m_size = 0 }
+      and meth_data = { m_receiver = c; m_size = 0; m_offset = 0 }
       and variable_acc env x = populate_method_variable x n env in
       let d = { d_name = name; d_type = MethDef(meth_data); d_env = new_env () } in
         n.n_def <- d;
@@ -173,15 +177,14 @@ let populate_method (meth: stmt) class_name env : environment =
           if class_compare md.m_receiver meth_data.m_receiver
             then error (already_defined name);
           (* method is from inheritance, overwrite it  *)
-          remove_def c.d_env name;
-          ignore @@ add_def c.d_env name d
+          ignore (remove_def c.d_env name)
         with
-        | Not_found ->
-          ignore @@ add_def c.d_env name d
+        | Not_found -> ()
         | Not_method ->
           error (already_defined name)
         end;
         add_method c d;
+        ignore @@ add_def c.d_env name d;
         env
   | _ -> error "check_method called with a non-method stmt"
 

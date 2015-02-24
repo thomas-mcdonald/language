@@ -22,6 +22,7 @@ and class_data = {
 and meth_data = {
   m_receiver : def;
   mutable m_size : int;
+  mutable m_offset : int;
 }
 
 and var_data = {

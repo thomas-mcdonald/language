@@ -41,9 +41,16 @@ let gen_addr (e: expr) : icode =
 let gen_method_addr (e: expr) (t: typed) : icode =
   match e.e_guts with
   | Ident(n) ->
+    let md = find_meth_data n.n_def in
     begin match t with
     | Object(s) ->
-        GLOBAL (sprintf "%s.%s" s.n_name n.n_name)
+      SEQ [
+        COMMENT (sprintf "method address for %s.%s" s.n_name n.n_name);
+        GLOBAL s.n_name;
+        CONST md.m_offset;
+        BINOP Plus;
+        LOADW;
+      ]
     | Unknown -> failwith "type failure"
     | _ -> failwith "gen_method_addr"
     end
@@ -130,8 +137,9 @@ let gen_descriptor (n: name) =
       let print_meth m = gen_method_descriptor m in
       gen (SEQ [
         COMMENT (sprintf "Descriptor for %s" n.n_name);
-        DEFINE n.n_name;
         COMMENT (sprintf "size - %d" cd.c_size);
+        DEFINE n.n_name;
+        WORD (INT Int32.zero);
         (* print method list *)
         SEQ (List.map print_meth cd.c_methods);
         (* print class hierarchy *)
@@ -169,7 +177,7 @@ let generate (prog : program) =
   let main_match c = match c with Klass(n,_,_) -> n.n_name = "Main"
   and extract_def c = match c with Klass(n,_,_) -> n.n_def in
   put "MODULE Program 0 0";
-  put "ENDHDR";
+  put "ENDHDR\n";
   match prog with
     Prog(cs) ->
       let mainclass = extract_def (List.find main_match cs) in

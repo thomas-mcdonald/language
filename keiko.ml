@@ -61,6 +61,7 @@ let string_of_icode (w : icode) : string =
   | PROC(s,f,_) -> Printf.sprintf "PROC %s %d 0 0" s f
   | END -> "END\n"
   | DEFINE(s) -> "DEFINE " ^ s
+  | WORD(INT(i)) -> Printf.sprintf "WORD %ld" i
   | WORD(SYM(s)) -> "WORD " ^ s
 
   | RETURN -> "RETURN"

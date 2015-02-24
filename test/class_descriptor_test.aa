@@ -31,6 +31,7 @@ end
 #-#-#
 MODULE Program 0 0
 ENDHDR
+
 PROC Toyota.mpg 0 0 0
 RETURN
 END
@@ -62,15 +63,17 @@ END
 
 DEFINE Object
 ! Descriptor for Car
-DEFINE Car
 ! size - 0
+DEFINE Car
+WORD 0
 DEFINE Car.%super
 WORD Object
 WORD Car
 
 ! Descriptor for Toyota
-DEFINE Toyota
 ! size - 0
+DEFINE Toyota
+WORD 0
 WORD Toyota.mpg
 WORD Toyota.recharge
 DEFINE Toyota.%super
@@ -79,8 +82,9 @@ WORD Car
 WORD Toyota
 
 ! Descriptor for Prius
-DEFINE Prius
 ! size - 0
+DEFINE Prius
+WORD 0
 WORD Toyota.mpg
 WORD Prius.recharge
 DEFINE Prius.%super
@@ -90,8 +94,9 @@ WORD Toyota
 WORD Prius
 
 ! Descriptor for Hilux
-DEFINE Hilux
 ! size - 0
+DEFINE Hilux
+WORD 0
 WORD Hilux.mpg
 WORD Toyota.recharge
 DEFINE Hilux.%super
@@ -101,8 +106,9 @@ WORD Toyota
 WORD Hilux
 
 ! Descriptor for Main
-DEFINE Main
 ! size - 0
+DEFINE Main
+WORD 0
 DEFINE Main.%super
 WORD Object
 WORD Main
