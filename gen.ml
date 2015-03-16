@@ -26,13 +26,17 @@ let gen_addr (e: expr) : icode =
     (* this only prints the offset atm *)
     let vd = find_var_data n.n_def in
     begin match vd.v_place with
-    | MethodVar -> LOCAL vd.v_offset
+    | MethodVar -> LOCAL (- (vd.v_offset + 4))
     | ClassVar ->
       SEQ [
         LOCAL 16; (* object location is first argument *)
         LOADW;
         CONST vd.v_offset;
         BINOP Plus;
+      ]
+    | FunctionArg ->
+      SEQ [
+        LOCAL (16 + vd.v_offset);
       ]
     end
   | _ -> failwith "gen_addr"
@@ -63,12 +67,15 @@ let rec gen_expr (e: expr) : icode =
   | Call(e1, e2, es) ->
     (* e1 = object instance *)
     (* e2 = method - ident *)
-    SEQ [
-      gen_addr e1;
-      CONST 0;
-      gen_method_addr e2 e1.e_type;
-      PCALL 1; (* TODO: needs parameterizing *)
-    ]
+    let extract_name x = match x with Ident(n) -> n.n_def | _ -> failwith "extract_name" in
+    let md = find_meth_data (extract_name e2.e_guts) in
+      SEQ [
+        SEQ (List.map gen_expr es);
+        gen_addr e1;
+        CONST 0;
+        gen_method_addr e2 e1.e_type;
+        PCALL (md.m_args + 1); (* TODO: needs parameterizing *)
+      ]
   | Ident(_) -> SEQ [gen_addr e; LOADW]
   | New(t) ->
     begin match t with

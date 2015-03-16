@@ -23,6 +23,7 @@ and meth_data = {
   m_receiver : def;
   mutable m_size : int;
   mutable m_offset : int;
+  mutable m_args : int;
 }
 
 and var_data = {
@@ -33,7 +34,7 @@ and var_data = {
 
 and type_data = Bool | Int | Object of def ref
 (* is the variable on the class or the method? *)
-and var_place = ClassVar | MethodVar
+and var_place = ClassVar | MethodVar | FunctionArg
 
 exception Not_method
 

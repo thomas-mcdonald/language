@@ -42,31 +42,41 @@ stmts:
 
 stmt:
     DEF identname stmts END                     { MethodDecl($2, [], $3) }
-  | DEF identname LPAREN args RPAREN stmts END  { MethodDecl($2, $4, $6) }
+  | DEF identname LPAREN argsd RPAREN stmts END { MethodDecl($2, $4, $6) }
   | ident EQUALS expr              { Assign($1, $3) }
   | BOOL ident                     { Declare(Bool, $2) }
   | INT ident                      { Declare(Integer, $2) }
   | typed ident                    { Declare($1, $2) }
   | expr                           { Expr($1) }
 
+argsd:
+    /* empty*/        { [] }
+  | argd              { [$1] }
+  | argd COMMA argsd  { $1 :: $3 }
+
+argd:
+  | typed identname   { Arg($2, $1) }
+  | BOOL identname    { Arg($2, Bool) }
+  | INT identname     { Arg($2, Integer) }
+
+expr:
+  | expr DOT ident   { makeExpr (Call($1, $3, [])) }
+  | expr DOT ident LPAREN args RPAREN { makeExpr (Call($1, $3, $5)) }
+  | expr PLUS expr   { makeExpr (Binop(Plus, $1, $3)) }
+  | expr MINUS expr  { makeExpr (Binop(Minus, $1, $3)) }
+  | NEW typed        { makeExpr (New($2)) }
+  | PUTS expr        { makeExpr (Puts($2)) }
+  | ident   { $1 }
+  | number  { $1 }
+  | FALSE   { makeExpr (Boolean(0)) }
+  | TRUE    { makeExpr (Boolean(1)) }
+
 args:
-    /* empty*/      { [] }
+    /* empty */     { [] }
   | arg             { [$1] }
   | arg COMMA args  { $1 :: $3 }
 
-arg:
-  typed identname   { Arg($2, $1) }
-
-expr:
-    ident { $1 }
-  | number { $1 }
-  | FALSE { makeExpr (Boolean(0)) }
-  | TRUE  { makeExpr (Boolean(1)) }
-  | expr PLUS expr   { makeExpr (Binop(Plus, $1, $3)) }
-  | expr MINUS expr  { makeExpr (Binop(Minus, $1, $3)) }
-  | expr DOT ident   { makeExpr (Call($1, $3, [])) }
-  | NEW typed        { makeExpr (New($2)) }
-  | PUTS expr        { makeExpr (Puts($2)) }
+arg: expr { $1 }
 
 ident:
   IDENT { makeExpr (Ident(makeName($1))) }

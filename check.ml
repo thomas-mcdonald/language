@@ -14,6 +14,12 @@ let sizeof (t : type_data) =
   | Int -> 4
   | Object(_) -> 4
 
+let differing_type x y =
+  match x,y with
+  | Object(s), Object(t) ->
+    t.n_name <> s.n_name
+  | _ -> x <> y
+
 (* top level environment *)
 let top_env = ref initial_env
 
@@ -32,6 +38,13 @@ let type_data_to_typed (t: type_data) : typed =
   | Object(r) ->
     let d = !r in
       Object { n_name = d.d_name; n_def = d }
+
+let add_argument_variable (m: def) (name: string) (t: type_data) =
+  let md = find_meth_data m in
+  let v = { v_offset = (md.m_args + 1) * 4; v_type = t; v_place = FunctionArg } in
+  let d = { d_name = name; d_type = VarDef(v); d_env = new_env () } in
+    md.m_args <- md.m_args + 1;
+    ignore (add_def m.d_env name d)
 
 (* add a local method variable to the method data *)
 let add_method_variable (m: def) (name: string) (t: type_data) =
@@ -79,6 +92,22 @@ let populate_klass (env : environment) (klass : klass) : environment =
       n.n_def <- find_def env' name;
       s.n_def <- find_def env' s.n_name;
       env';;
+
+let add_primitive_variable (fn: def -> string -> type_data -> unit) (p: typed) (d: def) (n: name) =
+  match p with
+  | Bool -> fn d n.n_name Bool
+  | Integer -> fn d n.n_name Int
+  | _ -> error "unsupported primitive type"
+
+let populate_method_argument (arg: method_arg) (m: name) (env: environment) =
+  let d = m.n_def in
+  match arg with
+  | Arg(n, Object(t)) ->
+    let type_name = t.n_name in env
+  | Arg(n, p) ->
+    ensure_unique d.d_env n.n_name;
+    add_primitive_variable add_argument_variable p d n;
+    env
 
 let populate_method_variable (dec: stmt) (m: name) env : environment =
   let d = m.n_def in
@@ -156,7 +185,6 @@ let populate_variables env klass : environment =
       (* add new variables *)
       List.fold_left var_accu env statements
 
-
 let populate_method (meth: stmt) class_name env : environment =
   let statement_filter x = match x with Declare(_) -> true | _ -> false
   and already_defined n = Printf.sprintf "%s is already defined" n
@@ -165,11 +193,13 @@ let populate_method (meth: stmt) class_name env : environment =
   match meth with
     MethodDecl(n, args, xs) ->
       let name = n.n_name
-      and meth_data = { m_receiver = c; m_size = 0; m_offset = 0 }
+      and meth_data = { m_receiver = c; m_size = 0; m_offset = 0; m_args = 0; }
+      and argument_acc env x = populate_method_argument x n env
       and variable_acc env x = populate_method_variable x n env in
       let d = { d_name = name; d_type = MethDef(meth_data); d_env = new_env () } in
         n.n_def <- d;
         ignore @@ List.fold_left variable_acc env (List.filter statement_filter xs);
+        ignore @@ List.fold_left argument_acc env args;
         (* check if the method has been defined in this class already *)
         begin try
           let old = find_def c.d_env name in
@@ -255,7 +285,7 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
       end in
     search_environment menv (fun () ->
       search_environment cenv (fun () ->
-        error "not a variable"))
+        error (sprintf "%s is not a variable" n.n_name)))
   | Binop(Plus, e1, e2) ->
     check_expr cenv menv e1;
     check_expr cenv menv e2;
@@ -264,6 +294,8 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
   | Call(e1, e2, es) ->
     check_expr cenv menv e1;
     check_method_call e2 e1.e_type;
+    List.iter (check_expr cenv menv) es
+    (* TODO: check type of args *)
     (* e2 is the method identifier *)
   | New(t) ->
     begin match t with
@@ -279,11 +311,6 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
 (* check_assign ensures that the lhs is an identifier and that the types match up *)
 let check_assign (cenv: environment) (menv: environment) (e1: expr) (e2: expr) =
   (* required to simplify comparison of typed objects *)
-  let differing_type x y =
-    match x,y with
-    | Object(s), Object(t) ->
-      t.n_name <> s.n_name
-    | _ -> x <> y in
   match e1.e_guts with
   | Ident(i) ->
     check_expr cenv menv e1;
