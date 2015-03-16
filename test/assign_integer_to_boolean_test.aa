@@ -1,4 +1,4 @@
-assigning an integer to a boolean should result in a fail
+comment: assigning an integer to a boolean should result in a fail
 #-#-#
 class Main
   bool x

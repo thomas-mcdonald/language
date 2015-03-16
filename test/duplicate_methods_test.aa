@@ -1,4 +1,4 @@
-duplicate methods shouldn't be allowed
+comment: duplicate methods should throw an error
 #-#-#
 class Test
   def test

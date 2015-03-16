@@ -1,8 +1,7 @@
-tests various definitions of class descriptor
-
-When overriding methods the method should be replaced inline - the ordering of the superclass methods shouldn't change
-(this is tested in the hilux class)
-
+comment: >
+  tests various definitions of class descriptor
+  When overriding methods the method should be replaced inline - the ordering of the superclass methods shouldn't change
+  (this is tested in the hilux class)
 #-#-#
 class Car
 end

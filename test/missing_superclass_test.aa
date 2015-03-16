@@ -1,4 +1,4 @@
-This tests that a missing superclass is caught in semantic analysis
+comment: missing superclasses should fail
 #-#-#
 class Car < Vehicle
 end

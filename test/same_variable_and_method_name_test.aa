@@ -1,4 +1,4 @@
-this tests where we attempt to define a method with the same name as a variable
+comment: a class cannot have a variable with the same name as a class
 #-#-#
 class Example
 end

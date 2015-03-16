@@ -8,6 +8,7 @@
 # comment is mandatory and gives an overview of the purpose of the test
 
 require 'diffy'
+require 'yaml'
 
 errors = []
 
@@ -27,9 +28,12 @@ end
 
 Dir["test/*_test.aa"].each do |file|
   test_data = File.read(file)
-  comment, code, expected_output = test_data.split('#-#-#').collect(&:strip)
+  frontmatter, code, expected_output = test_data.split('#-#-#').collect(&:strip)
+  frontmatter = YAML.load(frontmatter)
   if code.nil?
     abort "#{file} appears to in an incorrect format"
+  elsif frontmatter['comment'].nil?
+    abort "#{file} missing comment"
   end
   File.open('./test/test.aa', 'w') { |f| f.write(code) }
   r, w = IO.pipe
@@ -40,7 +44,7 @@ Dir["test/*_test.aa"].each do |file|
   if result == expected_output
     print "."
   else
-    errors << Error.new(comment,Diffy::Diff.new(expected_output, result))
+    errors << Error.new(frontmatter['comment'] ,Diffy::Diff.new(expected_output, result))
     print "F"
   end
 end

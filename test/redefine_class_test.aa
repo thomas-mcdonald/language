@@ -1,4 +1,4 @@
-tests for error if attempt to redefine a class
+comment: cannot reopen class after it has been defined
 #-#-#
 class Car
 end
