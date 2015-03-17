@@ -82,8 +82,8 @@ let rec gen_expr (e: expr) : icode =
     | Object(n) ->
       let cd = find_class_data n.n_def in
         SEQ [
-          CONST cd.c_size;
           GLOBAL n.n_name;
+          CONST cd.c_size;
           CONST 0;
           GLOBAL "Lib.New";
           PCALL 2;
@@ -93,6 +93,19 @@ let rec gen_expr (e: expr) : icode =
   | Number(x) -> CONST x
   | Puts(e) -> SEQ [gen_expr e; CONST 0; GLOBAL "Lib.Print"; PCALL 1]
   | _ -> SEQ []
+
+let gen_new_assign (e: expr) (t: typed) =
+  match t with
+  | Object(n) ->
+    let cd = find_class_data n.n_def in
+      SEQ [
+        GLOBAL n.n_name;
+        CONST cd.c_size;
+        gen_addr e;
+        CONST 0;
+        GLOBAL "Lib.New";
+        PCALL 3;
+      ]
 
 (* assignment generation *)
 (*
@@ -105,7 +118,11 @@ let gen_assign (e1: expr) (e2: expr) : icode =
 
 let gen_stmt (s: stmt) : icode =
   match s with
-  | Assign(e1,e2) -> gen_assign e1 e2
+  | Assign(e1,e2) ->
+    begin match e2.e_guts with
+    | New(t) -> gen_new_assign e1 t
+    | _ -> gen_assign e1 e2
+    end
   | Declare(t,e) -> SEQ [] (* don't do anything for declares *)
   | Expr(e) -> gen_expr e
   | _ -> SEQ [] (* failwith "gen_proc" *)
