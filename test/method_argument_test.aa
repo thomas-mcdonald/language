@@ -1,0 +1,117 @@
+comment: testing that method arguments work as expected
+executable: true
+#-#-#
+class Printer
+  def incfive(int x)
+    puts x + 5
+  end
+
+  def p(int x)
+    puts x
+  end
+end
+
+class Main
+  Printer printer
+
+  def main
+    printer = new Printer
+    printer.incfive(5)
+    printer.p(5)
+  end
+end
+#-#-#
+MODULE Program 0 0
+ENDHDR
+
+PROC Printer.incfive 0 0 0
+LOCAL 20
+LOADW
+CONST 5
+PLUS
+CONST 0
+GLOBAL Lib.Print
+PCALL 1
+RETURN
+END
+
+PROC Printer.p 0 0 0
+LOCAL 20
+LOADW
+CONST 0
+GLOBAL Lib.Print
+PCALL 1
+RETURN
+END
+
+PROC Main.main 0 0 0
+GLOBAL Printer
+CONST 0
+LOCAL 16
+LOADW
+CONST 0
+PLUS
+CONST 0
+GLOBAL Lib.New
+PCALL 3
+CONST 5
+LOCAL 16
+LOADW
+CONST 0
+PLUS
+CONST 0
+! method address for Printer.incfive
+GLOBAL Printer
+CONST 4
+PLUS
+LOADW
+PCALL 2
+CONST 5
+LOCAL 16
+LOADW
+CONST 0
+PLUS
+CONST 0
+! method address for Printer.p
+GLOBAL Printer
+CONST 8
+PLUS
+LOADW
+PCALL 2
+RETURN
+END
+
+PROC Program.%main 0 0 0
+CONST 4
+GLOBAL Main
+CONST 0
+GLOBAL Lib.New
+PCALL 2
+CONST 0
+GLOBAL Main.main
+PCALL 1
+RETURN
+END
+
+
+DEFINE Object
+! Descriptor for Printer
+! size - 0
+DEFINE Printer
+WORD 0
+WORD Printer.incfive
+WORD Printer.p
+DEFINE Printer.%super
+WORD Object
+WORD Printer
+
+! Descriptor for Main
+! size - 4
+DEFINE Main
+WORD 0
+WORD Main.main
+DEFINE Main.%super
+WORD Object
+WORD Main
+#-#-#
+10 5
