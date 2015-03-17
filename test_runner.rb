@@ -28,7 +28,7 @@ end
 
 Dir["test/*_test.aa"].each do |file|
   test_data = File.read(file)
-  frontmatter, code, expected_output = test_data.split('#-#-#').collect(&:strip)
+  frontmatter, code, expected_ir, expected_output = test_data.split('#-#-#').collect(&:strip)
   frontmatter = YAML.load(frontmatter)
   if code.nil?
     abort "#{file} appears to in an incorrect format"
@@ -41,12 +41,26 @@ Dir["test/*_test.aa"].each do |file|
   Process.wait pid
   w.close
   result = r.read.strip
-  if result == expected_output
-    print "."
-  else
-    errors << Error.new(frontmatter['comment'] ,Diffy::Diff.new(expected_output, result))
+  if result != expected_ir
+    errors << Error.new(frontmatter['comment'] ,Diffy::Diff.new(expected_ir, result))
     print "F"
+    next
   end
+
+  # do we need to execute the output?
+  if frontmatter['executable']
+    r, w = IO.pipe
+    pid = spawn('./run test/test.aa', out: w, err: w)
+    Process.wait(pid)
+    w.close
+    result = r.read.strip
+    if result != expected_output
+      errors << Error.new(frontmatter['comment'], Diffy::Diff.new(expected_output, result))
+      print "F"
+      next
+    end
+  end
+  print "."
 end
 
 File.delete './test/test.aa'
