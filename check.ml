@@ -267,7 +267,10 @@ let check_method_call (e: expr) (t: typed) =
     end
   | _ -> failwith "check_method_call"
 
-let check_args (x: def * expr) = ()
+let check_args (x: def * expr) =
+  let (d,e) = x in
+  let vd = find_var_data d in
+  if differing_type (type_data_to_typed vd.v_type) e.e_type then error "argument types differ"
 
 let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
   match e.e_guts with
@@ -306,7 +309,6 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
     with Invalid_argument(_) ->
       error "different number of arguments"
     end
-    (* TODO: check type of args *)
   | New(t) ->
     begin match t with
     | Object(n) ->

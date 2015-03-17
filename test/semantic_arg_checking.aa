@@ -1,0 +1,22 @@
+comment: the type of arguments should be checked against the method signature
+#-#-#
+class Printer
+  def print(int x)
+  end
+end
+
+class Test
+end
+
+class Main
+  Printer printer
+  Test x
+
+  def main
+    x = new Test
+    printer = new Printer
+    printer.print(x)
+  end
+end
+#-#-#
+argument types differ
