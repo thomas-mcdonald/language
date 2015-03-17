@@ -1,0 +1,20 @@
+comment: check that multiple args are made to line up properly
+#-#-#
+class Printer
+  def print(int x, bool y)
+  end
+end
+
+class Test
+end
+
+class Main
+  Printer printer
+
+  def main
+    printer = new Printer
+    printer.print(true,1)
+  end
+end
+#-#-#
+argument types differ
