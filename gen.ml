@@ -74,7 +74,7 @@ let rec gen_expr (e: expr) : icode =
         gen_addr e1;
         CONST 0;
         gen_method_addr e2 e1.e_type;
-        PCALL (md.m_args + 1); (* TODO: needs parameterizing *)
+        PCALL (md.m_arg_count + 1);
       ]
   | Ident(_) -> SEQ [gen_addr e; LOADW]
   | New(t) ->

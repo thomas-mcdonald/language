@@ -26,7 +26,8 @@ and meth_data = {
   m_receiver : def;
   mutable m_size : int;
   mutable m_offset : int; (* required to be mutable since offset is not known until insertion*)
-  mutable m_args : int;
+  mutable m_arg_count : int;
+  mutable m_args : def list;
 }
 
 and var_data = {
@@ -102,4 +103,3 @@ let class_exists env name =
     | _ -> false
   with
     Not_found -> false
-

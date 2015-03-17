@@ -41,9 +41,10 @@ let type_data_to_typed (t: type_data) : typed =
 
 let add_argument_variable (m: def) (name: string) (t: type_data) =
   let md = find_meth_data m in
-  let v = { v_offset = (md.m_args + 1) * 4; v_type = t; v_place = FunctionArg } in
+  let v = { v_offset = (md.m_arg_count + 1) * 4; v_type = t; v_place = FunctionArg } in
   let d = { d_name = name; d_type = VarDef(v); d_env = new_env () } in
-    md.m_args <- md.m_args + 1;
+    md.m_args <- md.m_args @ [d];
+    md.m_arg_count <- md.m_arg_count + 1;
     ignore (add_def m.d_env name d)
 
 (* add a local method variable to the method data *)
@@ -193,7 +194,7 @@ let populate_method (meth: stmt) class_name env : environment =
   match meth with
     MethodDecl(n, args, xs) ->
       let name = n.n_name
-      and meth_data = { m_receiver = c; m_size = 0; m_offset = 0; m_args = 0; }
+      and meth_data = { m_receiver = c; m_size = 0; m_offset = 0; m_arg_count = 0; m_args = [] }
       and argument_acc env x = populate_method_argument x n env
       and variable_acc env x = populate_method_variable x n env in
       let d = { d_name = name; d_type = MethDef(meth_data); d_env = new_env () } in
@@ -237,7 +238,7 @@ let populate_methods env klass : environment =
       List.fold_left meth_accu env statements
 
 (*
-  populate_class_info extracts information about the classes in the program 
+  populate_class_info extracts information about the classes in the program
     & adds it to the enviornment
   This is done in multiple passes.
     * Fold through the list of classes, gathering a list of class names and verifying
@@ -265,6 +266,8 @@ let check_method_call (e: expr) (t: typed) =
       failwith (sprintf "method %s does not exist" n.n_name)
     end
   | _ -> failwith "check_method_call"
+
+let check_args (x: def * expr) = ()
 
 let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
   match e.e_guts with
@@ -294,9 +297,16 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
   | Call(e1, e2, es) ->
     check_expr cenv menv e1;
     check_method_call e2 e1.e_type;
-    List.iter (check_expr cenv menv) es
+    begin try match e2.e_guts with
+    | Ident(n) ->
+      let md = find_meth_data n.n_def in
+        List.iter (check_expr cenv menv) es;
+        List.iter check_args (List.combine md.m_args es);
+    | _ -> failwith "check_expr#call"
+    with Invalid_argument(_) ->
+      error "different number of arguments"
+    end
     (* TODO: check type of args *)
-    (* e2 is the method identifier *)
   | New(t) ->
     begin match t with
     | Object(n) ->

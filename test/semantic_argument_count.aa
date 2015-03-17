@@ -1,0 +1,17 @@
+comment: check that functions are called with the same number of arguments
+#-#-#
+class Printer
+  def print(int x)
+  end
+end
+
+class Main
+  Printer printer
+
+  def main
+    printer = new Printer
+    printer.print
+  end
+end
+#-#-#
+different number of arguments
