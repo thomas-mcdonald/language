@@ -9,9 +9,11 @@ language
 
 keiko/*.a
 keiko/*.o
+keiko/oblink
 keiko/pplink
 keiko/ppx
 
 # files used for testing
-keiko/code.k
+a.out
+code.k
 example
