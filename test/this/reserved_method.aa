@@ -1,0 +1,11 @@
+comment: this should not be allowed as a method name
+#-#-#
+class Main
+  def this
+  end
+
+  def main
+  end
+end
+#-#-#
+parse error at token this, (1, 21)

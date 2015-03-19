@@ -26,7 +26,7 @@ class Error
 end
 
 
-Dir["test/*.aa"].each do |file|
+Dir["test/**/*.aa"].each do |file|
   test_data = File.read(file)
   frontmatter, code, expected_ir, expected_output = test_data.split('#-#-#').collect(&:strip)
 

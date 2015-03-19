@@ -1,0 +1,64 @@
+comment: methods on the current object should be accessible with `this`
+executable: true
+#-#-#
+class Main
+  def print(int x)
+    puts x
+  end
+
+  def main
+    this.print(100)
+  end
+end
+#-#-#
+MODULE Program 0 0
+ENDHDR
+
+PROC Main.print 0 0 0
+LOCAL 20
+LOADW
+CONST 0
+GLOBAL Lib.Print
+PCALL 1
+RETURN
+END
+
+PROC Main.main 0 0 0
+CONST 100
+LOCAL 16
+LOADW
+CONST 0
+! method address for Main.print
+GLOBAL Main
+CONST 4
+PLUS
+LOADW
+PCALL 2
+RETURN
+END
+
+PROC Program.%main 0 0 0
+CONST 0
+GLOBAL Main
+CONST 0
+GLOBAL Lib.New
+PCALL 2
+CONST 0
+GLOBAL Main.main
+PCALL 1
+RETURN
+END
+
+
+DEFINE Object
+! Descriptor for Main
+! size - 0
+DEFINE Main
+WORD 0
+WORD Main.print
+WORD Main.main
+DEFINE Main.%super
+WORD Object
+WORD Main
+#-#-#
+100

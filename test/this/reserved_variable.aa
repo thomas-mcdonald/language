@@ -1,0 +1,9 @@
+comment: this should not be allowed as a varaible
+#-#-#
+class Main
+  int this
+  def main
+  end
+end
+#-#-#
+parse error at token this, (1, 21)
