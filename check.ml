@@ -232,6 +232,7 @@ let populate_methods env klass : environment =
   let method_filter x = match x with MethodDecl(_) -> true | _ -> false in
   match klass with
     Klass(n, s, xs) ->
+      ignore (add_def n.n_def.d_env "this" n.n_def);
       add_parent_methods env n s;
       let meth_accu env x = populate_method x n.n_name env
       and statements = List.filter method_filter xs in
@@ -257,7 +258,7 @@ let populate_class_info (classes : klass list) (env : environment) : environment
   List.fold_left populate_methods env'' classes
 
 let check_method_call (e: expr) (t: typed) =
-  let cenv = match t with Object(n) -> n.n_def.d_env | _ -> failwith "check_method_call" in
+  let cenv = match t with Object(n) -> n.n_def.d_env | _ -> failwith "check_method_call#find_type" in
   match e.e_guts with
   | Ident(n) ->
     begin try let d = find_def cenv n.n_name in
@@ -276,6 +277,10 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
   match e.e_guts with
   | Number(x) -> e.e_type <- Integer
   | Boolean(x) -> e.e_type <- Bool
+  | This -> e.e_type <-
+    let d = find_def cenv "this" in
+    let n = { n_name = d.d_name; n_def = d } in
+      Object(n)
   | Ident(n) ->
     let search_environment env failure =
       begin try

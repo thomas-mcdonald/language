@@ -39,6 +39,7 @@ let gen_addr (e: expr) : icode =
         LOCAL (16 + vd.v_offset);
       ]
     end
+  | This -> SEQ [ LOCAL 16; LOADW; ]
   | _ -> failwith "gen_addr"
 
 (* gen_method_call generates the address of a method *)

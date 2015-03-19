@@ -20,6 +20,7 @@ type token =
   | FALSE
   | INT
   | PUTS
+  | THIS
   | TRUE
 
 val program :

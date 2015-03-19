@@ -35,4 +35,5 @@ and expr_guts = Number of int
          | Call of expr * expr * expr list (* object.method(args) *)
          | New of typed
          | Puts of expr
+         | This
          | Nil

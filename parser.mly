@@ -8,8 +8,8 @@ open Tree
 %token <string> IDENT TYPE
 %token CLASS COMMA DEF DOT EQUALS EOF END GT NEW LPAREN RPAREN SEMI
 %token MINUS PLUS
-/* todo - should these be specialcased? */
-%token BOOL FALSE INT PUTS TRUE
+/* TODO - should these be specialcased? */
+%token BOOL FALSE INT PUTS THIS TRUE
 
 %type <Tree.program> program
 %start program
@@ -70,6 +70,7 @@ expr:
   | number  { $1 }
   | FALSE   { makeExpr (Boolean(0)) }
   | TRUE    { makeExpr (Boolean(1)) }
+  | THIS    { makeExpr This }
 
 args:
     /* empty */     { [] }
