@@ -17,6 +17,7 @@ type token =
   | MINUS
   | PLUS
   | BOOL
+  | COLON
   | FALSE
   | INT
   | PUTS

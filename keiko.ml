@@ -23,7 +23,7 @@ type icode =
   | ARG of int                  (* Pass argument (index) *)
   | SLINK                       (* Pass static link *)
   | PCALL of int                (* Call procedure (nparams) *)
-  | RESULTW                     (* Procedure result *)
+  | PCALLW of int               (* Call procedure with word return (nparams) *)
   | MONOP of op                 (* Perform unary operation (op) *)
   | BINOP of op                 (* Perform binary operation (op) *)
   | BOUND                       (* Array bound check *)
@@ -40,6 +40,7 @@ type icode =
 
   (* Extra instructions *)
   | RETURN
+  | RETURNW
   | SEQ of icode list
   | NEWLINE
   | COMMENT of string
@@ -56,6 +57,7 @@ let string_of_icode (w : icode) : string =
   | LOADW -> "LOADW"
   | STOREW -> "STOREW"
   | PCALL(i) -> Printf.sprintf "PCALL %d" i
+  | PCALLW(i) -> Printf.sprintf "PCALLW %d" i
   | BINOP(op) -> print_op op
 
   | PROC(s,f,_) -> Printf.sprintf "PROC %s %d 0 0" s f
@@ -65,5 +67,6 @@ let string_of_icode (w : icode) : string =
   | WORD(SYM(s)) -> "WORD " ^ s
 
   | RETURN -> "RETURN"
+  | RETURNW -> "RETURNW"
   | NEWLINE -> ""
   | COMMENT(s) -> Printf.sprintf "! %s" s

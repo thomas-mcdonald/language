@@ -1,0 +1,12 @@
+comment: a declaration is not allowed as the last statement since it can't return
+#-#-#
+class Main
+  def test : int
+    int x
+  end
+
+  def main
+  end
+end
+#-#-#
+last expression must match the return type

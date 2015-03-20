@@ -16,7 +16,8 @@ and klass = Klass of name * name * stmt list
 and block = Block of stmt list
           | NoBlock
 
-and stmt = MethodDecl of name * method_arg list * stmt list (* name * args * statements  *)
+and stmt = MethodDecl of name * method_arg list * stmt list * typed
+            (* name * args * statements  *)
          | Assign of expr * expr (* lhs = rhs *)
          | Declare of typed * expr (* int x *)
          | Expr of expr (* expression statement  *)

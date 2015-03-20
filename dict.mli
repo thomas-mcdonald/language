@@ -21,6 +21,7 @@ and class_data = {
 
 and meth_data = {
   m_receiver : def;
+  m_return : type_data;
   mutable m_size : int;
   mutable m_offset : int;
   mutable m_arg_count : int;
@@ -33,7 +34,7 @@ and var_data = {
   v_place : var_place;
 }
 
-and type_data = Bool | Int | Object of def ref
+and type_data = Bool | Int | Object of def ref | Void
 (* is the variable on the class or the method? *)
 and var_place = ClassVar | MethodVar | FunctionArg
 

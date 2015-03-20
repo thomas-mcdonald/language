@@ -70,12 +70,14 @@ let rec gen_expr (e: expr) : icode =
     (* e2 = method - ident *)
     let extract_name x = match x with Ident(n) -> n.n_def | _ -> failwith "extract_name" in
     let md = find_meth_data (extract_name e2.e_guts) in
+    let arg_count = md.m_arg_count + 1 in
+    let call_code = if md.m_return <> Void then PCALLW arg_count else PCALL arg_count in
       SEQ [
         SEQ (List.map gen_expr es);
         gen_addr e1;
         CONST 0;
         gen_method_addr e2 e1.e_type;
-        PCALL (md.m_arg_count + 1);
+        call_code;
       ]
   | Ident(_) -> SEQ [gen_addr e; LOADW]
   | New(t) ->
@@ -133,13 +135,14 @@ let gen_stmt (s: stmt) : icode =
   *)
 let gen_proc (c : name) (stmt : stmt) : icode =
   match stmt with
-  | MethodDecl(n,args,xs) ->
-    let md = find_meth_data n.n_def in
+  | MethodDecl(n,args,xs,r) ->
+    let md = find_meth_data n.n_def
+    and return_code = if r <> Unknown then RETURNW else RETURN in
       (* PROC name nargs fsize gcmap *)
       SEQ [
         PROC ((c.n_name ^ "." ^ n.n_name), md.m_size, INT(Int32.zero));
         SEQ (List.map gen_stmt xs);
-        RETURN;
+        return_code;
         END;
       ]
   | Declare(t,e) -> SEQ []

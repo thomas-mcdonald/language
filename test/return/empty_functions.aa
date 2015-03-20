@@ -1,0 +1,11 @@
+comment: empty functions specifying a return value should fail
+#-#-#
+class Main
+  def test : int
+  end
+
+  def main
+  end
+end
+#-#-#
+function test has an empty body, cannot return

@@ -1,0 +1,12 @@
+comment: primitive return types should throw an error if they are not lined up
+#-#-#
+class Main
+  def test : bool
+    6
+  end
+
+  def main
+  end
+end
+#-#-#
+last expression must match the return type

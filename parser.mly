@@ -9,7 +9,7 @@ open Tree
 %token CLASS COMMA DEF DOT EQUALS EOF END GT NEW LPAREN RPAREN SEMI
 %token MINUS PLUS
 /* TODO - should these be specialcased? */
-%token BOOL FALSE INT PUTS THIS TRUE
+%token BOOL COLON FALSE INT PUTS THIS TRUE
 
 %type <Tree.program> program
 %start program
@@ -41,13 +41,19 @@ stmts:
   | stmts stmt { $1 @ [$2] }
 
 stmt:
-    DEF identname stmts END                     { MethodDecl($2, [], $3) }
-  | DEF identname LPAREN argsd RPAREN stmts END { MethodDecl($2, $4, $6) }
+    DEF identname opt_type stmts END                     { MethodDecl($2, [], $4, $3) }
+  | DEF identname LPAREN argsd RPAREN opt_type stmts END { MethodDecl($2, $4, $7, $6) }
   | ident EQUALS expr              { Assign($1, $3) }
   | BOOL ident                     { Declare(Bool, $2) }
   | INT ident                      { Declare(Integer, $2) }
   | typed ident                    { Declare($1, $2) }
   | expr                           { Expr($1) }
+
+opt_type:
+  | /* empty */ { Unknown }
+  | COLON BOOL  { Bool }
+  | COLON INT   { Integer }
+  | COLON typed { $2 }
 
 argsd:
     /* empty*/        { [] }

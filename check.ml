@@ -35,6 +35,7 @@ let type_data_to_typed (t: type_data) : typed =
   match t with
   | Bool -> Bool
   | Int -> Integer
+  | Void -> Unknown
   | Object(r) ->
     let d = !r in
       Object { n_name = d.d_name; n_def = d }
@@ -104,7 +105,7 @@ let populate_method_argument (arg: method_arg) (m: name) (env: environment) =
   let d = m.n_def in
   match arg with
   | Arg(n, Object(t)) ->
-    let type_name = t.n_name in env
+    let type_name = t.n_name in env (* TODO!! *)
   | Arg(n, p) ->
     ensure_unique d.d_env n.n_name;
     add_primitive_variable add_argument_variable p d n;
@@ -192,9 +193,17 @@ let populate_method (meth: stmt) class_name env : environment =
   and class_compare a b = a.d_name = b.d_name
   and c = find_def env class_name in
   match meth with
-    MethodDecl(n, args, xs) ->
+    MethodDecl(n, args, xs, r) ->
       let name = n.n_name
-      and meth_data = { m_receiver = c; m_size = 0; m_offset = 0; m_arg_count = 0; m_args = [] }
+      and r_type =
+        begin match r with
+        | Unknown -> Void
+        | Integer -> Int
+        | Bool -> Bool
+        | Object(n) -> Object(ref (find_def !top_env n.n_name))
+        end in
+      let meth_data = { m_receiver = c; m_return = r_type; m_size = 0;
+        m_offset = 0; m_arg_count = 0; m_args = []; }
       and argument_acc env x = populate_method_argument x n env
       and variable_acc env x = populate_method_variable x n env in
       let d = { d_name = name; d_type = MethDef(meth_data); d_env = new_env () } in
@@ -257,11 +266,14 @@ let populate_class_info (classes : klass list) (env : environment) : environment
   let env'' = List.fold_left populate_variables env' classes in
   List.fold_left populate_methods env'' classes
 
-let check_method_call (e: expr) (t: typed) =
+let check_method_call (e': expr) (t: typed) (e: expr) =
   let cenv = match t with Object(n) -> n.n_def.d_env | _ -> failwith "check_method_call#find_type" in
   match e.e_guts with
   | Ident(n) ->
-    begin try let d = find_def cenv n.n_name in
+    begin try
+      let d = find_def cenv n.n_name in
+      let md = find_meth_data d in
+      e'.e_type <- type_data_to_typed md.m_return;
       n.n_def <- d;
     with Not_found ->
       failwith (sprintf "method %s does not exist" n.n_name)
@@ -304,7 +316,7 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
     e.e_type <- e1.e_type (* will be an integer*)
   | Call(e1, e2, es) ->
     check_expr cenv menv e1;
-    check_method_call e2 e1.e_type;
+    check_method_call e e1.e_type e2;
     begin try match e2.e_guts with
     | Ident(n) ->
       let md = find_meth_data n.n_def in
@@ -335,9 +347,24 @@ let check_assign (cenv: environment) (menv: environment) (e1: expr) (e2: expr) =
     if differing_type e1.e_type e2.e_type then error "assignment types mismatched"
   | _ -> () (* only identifiers are allowed in the parser *)
 
+(* we call this if the function has a return value.
+  if the Invalid_argument block is called then the list of statements is empty
+  eg the function doesn't return anything, resulting in an error
+ *)
+let check_return_value (n: name) (xs: stmt list) (r: typed) =
+  begin try match List.nth xs ((List.length xs) - 1) with
+  |  Expr(e) ->
+    if differing_type e.e_type r then error "last expression must match the return type"
+  | _ -> error "last expression must match the return type"
+  with Invalid_argument(_) ->
+    error (sprintf "function %s has an empty body, cannot return" n.n_name)
+  end
+
 let rec check_stmt (cenv: environment) (menv: environment) (s: stmt) =
   match s with
-  | MethodDecl(n,_,xs) -> List.iter (check_stmt cenv n.n_def.d_env) xs
+  | MethodDecl(n,_,xs, r) ->
+    List.iter (check_stmt cenv n.n_def.d_env) xs;
+    if r <> Unknown then check_return_value n xs r
   | Assign(e1, e2) -> check_assign cenv menv e1 e2
   | Declare(_,_) -> ()
   | Expr(e) -> check_expr cenv menv e

@@ -1,0 +1,68 @@
+comment: demonstrating correct primitive return values
+executable: true
+#-#-#
+class Main
+  def add(int x, int y) : int
+    x + y
+  end
+
+  def main
+    puts this.add(1,2)
+  end
+end
+#-#-#
+MODULE Program 0 0
+ENDHDR
+
+PROC Main.add 0 0 0
+LOCAL 20
+LOADW
+LOCAL 24
+LOADW
+PLUS
+RETURNW
+END
+
+PROC Main.main 0 0 0
+CONST 1
+CONST 2
+LOCAL 16
+LOADW
+CONST 0
+! method address for Main.add
+GLOBAL Main
+CONST 4
+PLUS
+LOADW
+PCALLW 3
+CONST 0
+GLOBAL Lib.Print
+PCALL 1
+RETURN
+END
+
+PROC Program.%main 0 0 0
+CONST 0
+GLOBAL Main
+CONST 0
+GLOBAL Lib.New
+PCALL 2
+CONST 0
+GLOBAL Main.main
+PCALL 1
+RETURN
+END
+
+
+DEFINE Object
+! Descriptor for Main
+! size - 0
+DEFINE Main
+WORD 0
+WORD Main.add
+WORD Main.main
+DEFINE Main.%super
+WORD Object
+WORD Main
+#-#-#
+3

@@ -34,6 +34,7 @@ rule token =
   | ['A'-'Z''a'-'z']['A'-'Z''a'-'z''0'-'9''_']* as s
                       { lookup s }
   | ['0'-'9']+ as s   { NUMBER (int_of_string s) }
+  | ":"               { COLON }
   | ","               { COMMA }
   | "."               { DOT }
   | "="               { EQUALS }

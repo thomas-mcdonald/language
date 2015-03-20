@@ -1,0 +1,13 @@
+comment: assignment is not allowed as the last statement since it can't return
+#-#-#
+class Main
+  def test : int
+    int x
+    x = 5
+  end
+
+  def main
+  end
+end
+#-#-#
+last expression must match the return type
