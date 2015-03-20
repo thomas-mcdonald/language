@@ -108,6 +108,10 @@ let gen_new_assign (e: expr) (t: typed) =
         CONST 0;
         GLOBAL "Lib.New";
         PCALL 3;
+        (* now set position 0 in the object to the descriptor *)
+        GLOBAL n.n_name;
+        gen_addr e;
+        STOREW;
       ]
 
 (* assignment generation *)
