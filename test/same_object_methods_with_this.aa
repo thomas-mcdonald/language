@@ -38,7 +38,7 @@ RETURN
 END
 
 PROC Program.%main 0 0 0
-CONST 0
+CONST 4
 GLOBAL Main
 CONST 0
 GLOBAL Lib.New
@@ -52,7 +52,6 @@ END
 
 DEFINE Object
 ! Descriptor for Main
-! size - 0
 DEFINE Main
 WORD 0
 WORD Main.print

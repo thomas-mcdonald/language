@@ -54,8 +54,8 @@ let new_class_data x =
   match x with
     Some(d) ->
       let parent_cd = find_class_data d in
-      { c_depth = parent_cd.c_depth + 1; c_methods = []; c_super = x; c_size = 0; c_variables = [] }
-  | None ->     { c_depth = 0; c_methods = []; c_super = x; c_size = 0; c_variables = [] }
+      { c_depth = parent_cd.c_depth + 1; c_methods = []; c_super = x; c_size = 4; c_variables = [] }
+  | None ->     { c_depth = 0; c_methods = []; c_super = x; c_size = 4; c_variables = [] }
 
 let find_meth_data (d: def) =
   match d.d_type with MethDef(m) -> m | _ -> raise Not_method

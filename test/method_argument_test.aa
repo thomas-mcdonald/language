@@ -46,10 +46,10 @@ END
 
 PROC Main.main 0 0 0
 GLOBAL Printer
-CONST 0
+CONST 4
 LOCAL 16
 LOADW
-CONST 0
+CONST 4
 PLUS
 CONST 0
 GLOBAL Lib.New
@@ -57,7 +57,7 @@ PCALL 3
 CONST 5
 LOCAL 16
 LOADW
-CONST 0
+CONST 4
 PLUS
 CONST 0
 ! method address for Printer.incfive
@@ -69,7 +69,7 @@ PCALL 2
 CONST 5
 LOCAL 16
 LOADW
-CONST 0
+CONST 4
 PLUS
 CONST 0
 ! method address for Printer.p
@@ -82,7 +82,7 @@ RETURN
 END
 
 PROC Program.%main 0 0 0
-CONST 4
+CONST 8
 GLOBAL Main
 CONST 0
 GLOBAL Lib.New
@@ -96,7 +96,6 @@ END
 
 DEFINE Object
 ! Descriptor for Printer
-! size - 0
 DEFINE Printer
 WORD 0
 WORD Printer.incfive
@@ -106,7 +105,6 @@ WORD Object
 WORD Printer
 
 ! Descriptor for Main
-! size - 4
 DEFINE Main
 WORD 0
 WORD Main.main

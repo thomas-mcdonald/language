@@ -48,7 +48,7 @@ RETURN
 END
 
 PROC Program.%main 0 0 0
-CONST 0
+CONST 4
 GLOBAL Main
 CONST 0
 GLOBAL Lib.New
@@ -62,7 +62,6 @@ END
 
 DEFINE Object
 ! Descriptor for Car
-! size - 0
 DEFINE Car
 WORD 0
 DEFINE Car.%super
@@ -70,7 +69,6 @@ WORD Object
 WORD Car
 
 ! Descriptor for Toyota
-! size - 0
 DEFINE Toyota
 WORD 0
 WORD Toyota.mpg
@@ -81,7 +79,6 @@ WORD Car
 WORD Toyota
 
 ! Descriptor for Prius
-! size - 0
 DEFINE Prius
 WORD 0
 WORD Toyota.mpg
@@ -93,7 +90,6 @@ WORD Toyota
 WORD Prius
 
 ! Descriptor for Hilux
-! size - 0
 DEFINE Hilux
 WORD 0
 WORD Hilux.mpg
@@ -105,7 +101,6 @@ WORD Toyota
 WORD Hilux
 
 ! Descriptor for Main
-! size - 0
 DEFINE Main
 WORD 0
 DEFINE Main.%super

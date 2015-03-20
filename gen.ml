@@ -165,7 +165,6 @@ let gen_descriptor (n: name) =
       let print_meth m = gen_method_descriptor m in
       gen (SEQ [
         COMMENT (sprintf "Descriptor for %s" n.n_name);
-        COMMENT (sprintf "size - %d" cd.c_size);
         DEFINE n.n_name;
         WORD (INT Int32.zero);
         (* print method list *)
