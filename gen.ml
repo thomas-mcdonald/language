@@ -23,7 +23,6 @@ let rec find_hierarchy (d : def) : def list =
 let gen_addr (e: expr) : icode =
   match e.e_guts with
   | Ident(n) ->
-    (* this only prints the offset atm *)
     let vd = find_var_data n.n_def in
     begin match vd.v_place with
     | MethodVar -> LOCAL (- (vd.v_offset + 4))
@@ -34,12 +33,9 @@ let gen_addr (e: expr) : icode =
         CONST vd.v_offset;
         BINOP Plus;
       ]
-    | FunctionArg ->
-      SEQ [
-        LOCAL (16 + vd.v_offset);
-      ]
+    | FunctionArg -> LOCAL (16 + vd.v_offset)
     end
-  | This -> SEQ [ LOCAL 16; LOADW; ]
+  | This -> SEQ [ LOCAL 16; ]
   | _ -> failwith "gen_addr"
 
 (* gen_method_call generates the address of a method *)
@@ -61,6 +57,11 @@ let gen_method_addr (e: expr) (t: typed) : icode =
     end
   | _ -> failwith "gen_method_addr"
 
+let gen_obj_call_addr e =
+  let is_primitive t = match t with Object(_) -> false | _ -> true in
+  if is_primitive e.e_type then gen_addr e
+  else SEQ [gen_addr e; LOADW; ]
+
 let rec gen_expr (e: expr) : icode =
   match e.e_guts with
   | Binop(op, e1, e2) ->
@@ -74,7 +75,7 @@ let rec gen_expr (e: expr) : icode =
     let call_code = if md.m_return <> Void then PCALLW arg_count else PCALL arg_count in
       SEQ [
         SEQ (List.map gen_expr es);
-        gen_addr e1;
+        gen_obj_call_addr e1;
         CONST 0;
         gen_method_addr e2 e1.e_type;
         call_code;
@@ -111,6 +112,7 @@ let gen_new_assign (e: expr) (t: typed) =
         (* now set position 0 in the object to the descriptor *)
         GLOBAL n.n_name;
         gen_addr e;
+        LOADW;
         STOREW;
       ]
 

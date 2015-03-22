@@ -1,97 +1,88 @@
-comment: testing that method arguments work as expected
+comment: sanity check for class variables of object
 executable: true
 #-#-#
 class Printer
-  def incfive(int x)
-    puts x + 5
+  int x
+
+  def setX(int y)
+    x = y
   end
 
-  def p(int x)
+  def print
     puts x
   end
 end
 
 class Main
-  Printer printer
-
   def main
+    Printer printer
     printer = new Printer
-    printer.incfive(5)
-    printer.p(5)
+    printer.setX(10)
+    printer.print
   end
 end
 #-#-#
 MODULE Program 0 0
 ENDHDR
 
-PROC Printer.incfive 0 0 0
+PROC Printer.setX 0 0 0
 LOCAL 20
 LOADW
-CONST 5
-PLUS
-CONST 0
-GLOBAL Lib.Print
-PCALL 1
-RETURN
-END
-
-PROC Printer.p 0 0 0
-LOCAL 20
-LOADW
-CONST 0
-GLOBAL Lib.Print
-PCALL 1
-RETURN
-END
-
-PROC Main.main 0 0 0
-GLOBAL Printer
-CONST 4
 LOCAL 16
 LOADW
 CONST 4
 PLUS
+STOREW
+RETURN
+END
+
+PROC Printer.print 0 0 0
+LOCAL 16
+LOADW
+CONST 4
+PLUS
+LOADW
+CONST 0
+GLOBAL Lib.Print
+PCALL 1
+RETURN
+END
+
+PROC Main.main 4 0 0
+GLOBAL Printer
+CONST 8
+LOCAL -4
 CONST 0
 GLOBAL Lib.New
 PCALL 3
 GLOBAL Printer
-LOCAL 16
-LOADW
-CONST 4
-PLUS
+LOCAL -4
 LOADW
 STOREW
-CONST 5
-LOCAL 16
-LOADW
-CONST 4
-PLUS
+CONST 10
+LOCAL -4
 LOADW
 CONST 0
-! method address for Printer.incfive
+! method address for Printer.setX
 GLOBAL Printer
 CONST 4
 PLUS
 LOADW
 PCALL 2
-CONST 5
-LOCAL 16
-LOADW
-CONST 4
-PLUS
+LOCAL -4
 LOADW
 CONST 0
-! method address for Printer.p
+! method address for Printer.print
 GLOBAL Printer
 CONST 8
 PLUS
 LOADW
-PCALL 2
+PCALL 1
 RETURN
 END
 
 PROC Program.%main 0 0 0
-CONST 8
+CONST 4
 GLOBAL Main
 CONST 0
 GLOBAL Lib.New
@@ -107,8 +98,8 @@ DEFINE Object
 ! Descriptor for Printer
 DEFINE Printer
 WORD 0
-WORD Printer.incfive
-WORD Printer.p
+WORD Printer.setX
+WORD Printer.print
 DEFINE Printer.%super
 WORD Object
 WORD Printer
@@ -121,4 +112,4 @@ DEFINE Main.%super
 WORD Object
 WORD Main
 #-#-#
-10 5
+10

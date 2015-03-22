@@ -1,0 +1,162 @@
+comment: testing basic object return code
+executable: true
+#-#-#
+class Wrapper
+  int x
+
+  def setX(int y)
+    x = y
+  end
+
+  def print
+    puts x
+  end
+end
+
+class Printer
+  def print(int x) : Wrapper
+    Wrapper wrapper
+    wrapper = new Wrapper
+    wrapper.setX(x)
+    wrapper
+  end
+end
+
+class Main
+  def main
+    Wrapper wrapper
+    Printer printer
+    printer = new Printer
+    wrapper = printer.print(10)
+    wrapper.print
+  end
+end
+#-#-#
+MODULE Program 0 0
+ENDHDR
+
+PROC Wrapper.setX 0 0 0
+LOCAL 20
+LOADW
+LOCAL 16
+LOADW
+CONST 4
+PLUS
+STOREW
+RETURN
+END
+
+PROC Wrapper.print 0 0 0
+LOCAL 16
+LOADW
+CONST 4
+PLUS
+LOADW
+CONST 0
+GLOBAL Lib.Print
+PCALL 1
+RETURN
+END
+
+PROC Printer.print 4 0 0
+GLOBAL Wrapper
+CONST 8
+LOCAL -4
+CONST 0
+GLOBAL Lib.New
+PCALL 3
+GLOBAL Wrapper
+LOCAL -4
+LOADW
+STOREW
+LOCAL 20
+LOADW
+LOCAL -4
+LOADW
+CONST 0
+! method address for Wrapper.setX
+GLOBAL Wrapper
+CONST 4
+PLUS
+LOADW
+PCALL 2
+LOCAL -4
+LOADW
+RETURNW
+END
+
+PROC Main.main 8 0 0
+GLOBAL Printer
+CONST 4
+LOCAL -8
+CONST 0
+GLOBAL Lib.New
+PCALL 3
+GLOBAL Printer
+LOCAL -8
+LOADW
+STOREW
+CONST 10
+LOCAL -8
+LOADW
+CONST 0
+! method address for Printer.print
+GLOBAL Printer
+CONST 4
+PLUS
+LOADW
+PCALLW 2
+LOCAL -4
+STOREW
+LOCAL -4
+LOADW
+CONST 0
+! method address for Wrapper.print
+GLOBAL Wrapper
+CONST 8
+PLUS
+LOADW
+PCALL 1
+RETURN
+END
+
+PROC Program.%main 0 0 0
+CONST 4
+GLOBAL Main
+CONST 0
+GLOBAL Lib.New
+PCALL 2
+CONST 0
+GLOBAL Main.main
+PCALL 1
+RETURN
+END
+
+
+DEFINE Object
+! Descriptor for Wrapper
+DEFINE Wrapper
+WORD 0
+WORD Wrapper.setX
+WORD Wrapper.print
+DEFINE Wrapper.%super
+WORD Object
+WORD Wrapper
+
+! Descriptor for Printer
+DEFINE Printer
+WORD 0
+WORD Printer.print
+DEFINE Printer.%super
+WORD Object
+WORD Printer
+
+! Descriptor for Main
+DEFINE Main
+WORD 0
+WORD Main.main
+DEFINE Main.%super
+WORD Object
+WORD Main
+#-#-#
+10
