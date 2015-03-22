@@ -59,8 +59,8 @@ RETURN
 END
 
 PROC Printer.print 4 0 0
-GLOBAL Wrapper
 CONST 8
+GLOBAL Wrapper
 LOCAL -4
 CONST 0
 GLOBAL Lib.New
@@ -75,7 +75,9 @@ LOCAL -4
 LOADW
 CONST 0
 ! method address for Wrapper.setX
-GLOBAL Wrapper
+LOCAL -4
+LOADW
+LOADW
 CONST 4
 PLUS
 LOADW
@@ -86,8 +88,8 @@ RETURNW
 END
 
 PROC Main.main 8 0 0
-GLOBAL Printer
 CONST 4
+GLOBAL Printer
 LOCAL -8
 CONST 0
 GLOBAL Lib.New
@@ -101,7 +103,9 @@ LOCAL -8
 LOADW
 CONST 0
 ! method address for Printer.print
-GLOBAL Printer
+LOCAL -8
+LOADW
+LOADW
 CONST 4
 PLUS
 LOADW
@@ -112,7 +116,9 @@ LOCAL -4
 LOADW
 CONST 0
 ! method address for Wrapper.print
-GLOBAL Wrapper
+LOCAL -4
+LOADW
+LOADW
 CONST 8
 PLUS
 LOADW
@@ -120,12 +126,19 @@ PCALL 1
 RETURN
 END
 
-PROC Program.%main 0 0 0
+PROC Program.%main 4 0 0
 CONST 4
 GLOBAL Main
+LOCAL -4
 CONST 0
 GLOBAL Lib.New
 PCALL 2
+GLOBAL Main
+LOCAL -4
+LOADW
+STOREW
+LOCAL -4
+LOADW
 CONST 0
 GLOBAL Main.main
 PCALL 1
