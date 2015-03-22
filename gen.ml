@@ -85,8 +85,8 @@ let gen_new_assign (e: expr) (t: typed) =
   | Object(n) ->
     let cd = find_class_data n.n_def in
       SEQ [
-        GLOBAL n.n_name;
         CONST cd.c_size;
+        GLOBAL n.n_name;
         gen_addr e;
         CONST 0;
         GLOBAL "Lib.New";
@@ -171,15 +171,22 @@ let gen_class_desc (k : klass) =
 
 let gen_entrypoint main =
   let cd = find_class_data main in
-  put "PROC Program.%main 0 0 0";
+  put "PROC Program.%main 4 0 0";
   gen (SEQ [
-    (* create a main object, address goes on stack *)
+    (* create a main object, address goes in local var *)
     CONST cd.c_size;
     GLOBAL "Main";
+    LOCAL (-4);
     CONST 0;
     GLOBAL "Lib.New";
     PCALL 2;
+    (* put the main descriptor at object position 0 *)
+    GLOBAL "Main";
+    LOCAL (-4);
+    LOADW;
+    STOREW;
     (* now call the main method on that object *)
+    LOCAL (-4); LOADW;
     CONST 0;
     GLOBAL "Main.main";
     PCALL 1;
