@@ -74,19 +74,8 @@ let rec gen_expr (e: expr) : icode =
         call_code;
       ]
   | Ident(_) -> SEQ [gen_addr e; LOADW]
-  | New(t) ->
-    begin match t with
-    | Object(n) ->
-      let cd = find_class_data n.n_def in
-        SEQ [
-          GLOBAL n.n_name;
-          CONST cd.c_size;
-          CONST 0;
-          GLOBAL "Lib.New";
-          PCALL 2;
-        ]
-    | _ -> failwith "gen_expr#new"
-    end
+  | New(t) -> failwith "gen_expr#new" (* shouldn't be called, means we are
+                                        creating a new obj outside of assign *)
   | Number(x) -> CONST x
   | Puts(e) -> SEQ [gen_expr e; CONST 0; GLOBAL "Lib.Print"; PCALL 1]
   | _ -> SEQ []
