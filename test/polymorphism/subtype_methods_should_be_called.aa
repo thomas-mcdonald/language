@@ -1,0 +1,163 @@
+comment: subtype methods should be called even if we think we have type a
+executable: true
+#-#-#
+class A
+  def print
+    puts 1
+  end
+end
+
+class B < A
+  def print
+    puts 2
+  end
+end
+
+class Main
+  A a
+  A b
+
+  def main
+    a = new A
+    b = new B
+    a.print
+    b.print
+  end
+end
+#-#-#
+MODULE Program 0 0
+ENDHDR
+
+PROC A.print 0 0 0
+CONST 1
+CONST 0
+GLOBAL Lib.Print
+PCALL 1
+RETURN
+END
+
+PROC B.print 0 0 0
+CONST 2
+CONST 0
+GLOBAL Lib.Print
+PCALL 1
+RETURN
+END
+
+PROC Main.main 0 0 0
+CONST 4
+GLOBAL A
+LOCAL 16
+LOADW
+CONST 4
+PLUS
+CONST 0
+GLOBAL Lib.New
+PCALL 3
+GLOBAL A
+LOCAL 16
+LOADW
+CONST 4
+PLUS
+LOADW
+STOREW
+CONST 4
+GLOBAL B
+LOCAL 16
+LOADW
+CONST 8
+PLUS
+CONST 0
+GLOBAL Lib.New
+PCALL 3
+GLOBAL B
+LOCAL 16
+LOADW
+CONST 8
+PLUS
+LOADW
+STOREW
+LOCAL 16
+LOADW
+CONST 4
+PLUS
+LOADW
+CONST 0
+! method address for A.print
+LOCAL 16
+LOADW
+CONST 4
+PLUS
+LOADW
+LOADW
+CONST 4
+PLUS
+LOADW
+PCALL 1
+LOCAL 16
+LOADW
+CONST 8
+PLUS
+LOADW
+CONST 0
+! method address for A.print
+LOCAL 16
+LOADW
+CONST 8
+PLUS
+LOADW
+LOADW
+CONST 4
+PLUS
+LOADW
+PCALL 1
+RETURN
+END
+
+PROC Program.%main 4 0 0
+CONST 12
+GLOBAL Main
+LOCAL -4
+CONST 0
+GLOBAL Lib.New
+PCALL 2
+GLOBAL Main
+LOCAL -4
+LOADW
+STOREW
+LOCAL -4
+LOADW
+CONST 0
+GLOBAL Main.main
+PCALL 1
+RETURN
+END
+
+
+DEFINE Object
+! Descriptor for A
+DEFINE A
+WORD 0
+WORD A.print
+DEFINE A.%super
+WORD Object
+WORD A
+
+! Descriptor for B
+DEFINE B
+WORD 0
+WORD B.print
+DEFINE B.%super
+WORD Object
+WORD A
+WORD B
+
+! Descriptor for Main
+DEFINE Main
+WORD 0
+WORD Main.main
+DEFINE Main.%super
+WORD Object
+WORD Main
+#-#-#
+1 2

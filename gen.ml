@@ -32,15 +32,18 @@ let gen_addr (e: expr) : icode =
   | _ -> failwith "gen_addr"
 
 (* gen_method_call generates the address of a method *)
-let gen_method_addr (e: expr) (t: typed) : icode =
-  match e.e_guts with
+let gen_method_addr (e1: expr) (e2: expr) : icode =
+  match e2.e_guts with
   | Ident(n) ->
     let md = find_meth_data n.n_def in
-    begin match t with
+    begin match e1.e_type with
     | Object(s) ->
       SEQ [
+        (* load the class descriptor at position 0 and use this to resolve the correct method *)
         COMMENT (sprintf "method address for %s.%s" s.n_name n.n_name);
-        GLOBAL s.n_name;
+        gen_addr e1; (* address of object *)
+        LOADW; (* memory location of object *)
+        LOADW; (* memory location of descriptor *)
         CONST md.m_offset;
         BINOP Plus;
         LOADW;
@@ -70,7 +73,7 @@ let rec gen_expr (e: expr) : icode =
         SEQ (List.map gen_expr es);
         gen_obj_call_addr e1;
         CONST 0;
-        gen_method_addr e2 e1.e_type;
+        gen_method_addr e1 e2;
         call_code;
       ]
   | Ident(_) -> SEQ [gen_addr e; LOADW]
