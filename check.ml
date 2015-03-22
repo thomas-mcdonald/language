@@ -344,7 +344,11 @@ let check_assign (cenv: environment) (menv: environment) (e1: expr) (e2: expr) =
   | Ident(i) ->
     check_expr cenv menv e1;
     check_expr cenv menv e2;
-    if differing_type e1.e_type e2.e_type then error "assignment types mismatched"
+    begin match e1.e_type, e2.e_type with
+    | Object(x), Object(y) ->
+      if List.mem x.n_def (find_hierarchy y.n_def) then () else error "assignment types mismatched"
+    | x, y -> if x <> y then error "assignment types mismatched"
+    end
   | _ -> () (* only identifiers are allowed in the parser *)
 
 (* we call this if the function has a return value.

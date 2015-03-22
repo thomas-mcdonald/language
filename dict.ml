@@ -104,3 +104,10 @@ let class_exists env name =
     | _ -> false
   with
     Not_found -> false
+
+(* get a list of all parents, Object at the top *)
+let rec find_hierarchy (d : def) : def list =
+  let cd = find_class_data d in
+  match cd.c_super with
+    Some(d') -> (find_hierarchy d') @ [d]
+  | None -> [d]

@@ -72,3 +72,6 @@ val define_class : environment -> string -> string -> environment
 
 (* does a class exist with the name? used for finding superclasses *)
 val class_exists : environment -> string -> bool
+
+(* retrieve the object hierarchy of the class *)
+val find_hierarchy : def -> def list

@@ -1,0 +1,77 @@
+comment: a subtype of a class can be assigned to a variable of its superclasses
+executable: true
+#-#-#
+class A
+end
+
+class B < A
+end
+
+class Main
+  A example
+  
+  def main
+    example = new B
+  end
+end
+#-#-#
+MODULE Program 0 0
+ENDHDR
+
+PROC Main.main 0 0 0
+GLOBAL B
+CONST 4
+LOCAL 16
+LOADW
+CONST 4
+PLUS
+CONST 0
+GLOBAL Lib.New
+PCALL 3
+GLOBAL B
+LOCAL 16
+LOADW
+CONST 4
+PLUS
+LOADW
+STOREW
+RETURN
+END
+
+PROC Program.%main 0 0 0
+CONST 8
+GLOBAL Main
+CONST 0
+GLOBAL Lib.New
+PCALL 2
+CONST 0
+GLOBAL Main.main
+PCALL 1
+RETURN
+END
+
+
+DEFINE Object
+! Descriptor for A
+DEFINE A
+WORD 0
+DEFINE A.%super
+WORD Object
+WORD A
+
+! Descriptor for B
+DEFINE B
+WORD 0
+DEFINE B.%super
+WORD Object
+WORD A
+WORD B
+
+! Descriptor for Main
+DEFINE Main
+WORD 0
+WORD Main.main
+DEFINE Main.%super
+WORD Object
+WORD Main
+#-#-#

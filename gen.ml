@@ -13,13 +13,6 @@ let rec gen (w : icode) =
   | SEQ xs -> List.iter gen xs
   | _ -> printf "%s\n" (string_of_icode w)
 
-(* get a list of all parents, Object at the top *)
-let rec find_hierarchy (d : def) : def list =
-  let cd = find_class_data d in
-  match cd.c_super with
-    Some(d') -> (find_hierarchy d') @ [d]
-  | None -> [d]
-
 let gen_addr (e: expr) : icode =
   match e.e_guts with
   | Ident(n) ->
