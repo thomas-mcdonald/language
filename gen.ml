@@ -94,11 +94,6 @@ let gen_new_assign (e: expr) (t: typed) =
         CONST 0;
         GLOBAL "Lib.New";
         PCALL 3;
-        (* now set position 0 in the object to the descriptor *)
-        GLOBAL n.n_name;
-        gen_addr e;
-        LOADW;
-        STOREW;
       ]
 
 (* assignment generation *)
@@ -183,11 +178,6 @@ let gen_entrypoint main =
     CONST 0;
     GLOBAL "Lib.New";
     PCALL 2;
-    (* put the main descriptor at object position 0 *)
-    GLOBAL "Main";
-    LOCAL (-4);
-    LOADW;
-    STOREW;
     (* now call the main method on that object *)
     LOCAL (-4); LOADW;
     CONST 0;
