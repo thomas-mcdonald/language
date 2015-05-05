@@ -1,7 +1,7 @@
 type codelab = int
 type kind = Int
 type ident
-type op = Plus | Minus
+type op = Plus | Minus | PlusA
 type symbol = string
 
 type literal =
@@ -15,13 +15,12 @@ type icode =
   | CONST of int                (* Constant (value) *)
   | GLOBAL of symbol            (* Constant (symbol, offset) *)
   | LOCAL of int                (* Local address (offset) *)
-  | REGVAR of int               (* Register (index) *)
   | LOADC                       (* Load char *)
   | LOADW                       (* Load word *)
   | STOREC                      (* Store char *)
   | STOREW                      (* Store word *)
+  | LDLW of int                 (* Load local word *)
   | ARG of int                  (* Pass argument (index) *)
-  | SLINK                       (* Pass static link *)
   | CALL of int                 (* Call procedure (nparams) *)
   | CALLW of int                (* Call procedure with word return (nparams) *)
   | PCALL of int                (* Call procedure (nparams) with static link*)
@@ -50,7 +49,9 @@ type icode =
 
 let print_op (op: op) =
   match op with
+  | Minus -> "MINUS"
   | Plus -> "PLUS"
+  | PlusA -> "PLUSA"
 
 let string_of_icode (w : icode) : string =
   match w with
@@ -59,6 +60,7 @@ let string_of_icode (w : icode) : string =
   | LOCAL(i) -> Printf.sprintf "LOCAL %d" i
   | LOADW -> "LOADW"
   | STOREW -> "STOREW"
+  | LDLW(i) -> Printf.sprintf "LDLW %d" i
   | CALL(i) -> Printf.sprintf "CALL %d" i
   | CALLW(i) -> Printf.sprintf "CALLW %d" i
   | PCALL(i) -> Printf.sprintf "PCALL %d" i
@@ -76,3 +78,11 @@ let string_of_icode (w : icode) : string =
   | NEWLINE -> ""
   | COMMENT(s) -> Printf.sprintf "! %s" s
   | STRING(s) -> s
+
+(* |canon| -- flatten a code sequence *)
+let canon x =
+  let rec accum x ys =
+    match x with
+        SEQ xs -> List.fold_right accum xs ys
+      | _ -> x :: ys in
+  SEQ (accum x [])

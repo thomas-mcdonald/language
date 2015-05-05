@@ -1,5 +1,6 @@
 open Dict
 open Keiko
+open Peephole
 open Printf
 open Tree
 
@@ -45,7 +46,7 @@ let gen_method_addr (e1: expr) (e2: expr) : icode =
         LOADW; (* memory location of object *)
         LOADW; (* memory location of descriptor *)
         CONST md.m_offset;
-        BINOP Plus;
+        BINOP PlusA;
         LOADW;
       ]
     | Unknown -> failwith "type failure"
@@ -194,12 +195,12 @@ let generate (prog : program) =
   match prog with
     Prog(cs) ->
       let mainclass = extract_def (List.find main_match cs) in
-      gen (SEQ [
+      gen (Peephole.optimise (SEQ [
         header;
         SEQ (List.map gen_procs cs);
         gen_entrypoint mainclass;
         DEFINE "Object"; (* TODO: this is hacky *)
         SEQ (List.map gen_class_desc cs);
         NEWLINE
-      ]);
+      ]));
       ()
