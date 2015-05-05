@@ -54,9 +54,12 @@ and gen_method_addr (e1: expr) (e2: expr) : icode =
   | _ -> failwith "gen_method_addr"
 
 and gen_obj_call_addr e =
-  let is_primitive t = match t with Object(_) -> false | _ -> true in
-  if is_primitive e.e_type then gen_addr e
-  else SEQ [gen_addr e; LOADW; ]
+  (* we need to follow a pointer if the invocation is on an object pointer *)
+  (* nested invocations return an object so no need to follow pointer *)
+  let load = match e.e_guts with
+  | Call(_,_,_) -> false
+  | _ -> true in
+  if load then SEQ[gen_addr e; LOADW;] else gen_addr e
 
 and gen_expr (e: expr) : icode =
   match e.e_guts with
@@ -81,6 +84,7 @@ and gen_expr (e: expr) : icode =
                                         creating a new obj outside of assign *)
   | Number(x) -> CONST x
   | Puts(e) -> SEQ [gen_expr e; GLOBAL "Lib.Print"; CALL 1]
+  | This -> SEQ [gen_addr e; LOADW]
   | _ -> SEQ []
 
 let gen_new_assign (e: expr) (t: typed) =

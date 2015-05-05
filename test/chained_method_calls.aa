@@ -1,0 +1,89 @@
+comment: chained method calls are resolved correctly
+executable: true
+#-#-#
+class Test
+  def return_self : Test
+    this
+  end
+
+  def print(int x)
+    puts x
+  end
+end
+
+class Main
+  def main
+    Test test
+    test = new Test
+    test.return_self.print(10)
+  end
+end
+#-#-#
+MODULE Program 0 0
+ENDHDR
+
+PROC Test.return_self 0 0 0
+LDLW 12
+RETURNW
+END
+
+PROC Test.print 0 0 0
+LDLW 16
+GLOBAL Lib.Print
+CALL 1
+RETURN
+END
+
+PROC Main.main 4 0 0
+CONST 4
+GLOBAL Test
+LOCAL -4
+GLOBAL Lib.New
+CALL 3
+CONST 10
+LDLW -4
+DUP 0
+! method address for Test.return_self
+LOADW
+LDNW 4
+CALLW 1
+DUP 0
+! method address for Test.print
+LOADW
+LDNW 8
+CALL 2
+RETURN
+END
+
+PROC Program.%main 4 0 0
+CONST 4
+GLOBAL Main
+LOCAL -4
+GLOBAL Lib.New
+CALL 3
+LDLW -4
+GLOBAL Main.main
+CALL 1
+RETURN
+END
+
+
+DEFINE Object
+! Descriptor for Test
+DEFINE Test
+WORD 0
+WORD Test.return_self
+WORD Test.print
+DEFINE Test.%super
+WORD Object
+WORD Test
+
+! Descriptor for Main
+DEFINE Main
+WORD 0
+WORD Main.main
+DEFINE Main.%super
+WORD Object
+WORD Main
+#-#-#
+10
