@@ -25,7 +25,7 @@ let gen_addr (e: expr) : icode =
         LOCAL 12; (* object location is first argument *)
         LOADW;
         CONST vd.v_offset;
-        BINOP Plus;
+        BINOP PlusA;
       ]
     | FunctionArg -> LOCAL (12 + vd.v_offset)
     end
