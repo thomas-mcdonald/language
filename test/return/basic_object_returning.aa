@@ -60,8 +60,8 @@ GLOBAL Lib.New
 CALL 3
 LDLW 16
 LDLW -4
+DUP 0
 ! method address for Wrapper.setX
-LDLW -4
 LOADW
 LDNW 4
 CALL 2
@@ -77,16 +77,16 @@ GLOBAL Lib.New
 CALL 3
 CONST 10
 LDLW -8
+DUP 0
 ! method address for Printer.print
-LDLW -8
 LOADW
 LDNW 4
 CALLW 2
 LOCAL -4
 STOREW
 LDLW -4
+DUP 0
 ! method address for Wrapper.print
-LDLW -4
 LOADW
 LDNW 8
 CALL 1

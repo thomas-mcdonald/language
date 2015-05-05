@@ -50,14 +50,14 @@ GLOBAL Lib.New
 CALL 3
 CONST 10
 LDLW -4
+DUP 0
 ! method address for Printer.setX
-LDLW -4
 LOADW
 LDNW 4
 CALL 2
 LDLW -4
+DUP 0
 ! method address for Printer.print
-LDLW -4
 LOADW
 LDNW 8
 CALL 1

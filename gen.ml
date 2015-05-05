@@ -14,7 +14,7 @@ let rec gen (w : icode) =
   | SEQ xs -> List.iter gen xs
   | _ -> printf "%s\n" (string_of_icode w)
 
-let gen_addr (e: expr) : icode =
+let rec gen_addr (e: expr) : icode =
   match e.e_guts with
   | Ident(n) ->
     let vd = find_var_data n.n_def in
@@ -30,10 +30,11 @@ let gen_addr (e: expr) : icode =
     | FunctionArg -> LOCAL (12 + vd.v_offset)
     end
   | This -> SEQ [ LOCAL 12; ]
+  | Call(_,_,_) -> gen_expr e;
   | _ -> failwith "gen_addr"
 
 (* gen_method_call generates the address of a method *)
-let gen_method_addr (e1: expr) (e2: expr) : icode =
+and gen_method_addr (e1: expr) (e2: expr) : icode =
   match e2.e_guts with
   | Ident(n) ->
     let md = find_meth_data n.n_def in
@@ -42,8 +43,6 @@ let gen_method_addr (e1: expr) (e2: expr) : icode =
       SEQ [
         (* load the class descriptor at position 0 and use this to resolve the correct method *)
         COMMENT (sprintf "method address for %s.%s" s.n_name n.n_name);
-        gen_addr e1; (* address of object *)
-        LOADW; (* memory location of object *)
         LOADW; (* memory location of descriptor *)
         CONST md.m_offset;
         BINOP PlusA;
@@ -54,12 +53,12 @@ let gen_method_addr (e1: expr) (e2: expr) : icode =
     end
   | _ -> failwith "gen_method_addr"
 
-let gen_obj_call_addr e =
+and gen_obj_call_addr e =
   let is_primitive t = match t with Object(_) -> false | _ -> true in
   if is_primitive e.e_type then gen_addr e
   else SEQ [gen_addr e; LOADW; ]
 
-let rec gen_expr (e: expr) : icode =
+and gen_expr (e: expr) : icode =
   match e.e_guts with
   | Binop(op, e1, e2) ->
     SEQ [gen_expr e1; gen_expr e2; BINOP(op)]
@@ -73,6 +72,7 @@ let rec gen_expr (e: expr) : icode =
       SEQ [
         SEQ (List.map gen_expr es);
         gen_obj_call_addr e1;
+        DUP 0;
         gen_method_addr e1 e2;
         call_code;
       ]

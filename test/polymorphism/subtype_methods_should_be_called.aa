@@ -59,17 +59,15 @@ GLOBAL Lib.New
 CALL 3
 LDLW 12
 LDNW 4
+DUP 0
 ! method address for A.print
-LDLW 12
-LDNW 4
 LOADW
 LDNW 4
 CALL 1
 LDLW 12
 LDNW 8
+DUP 0
 ! method address for A.print
-LDLW 12
-LDNW 8
 LOADW
 LDNW 4
 CALL 1

@@ -37,6 +37,7 @@ type icode =
 
   | PROC of symbol * int * literal
   | END
+  | DUP of int
   | DEFINE of string
   | WORD of literal
 
@@ -71,6 +72,7 @@ let string_of_icode (w : icode) : string =
 
   | PROC(s,f,_) -> Printf.sprintf "PROC %s %d 0 0" s f
   | END -> "END\n"
+  | DUP(i) -> Printf.sprintf "DUP %d" i
   | DEFINE(s) -> "DEFINE " ^ s
   | WORD(INT(i)) -> Printf.sprintf "WORD %ld" i
   | WORD(SYM(s)) -> "WORD " ^ s

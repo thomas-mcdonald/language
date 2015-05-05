@@ -24,8 +24,8 @@ END
 PROC Main.main 0 0 0
 CONST 100
 LDLW 12
+DUP 0
 ! method address for Main.print
-LDLW 12
 LOADW
 LDNW 4
 CALL 2
