@@ -134,7 +134,7 @@ let gen_proc (c : name) (stmt : stmt) : icode =
 
 let gen_procs (klass : klass) =
   match klass with
-    Klass(n,s,xs) -> gen (SEQ (List.map (gen_proc n) xs))
+    Klass(n,s,xs) -> SEQ (List.map (gen_proc n) xs)
 
 (* generate a method descriptor given a method def *)
 let gen_method_descriptor (d : def) : icode =
@@ -147,7 +147,7 @@ let gen_descriptor (n: name) =
   match n.n_def.d_type with
     ClassDef(cd) ->
       let print_meth m = gen_method_descriptor m in
-      gen (SEQ [
+      SEQ [
         COMMENT (sprintf "Descriptor for %s" n.n_name);
         DEFINE n.n_name;
         WORD (INT Int32.zero);
@@ -157,7 +157,7 @@ let gen_descriptor (n: name) =
         DEFINE (n.n_name ^ ".%super");
         SEQ (List.map (fun c -> WORD (SYM c.d_name)) (find_hierarchy n.n_def));
         NEWLINE
-      ]);
+      ];
   | _ -> failwith "gen_descriptor"
 
 (* pull out the name from a class and call gen_descriptor on it *)
@@ -167,8 +167,8 @@ let gen_class_desc (k : klass) =
 
 let gen_entrypoint main =
   let cd = find_class_data main in
-  put "PROC Program.%main 4 0 0";
-  gen (SEQ [
+  SEQ [
+    STRING "PROC Program.%main 4 0 0";
     (* create a main object, address goes in local var *)
     CONST cd.c_size;
     GLOBAL "Main";
@@ -182,19 +182,24 @@ let gen_entrypoint main =
     RETURN;
     END;
     NEWLINE; (* add a couple line gap *)
-  ])
+  ]
 
 let generate (prog : program) =
   let main_match c = match c with Klass(n,_,_) -> n.n_name = "Main"
-  and extract_def c = match c with Klass(n,_,_) -> n.n_def in
-  put "MODULE Program 0 0";
-  put "ENDHDR\n";
+  and extract_def c = match c with Klass(n,_,_) -> n.n_def
+  and header = SEQ [
+    STRING "MODULE Program 0 0";
+    STRING "ENDHDR\n"
+  ] in
   match prog with
     Prog(cs) ->
       let mainclass = extract_def (List.find main_match cs) in
-      List.iter gen_procs cs;
-      gen_entrypoint mainclass;
-      gen (DEFINE "Object"); (* TODO: this is hacky *)
-      List.iter gen_class_desc cs;
-      gen NEWLINE;
+      gen (SEQ [
+        header;
+        SEQ (List.map gen_procs cs);
+        gen_entrypoint mainclass;
+        DEFINE "Object"; (* TODO: this is hacky *)
+        SEQ (List.map gen_class_desc cs);
+        NEWLINE
+      ]);
       ()

@@ -46,6 +46,7 @@ type icode =
   | SEQ of icode list
   | NEWLINE
   | COMMENT of string
+  | STRING of string
 
 let print_op (op: op) =
   match op with
@@ -74,3 +75,4 @@ let string_of_icode (w : icode) : string =
   | RETURNW -> "RETURNW"
   | NEWLINE -> ""
   | COMMENT(s) -> Printf.sprintf "! %s" s
+  | STRING(s) -> s
