@@ -22,8 +22,10 @@ type icode =
   | STOREW                      (* Store word *)
   | ARG of int                  (* Pass argument (index) *)
   | SLINK                       (* Pass static link *)
-  | PCALL of int                (* Call procedure (nparams) *)
-  | PCALLW of int               (* Call procedure with word return (nparams) *)
+  | CALL of int                 (* Call procedure (nparams) *)
+  | CALLW of int                (* Call procedure with word return (nparams) *)
+  | PCALL of int                (* Call procedure (nparams) with static link*)
+  | PCALLW of int               (* Call procedure with word return (nparams) and static link *)
   | MONOP of op                 (* Perform unary operation (op) *)
   | BINOP of op                 (* Perform binary operation (op) *)
   | BOUND                       (* Array bound check *)
@@ -56,6 +58,8 @@ let string_of_icode (w : icode) : string =
   | LOCAL(i) -> Printf.sprintf "LOCAL %d" i
   | LOADW -> "LOADW"
   | STOREW -> "STOREW"
+  | CALL(i) -> Printf.sprintf "CALL %d" i
+  | CALLW(i) -> Printf.sprintf "CALLW %d" i
   | PCALL(i) -> Printf.sprintf "PCALL %d" i
   | PCALLW(i) -> Printf.sprintf "PCALLW %d" i
   | BINOP(op) -> print_op op

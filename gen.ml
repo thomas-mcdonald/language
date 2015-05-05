@@ -21,14 +21,14 @@ let gen_addr (e: expr) : icode =
     | MethodVar -> LOCAL (- (vd.v_offset + 4))
     | ClassVar ->
       SEQ [
-        LOCAL 16; (* object location is first argument *)
+        LOCAL 12; (* object location is first argument *)
         LOADW;
         CONST vd.v_offset;
         BINOP Plus;
       ]
-    | FunctionArg -> LOCAL (16 + vd.v_offset)
+    | FunctionArg -> LOCAL (12 + vd.v_offset)
     end
-  | This -> SEQ [ LOCAL 16; ]
+  | This -> SEQ [ LOCAL 12; ]
   | _ -> failwith "gen_addr"
 
 (* gen_method_call generates the address of a method *)
@@ -68,11 +68,10 @@ let rec gen_expr (e: expr) : icode =
     let extract_name x = match x with Ident(n) -> n.n_def | _ -> failwith "extract_name" in
     let md = find_meth_data (extract_name e2.e_guts) in
     let arg_count = md.m_arg_count + 1 in
-    let call_code = if md.m_return <> Void then PCALLW arg_count else PCALL arg_count in
+    let call_code = if md.m_return <> Void then CALLW arg_count else CALL arg_count in
       SEQ [
         SEQ (List.map gen_expr es);
         gen_obj_call_addr e1;
-        CONST 0;
         gen_method_addr e1 e2;
         call_code;
       ]
@@ -80,7 +79,7 @@ let rec gen_expr (e: expr) : icode =
   | New(t) -> failwith "gen_expr#new" (* shouldn't be called, means we are
                                         creating a new obj outside of assign *)
   | Number(x) -> CONST x
-  | Puts(e) -> SEQ [gen_expr e; CONST 0; GLOBAL "Lib.Print"; PCALL 1]
+  | Puts(e) -> SEQ [gen_expr e; GLOBAL "Lib.Print"; CALL 1]
   | _ -> SEQ []
 
 let gen_new_assign (e: expr) (t: typed) =
@@ -91,9 +90,8 @@ let gen_new_assign (e: expr) (t: typed) =
         CONST cd.c_size;
         GLOBAL n.n_name;
         gen_addr e;
-        CONST 0;
         GLOBAL "Lib.New";
-        PCALL 3;
+        CALL 3;
       ]
 
 (* assignment generation *)
@@ -175,14 +173,12 @@ let gen_entrypoint main =
     CONST cd.c_size;
     GLOBAL "Main";
     LOCAL (-4);
-    CONST 0;
     GLOBAL "Lib.New";
-    PCALL 2;
+    CALL 3;
     (* now call the main method on that object *)
     LOCAL (-4); LOADW;
-    CONST 0;
     GLOBAL "Main.main";
-    PCALL 1;
+    CALL 1;
     RETURN;
     END;
     NEWLINE; (* add a couple line gap *)
