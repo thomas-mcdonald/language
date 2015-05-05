@@ -27,9 +27,7 @@ LDLW 12
 ! method address for Main.print
 LDLW 12
 LOADW
-CONST 4
-PLUSA
-LOADW
+LDNW 4
 CALL 2
 RETURN
 END

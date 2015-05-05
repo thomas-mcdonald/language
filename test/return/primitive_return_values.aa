@@ -28,9 +28,7 @@ LDLW 12
 ! method address for Main.add
 LDLW 12
 LOADW
-CONST 4
-PLUSA
-LOADW
+LDNW 4
 CALLW 3
 GLOBAL Lib.Print
 CALL 1

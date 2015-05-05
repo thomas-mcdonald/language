@@ -65,9 +65,7 @@ LDLW -4
 ! method address for Wrapper.setX
 LDLW -4
 LOADW
-CONST 4
-PLUSA
-LOADW
+LDNW 4
 CALL 2
 LDLW -4
 RETURNW
@@ -84,9 +82,7 @@ LDLW -8
 ! method address for Printer.print
 LDLW -8
 LOADW
-CONST 4
-PLUSA
-LOADW
+LDNW 4
 CALLW 2
 LOCAL -4
 STOREW
@@ -94,9 +90,7 @@ LDLW -4
 ! method address for Wrapper.print
 LDLW -4
 LOADW
-CONST 8
-PLUSA
-LOADW
+LDNW 8
 CALL 1
 RETURN
 END
