@@ -21,6 +21,7 @@ type token =
   | FALSE
   | INT
   | PUTS
+  | SUPER
   | THIS
   | TRUE
 

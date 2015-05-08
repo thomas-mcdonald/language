@@ -37,4 +37,5 @@ and expr_guts = Number of int
          | New of typed
          | Puts of expr
          | This
+         | Super
          | Nil

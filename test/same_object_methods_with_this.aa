@@ -52,7 +52,7 @@ WORD 0
 WORD Main.print
 WORD Main.main
 DEFINE Main.%super
-WORD Object
 WORD Main
+WORD Object
 #-#-#
 100

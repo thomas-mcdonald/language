@@ -1,4 +1,4 @@
-comment: subtype methods should be called even if we think we have type a
+comment: super calls call the class above
 executable: true
 #-#-#
 class A
@@ -9,19 +9,24 @@ end
 
 class B < A
   def print
+    super
     puts 2
   end
 end
 
+class C < B
+  def print
+    super
+    puts 3
+  end
+end
+
 class Main
-  A a
-  A b
+  C c
 
   def main
-    a = new A
-    b = new B
-    a.print
-    b.print
+    c = new C
+    c.print
   end
 end
 #-#-#
@@ -36,7 +41,20 @@ RETURN
 END
 
 PROC B.print 0 0 0
+GLOBAL A
+LDNW 4
+CALL 0
 CONST 2
+GLOBAL Lib.Print
+CALL 1
+RETURN
+END
+
+PROC C.print 0 0 0
+GLOBAL B
+LDNW 4
+CALL 0
+CONST 3
 GLOBAL Lib.Print
 CALL 1
 RETURN
@@ -44,30 +62,16 @@ END
 
 PROC Main.main 0 0 0
 CONST 4
-GLOBAL A
+GLOBAL C
 LDLW 12
 CONST 4
-PLUSA
-GLOBAL Lib.New
-CALL 3
-CONST 4
-GLOBAL B
-LDLW 12
-CONST 8
 PLUSA
 GLOBAL Lib.New
 CALL 3
 LDLW 12
 LDNW 4
 DUP 0
-! method address for A.print
-LOADW
-LDNW 4
-CALL 1
-LDLW 12
-LDNW 8
-DUP 0
-! method address for A.print
+! method address for C.print
 LOADW
 LDNW 4
 CALL 1
@@ -75,7 +79,7 @@ RETURN
 END
 
 PROC Program.%main 4 0 0
-CONST 12
+CONST 8
 GLOBAL Main
 LOCAL -4
 GLOBAL Lib.New
@@ -105,6 +109,16 @@ WORD B
 WORD A
 WORD Object
 
+! Descriptor for C
+DEFINE C
+WORD 0
+WORD C.print
+DEFINE C.%super
+WORD C
+WORD B
+WORD A
+WORD Object
+
 ! Descriptor for Main
 DEFINE Main
 WORD 0
@@ -113,4 +127,4 @@ DEFINE Main.%super
 WORD Main
 WORD Object
 #-#-#
-1 2
+1 2 3

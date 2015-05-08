@@ -47,22 +47,22 @@ DEFINE Object
 DEFINE A
 WORD 0
 DEFINE A.%super
-WORD Object
 WORD A
+WORD Object
 
 ! Descriptor for B
 DEFINE B
 WORD 0
 DEFINE B.%super
-WORD Object
-WORD A
 WORD B
+WORD A
+WORD Object
 
 ! Descriptor for Main
 DEFINE Main
 WORD 0
 WORD Main.main
 DEFINE Main.%super
-WORD Object
 WORD Main
+WORD Object
 #-#-#

@@ -9,7 +9,7 @@ open Tree
 %token CLASS COMMA DEF DOT EQUALS EOF END GT NEW LPAREN RPAREN SEMI
 %token MINUS PLUS
 /* TODO - should these be specialcased? */
-%token BOOL COLON FALSE INT PUTS THIS TRUE
+%token BOOL COLON FALSE INT PUTS SUPER THIS TRUE
 
 %type <Tree.program> program
 %start program
@@ -77,6 +77,7 @@ expr:
   | FALSE   { makeExpr (Boolean(0)) }
   | TRUE    { makeExpr (Boolean(1)) }
   | THIS    { makeExpr This }
+  | SUPER   { makeExpr Super }
 
 args:
     /* empty */     { [] }

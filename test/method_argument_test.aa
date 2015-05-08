@@ -87,15 +87,15 @@ WORD 0
 WORD Printer.incfive
 WORD Printer.p
 DEFINE Printer.%super
-WORD Object
 WORD Printer
+WORD Object
 
 ! Descriptor for Main
 DEFINE Main
 WORD 0
 WORD Main.main
 DEFINE Main.%super
-WORD Object
 WORD Main
+WORD Object
 #-#-#
 10 5

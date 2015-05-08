@@ -65,8 +65,8 @@ DEFINE Object
 DEFINE Car
 WORD 0
 DEFINE Car.%super
-WORD Object
 WORD Car
+WORD Object
 
 ! Descriptor for Toyota
 DEFINE Toyota
@@ -74,9 +74,9 @@ WORD 0
 WORD Toyota.mpg
 WORD Toyota.recharge
 DEFINE Toyota.%super
-WORD Object
-WORD Car
 WORD Toyota
+WORD Car
+WORD Object
 
 ! Descriptor for Prius
 DEFINE Prius
@@ -84,10 +84,10 @@ WORD 0
 WORD Toyota.mpg
 WORD Prius.recharge
 DEFINE Prius.%super
-WORD Object
-WORD Car
-WORD Toyota
 WORD Prius
+WORD Toyota
+WORD Car
+WORD Object
 
 ! Descriptor for Hilux
 DEFINE Hilux
@@ -95,14 +95,14 @@ WORD 0
 WORD Hilux.mpg
 WORD Toyota.recharge
 DEFINE Hilux.%super
-WORD Object
-WORD Car
-WORD Toyota
 WORD Hilux
+WORD Toyota
+WORD Car
+WORD Object
 
 ! Descriptor for Main
 DEFINE Main
 WORD 0
 DEFINE Main.%super
-WORD Object
 WORD Main
+WORD Object

@@ -31,6 +31,7 @@ let rec gen_addr (e: expr) : icode =
     end
   | This -> SEQ [ LOCAL 12; ]
   | Call(_,_,_) -> gen_expr e;
+  | Super -> gen_expr e;
   | _ -> failwith "gen_addr"
 
 (* gen_method_call generates the address of a method *)
@@ -84,6 +85,24 @@ and gen_expr (e: expr) : icode =
                                         creating a new obj outside of assign *)
   | Number(x) -> CONST x
   | Puts(e) -> SEQ [gen_expr e; GLOBAL "Lib.Print"; CALL 1]
+  | Super ->
+  begin match e.e_type with
+    | Object(d) ->
+      let md = find_meth_data d.n_def in
+      let cd = find_class_data md.m_receiver in
+      let scd = cd.c_super in
+      begin match scd with
+      | Some(scd) ->
+        SEQ [
+          (* GLOBAL (sprintf "%s.%s" scd.d_name d.n_name); *)
+          GLOBAL scd.d_name;
+          CONST md.m_offset;
+          BINOP PlusA;
+          LOADW;
+          CALL 0;
+        ]
+    end
+  end
   | This -> SEQ [gen_addr e; LOADW]
   | _ -> SEQ []
 

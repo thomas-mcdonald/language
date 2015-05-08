@@ -113,23 +113,23 @@ WORD 0
 WORD Wrapper.setX
 WORD Wrapper.print
 DEFINE Wrapper.%super
-WORD Object
 WORD Wrapper
+WORD Object
 
 ! Descriptor for Printer
 DEFINE Printer
 WORD 0
 WORD Printer.print
 DEFINE Printer.%super
-WORD Object
 WORD Printer
+WORD Object
 
 ! Descriptor for Main
 DEFINE Main
 WORD 0
 WORD Main.main
 DEFINE Main.%super
-WORD Object
 WORD Main
+WORD Object
 #-#-#
 10

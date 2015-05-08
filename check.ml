@@ -208,6 +208,7 @@ let populate_method (meth: stmt) class_name env : environment =
       and variable_acc env x = populate_method_variable x n env in
       let d = { d_name = name; d_type = MethDef(meth_data); d_env = new_env () } in
         n.n_def <- d;
+        ignore @@ add_def d.d_env "__method" d;
         ignore @@ List.fold_left variable_acc env (List.filter statement_filter xs);
         ignore @@ List.fold_left argument_acc env args;
         (* check if the method has been defined in this class already *)
@@ -241,6 +242,7 @@ let populate_methods env klass : environment =
   let method_filter x = match x with MethodDecl(_) -> true | _ -> false in
   match klass with
     Klass(n, s, xs) ->
+      ignore (add_def n.n_def.d_env "super" s.n_def);
       ignore (add_def n.n_def.d_env "this" n.n_def);
       add_parent_methods env n s;
       let meth_accu env x = populate_method x n.n_name env
@@ -335,6 +337,13 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
     | _ -> failwith "check_expr new"
     end
   | Puts(e) -> check_expr cenv menv e;
+  | Super -> e.e_type <-
+    let d = find_def menv "__method" in
+    let t = { n_name = d.d_name; n_def = d } in Object(t)
+    (* begin match cd.c_super with
+    | Some x ->
+    | None -> failwith "check_expr#super"
+    end *)
   | _ -> ()
 
 (* check_assign ensures that the lhs is an identifier and that the types match up *)

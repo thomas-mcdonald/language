@@ -109,5 +109,5 @@ let class_exists env name =
 let rec find_hierarchy (d : def) : def list =
   let cd = find_class_data d in
   match cd.c_super with
-    Some(d') -> (find_hierarchy d') @ [d]
+    Some(d') -> [d] @ (find_hierarchy d')
   | None -> [d]

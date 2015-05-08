@@ -75,15 +75,15 @@ WORD 0
 WORD Test.return_self
 WORD Test.print
 DEFINE Test.%super
-WORD Object
 WORD Test
+WORD Object
 
 ! Descriptor for Main
 DEFINE Main
 WORD 0
 WORD Main.main
 DEFINE Main.%super
-WORD Object
 WORD Main
+WORD Object
 #-#-#
 10

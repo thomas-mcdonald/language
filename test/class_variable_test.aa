@@ -84,15 +84,15 @@ WORD 0
 WORD Printer.setX
 WORD Printer.print
 DEFINE Printer.%super
-WORD Object
 WORD Printer
+WORD Object
 
 ! Descriptor for Main
 DEFINE Main
 WORD 0
 WORD Main.main
 DEFINE Main.%super
-WORD Object
 WORD Main
+WORD Object
 #-#-#
 10
