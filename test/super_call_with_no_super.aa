@@ -1,0 +1,17 @@
+comment: super call requires a super method to be defined
+#-#-#
+class A
+end
+
+class B < A
+  def print
+    super
+  end
+end
+
+class Main
+  def main
+  end
+end
+#-#-#
+super method print not defined

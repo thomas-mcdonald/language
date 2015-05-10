@@ -348,12 +348,15 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
       with Not_found -> false
     end in
     (* find the class this method is next defined on *)
-    let sc = List.find method_matcher (List.tl (find_hierarchy c)) in
-    e.e_type <-
-      let d = find_def sc.d_env d.d_name in
-      let md = find_meth_data d in
-      md.m_super_rec <- Some(sc);
-      let t = { n_name = d.d_name; n_def = d } in Object(t)
+    begin try
+      let sc = List.find method_matcher (List.tl (find_hierarchy c)) in
+        e.e_type <-
+          let d = find_def sc.d_env d.d_name in
+          let md = find_meth_data d in
+          md.m_super_rec <- Some(sc);
+          let t = { n_name = d.d_name; n_def = d } in Object(t)
+    with Not_found -> error @@ sprintf "super method %s not defined" d.d_name
+    end
   | _ -> ()
 
 (* check_assign ensures that the lhs is an identifier and that the types match up *)
