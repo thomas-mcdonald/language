@@ -203,7 +203,7 @@ let populate_method (meth: stmt) class_name env : environment =
         | Object(n) -> Object(ref (find_def !top_env n.n_name))
         end in
       let meth_data = { m_receiver = c; m_return = r_type; m_size = 0;
-        m_offset = 0; m_arg_count = 0; m_args = []; }
+        m_offset = 0; m_arg_count = 0; m_args = []; m_super_rec = None }
       and argument_acc env x = populate_method_argument x n env
       and variable_acc env x = populate_method_variable x n env in
       let d = { d_name = name; d_type = MethDef(meth_data); d_env = new_env () } in
@@ -337,13 +337,23 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
     | _ -> failwith "check_expr new"
     end
   | Puts(e) -> check_expr cenv menv e;
-  | Super -> e.e_type <-
-    let d = find_def menv "__method" in
-    let t = { n_name = d.d_name; n_def = d } in Object(t)
-    (* begin match cd.c_super with
-    | Some x ->
-    | None -> failwith "check_expr#super"
-    end *)
+  | Super ->
+    let c = find_def cenv "this" and
+        d = find_def menv "__method" in
+    let method_matcher klass =
+      begin try
+        let d = find_def klass.d_env d.d_name in
+        (* ensure that we only consider the original definitions *)
+        (find_meth_data d).m_receiver.d_name = klass.d_name
+      with Not_found -> false
+    end in
+    (* find the class this method is next defined on *)
+    let sc = List.find method_matcher (List.tl (find_hierarchy c)) in
+    e.e_type <-
+      let d = find_def sc.d_env d.d_name in
+      let md = find_meth_data d in
+      md.m_super_rec <- Some(sc);
+      let t = { n_name = d.d_name; n_def = d } in Object(t)
   | _ -> ()
 
 (* check_assign ensures that the lhs is an identifier and that the types match up *)

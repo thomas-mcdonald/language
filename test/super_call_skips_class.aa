@@ -1,0 +1,116 @@
+comment: super call will skip class if method not defined
+executable: true
+#-#-#
+class A
+  def print
+    puts 1
+  end
+end
+
+class B < A
+end
+
+class C < B
+  def print
+    super
+    puts 3
+  end
+end
+
+class Main
+  C c
+
+  def main
+    c = new C
+    c.print
+  end
+end
+#-#-#
+MODULE Program 0 0
+ENDHDR
+
+PROC A.print 0 0 0
+CONST 1
+GLOBAL Lib.Print
+CALL 1
+RETURN
+END
+
+PROC C.print 0 0 0
+GLOBAL A
+LDNW 4
+CALL 0
+CONST 3
+GLOBAL Lib.Print
+CALL 1
+RETURN
+END
+
+PROC Main.main 0 0 0
+CONST 4
+GLOBAL C
+LDLW 12
+CONST 4
+PLUSA
+GLOBAL Lib.New
+CALL 3
+LDLW 12
+LDNW 4
+DUP 0
+! method address for C.print
+LOADW
+LDNW 4
+CALL 1
+RETURN
+END
+
+PROC Program.%main 4 0 0
+CONST 8
+GLOBAL Main
+LOCAL -4
+GLOBAL Lib.New
+CALL 3
+LDLW -4
+GLOBAL Main.main
+CALL 1
+RETURN
+END
+
+
+DEFINE Object
+! Descriptor for A
+DEFINE A
+WORD 0
+WORD A.print
+DEFINE A.%super
+WORD A
+WORD Object
+
+! Descriptor for B
+DEFINE B
+WORD 0
+WORD A.print
+DEFINE B.%super
+WORD B
+WORD A
+WORD Object
+
+! Descriptor for C
+DEFINE C
+WORD 0
+WORD C.print
+DEFINE C.%super
+WORD C
+WORD B
+WORD A
+WORD Object
+
+! Descriptor for Main
+DEFINE Main
+WORD 0
+WORD Main.main
+DEFINE Main.%super
+WORD Main
+WORD Object
+#-#-#
+1 3

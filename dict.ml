@@ -25,6 +25,7 @@ and class_data = {
 and meth_data = {
   m_receiver : def;
   m_return : type_data;
+  mutable m_super_rec : def option;
   mutable m_size : int;
   mutable m_offset : int; (* required to be mutable since offset is not known until insertion*)
   mutable m_arg_count : int;

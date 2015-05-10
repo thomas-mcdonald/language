@@ -89,12 +89,9 @@ and gen_expr (e: expr) : icode =
   begin match e.e_type with
     | Object(d) ->
       let md = find_meth_data d.n_def in
-      let cd = find_class_data md.m_receiver in
-      let scd = cd.c_super in
-      begin match scd with
+      begin match md.m_super_rec with
       | Some(scd) ->
         SEQ [
-          (* GLOBAL (sprintf "%s.%s" scd.d_name d.n_name); *)
           GLOBAL scd.d_name;
           CONST md.m_offset;
           BINOP PlusA;
