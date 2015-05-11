@@ -92,10 +92,10 @@ and gen_expr (e: expr) : icode =
       begin match md.m_super_rec with
       | Some(scd) ->
         SEQ [
-          GLOBAL scd.d_name;
-          CONST md.m_offset;
+          GLOBAL (sprintf "%s.%s" scd.d_name d.n_name);
+          (* CONST md.m_offset;
           BINOP PlusA;
-          LOADW;
+          LOADW; *)
           CALL 0;
         ]
     end
@@ -167,7 +167,8 @@ let gen_method_descriptor (d : def) : icode =
 let gen_descriptor (n: name) =
   match n.n_def.d_type with
     ClassDef(cd) ->
-      let print_meth m = gen_method_descriptor m in
+      let print_meth m = gen_method_descriptor m and
+          printer d = if d.d_name <> "Object" then WORD (SYM d.d_name) else SEQ [] in
       SEQ [
         COMMENT (sprintf "Descriptor for %s" n.n_name);
         DEFINE n.n_name;
@@ -176,7 +177,7 @@ let gen_descriptor (n: name) =
         SEQ (List.map print_meth cd.c_methods);
         (* print class hierarchy *)
         DEFINE (n.n_name ^ ".%super");
-        SEQ (List.map (fun c -> WORD (SYM c.d_name)) (find_hierarchy n.n_def));
+        SEQ (List.map printer (find_hierarchy n.n_def));
         NEWLINE
       ];
   | _ -> failwith "gen_descriptor"
@@ -219,7 +220,6 @@ let generate (prog : program) =
         header;
         SEQ (List.map gen_procs cs);
         gen_entrypoint mainclass;
-        DEFINE "Object"; (* TODO: this is hacky *)
         SEQ (List.map gen_class_desc cs);
         NEWLINE
       ]));

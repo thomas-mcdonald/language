@@ -41,8 +41,7 @@ RETURN
 END
 
 PROC B.print 0 0 0
-GLOBAL A
-LDNW 4
+GLOBAL A.print
 CALL 0
 CONST 2
 GLOBAL Lib.Print
@@ -51,8 +50,7 @@ RETURN
 END
 
 PROC C.print 0 0 0
-GLOBAL B
-LDNW 4
+GLOBAL B.print
 CALL 0
 CONST 3
 GLOBAL Lib.Print
@@ -91,14 +89,12 @@ RETURN
 END
 
 
-DEFINE Object
 ! Descriptor for A
 DEFINE A
 WORD 0
 WORD A.print
 DEFINE A.%super
 WORD A
-WORD Object
 
 ! Descriptor for B
 DEFINE B
@@ -107,7 +103,6 @@ WORD B.print
 DEFINE B.%super
 WORD B
 WORD A
-WORD Object
 
 ! Descriptor for C
 DEFINE C
@@ -117,7 +112,6 @@ DEFINE C.%super
 WORD C
 WORD B
 WORD A
-WORD Object
 
 ! Descriptor for Main
 DEFINE Main
@@ -125,6 +119,5 @@ WORD 0
 WORD Main.main
 DEFINE Main.%super
 WORD Main
-WORD Object
 #-#-#
 1 2 3

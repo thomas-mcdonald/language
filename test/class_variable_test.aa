@@ -77,7 +77,6 @@ RETURN
 END
 
 
-DEFINE Object
 ! Descriptor for Printer
 DEFINE Printer
 WORD 0
@@ -85,7 +84,6 @@ WORD Printer.setX
 WORD Printer.print
 DEFINE Printer.%super
 WORD Printer
-WORD Object
 
 ! Descriptor for Main
 DEFINE Main
@@ -93,6 +91,5 @@ WORD 0
 WORD Main.main
 DEFINE Main.%super
 WORD Main
-WORD Object
 #-#-#
 10

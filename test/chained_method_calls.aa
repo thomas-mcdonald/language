@@ -68,7 +68,6 @@ RETURN
 END
 
 
-DEFINE Object
 ! Descriptor for Test
 DEFINE Test
 WORD 0
@@ -76,7 +75,6 @@ WORD Test.return_self
 WORD Test.print
 DEFINE Test.%super
 WORD Test
-WORD Object
 
 ! Descriptor for Main
 DEFINE Main
@@ -84,6 +82,5 @@ WORD 0
 WORD Main.main
 DEFINE Main.%super
 WORD Main
-WORD Object
 #-#-#
 10

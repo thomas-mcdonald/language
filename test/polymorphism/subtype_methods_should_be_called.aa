@@ -87,14 +87,12 @@ RETURN
 END
 
 
-DEFINE Object
 ! Descriptor for A
 DEFINE A
 WORD 0
 WORD A.print
 DEFINE A.%super
 WORD A
-WORD Object
 
 ! Descriptor for B
 DEFINE B
@@ -103,7 +101,6 @@ WORD B.print
 DEFINE B.%super
 WORD B
 WORD A
-WORD Object
 
 ! Descriptor for Main
 DEFINE Main
@@ -111,6 +108,5 @@ WORD 0
 WORD Main.main
 DEFINE Main.%super
 WORD Main
-WORD Object
 #-#-#
 1 2

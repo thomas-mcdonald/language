@@ -45,7 +45,6 @@ RETURN
 END
 
 
-DEFINE Object
 ! Descriptor for Main
 DEFINE Main
 WORD 0
@@ -53,6 +52,5 @@ WORD Main.print
 WORD Main.main
 DEFINE Main.%super
 WORD Main
-WORD Object
 #-#-#
 100
