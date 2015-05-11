@@ -287,7 +287,11 @@ let check_args (x: def * expr) =
   let vd = find_var_data d in
   if differing_type (type_data_to_typed vd.v_type) e.e_type then error "argument types differ"
 
-let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
+let rec check_whence (cenv: environment) (menv: environment) (x : whence) =
+  match x with
+  | When(t, xs) -> List.iter (check_stmt cenv menv) xs
+
+and check_expr (cenv: environment) (menv: environment) (e : expr) =
   match e.e_guts with
   | Number(x) -> e.e_type <- Integer
   | Boolean(x) -> e.e_type <- Bool
@@ -357,6 +361,9 @@ let rec check_expr (cenv: environment) (menv: environment) (e : expr) =
           let t = { n_name = d.d_name; n_def = d } in Object(t)
     with Not_found -> error @@ sprintf "super method %s not defined" d.d_name
     end
+  | Switch(e, xs) ->
+    check_expr cenv menv e;
+    List.iter (check_whence cenv menv) xs
   | _ -> ()
 
 (* check_assign ensures that the lhs is an identifier and that the types match up *)
@@ -377,7 +384,7 @@ let check_assign (cenv: environment) (menv: environment) (e1: expr) (e2: expr) =
   if the Invalid_argument block is called then the list of statements is empty
   eg the function doesn't return anything, resulting in an error
  *)
-let check_return_value (n: name) (xs: stmt list) (r: typed) =
+and check_return_value (n: name) (xs: stmt list) (r: typed) =
   begin try match List.nth xs ((List.length xs) - 1) with
   |  Expr(e) ->
     if differing_type e.e_type r then error "last expression must match the return type"
@@ -386,7 +393,7 @@ let check_return_value (n: name) (xs: stmt list) (r: typed) =
     error (sprintf "function %s has an empty body, cannot return" n.n_name)
   end
 
-let rec check_stmt (cenv: environment) (menv: environment) (s: stmt) =
+and check_stmt (cenv: environment) (menv: environment) (s: stmt) =
   match s with
   | MethodDecl(n,_,xs, r) ->
     List.iter (check_stmt cenv n.n_def.d_env) xs;

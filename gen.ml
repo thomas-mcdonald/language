@@ -4,6 +4,12 @@ open Peephole
 open Printf
 open Tree
 
+let label_count = ref 0
+
+let label () =
+  let l = !label_count in
+  label_count := l + 1; l
+
 (* temporary output method *)
 let put (s : string) : unit =
   printf "%s\n" s;
@@ -62,6 +68,19 @@ and gen_obj_call_addr e =
   | _ -> true in
   if load then SEQ[gen_addr e; LOADW;] else gen_addr e
 
+and gen_whence (endlab: int) (w: whence) =
+  let lab = label () in
+  match w with
+  | When(Object(x), xs) ->
+    SEQ [
+      DUP 0;
+      GLOBAL x.n_name;
+      JUMPC (Neq, lab);
+      SEQ (List.map gen_stmt xs);
+      JUMP endlab;
+      LABEL lab;
+    ]
+
 and gen_expr (e: expr) : icode =
   match e.e_guts with
   | Binop(op, e1, e2) ->
@@ -100,10 +119,17 @@ and gen_expr (e: expr) : icode =
         ]
     end
   end
+  | Switch(e, xs) ->
+    let lab = label () in
+      SEQ [
+        gen_addr e; LOADW; LOADW;
+        SEQ (List.map (gen_whence lab) xs);
+        LABEL lab;
+      ]
   | This -> SEQ [gen_addr e; LOADW]
   | _ -> SEQ []
 
-let gen_new_assign (e: expr) (t: typed) =
+and gen_new_assign (e: expr) (t: typed) =
   match t with
   | Object(n) ->
     let cd = find_class_data n.n_def in
@@ -121,10 +147,10 @@ let gen_new_assign (e: expr) (t: typed) =
    find the location of e1
    store value on stack in location
 *)
-let gen_assign (e1: expr) (e2: expr) : icode =
+and gen_assign (e1: expr) (e2: expr) : icode =
   SEQ [gen_expr e2; gen_addr e1; STOREW]
 
-let gen_stmt (s: stmt) : icode =
+and gen_stmt (s: stmt) : icode =
   match s with
   | Assign(e1,e2) ->
     begin match e2.e_guts with

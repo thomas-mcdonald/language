@@ -17,8 +17,10 @@ let keywords =
   Hashtbl.add t "new" NEW;
   Hashtbl.add t "puts" PUTS;
   Hashtbl.add t "super" SUPER;
+  Hashtbl.add t "switch" SWITCH;
   Hashtbl.add t "this" THIS;
   Hashtbl.add t "true" TRUE;
+  Hashtbl.add t "when" WHEN;
   t
 
 let lookup s =

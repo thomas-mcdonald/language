@@ -51,9 +51,9 @@ let equate x1 x2 =
 let do_refs f =
   function
       JUMP x -> f (ref_count x)
-    (* | JUMPB (b, x) -> f (ref_count x)
+    (* | JUMPB (b, x) -> f (ref_count x) *)
     | JUMPC (w, x) -> f (ref_count x)
-    | CASEARM (n, x) -> f (ref_count x) *)
+    (* | CASEARM (n, x) -> f (ref_count x) *)
     | _ -> ()
 
 (* |rename_labs| -- replace each label by its equivalent *)
@@ -61,9 +61,9 @@ let rename_labs =
   function
       LABEL x -> LABEL (rename x)
     | JUMP x -> JUMP (rename x)
-    (* | JUMPB (b, x) -> JUMPB (b, rename x)
+    (* | JUMPB (b, x) -> JUMPB (b, rename x) *)
     | JUMPC (w, x) -> JUMPC (w, rename x)
-    | CASEARM (n, x) -> CASEARM (n, rename x) *)
+    (* | CASEARM (n, x) -> CASEARM (n, rename x) *)
     | i -> i
 
 let opposite =

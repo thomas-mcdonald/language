@@ -21,9 +21,11 @@ type token =
   | FALSE
   | INT
   | PUTS
+  | SWITCH
   | SUPER
   | THIS
   | TRUE
+  | WHEN
 
 val program :
   (Lexing.lexbuf  -> token) -> Lexing.lexbuf -> Tree.program

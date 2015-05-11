@@ -18,11 +18,13 @@ and block = Block of stmt list
 
 and stmt = MethodDecl of name * method_arg list * stmt list * typed
             (* name * args * statements  *)
-         | Assign of expr * expr (* lhs = rhs *)
+         | Assign of expr * typed * expr (* lhs = (type) rhs *)
          | Declare of typed * expr (* int x *)
          | Expr of expr (* expression statement  *)
 
 and method_arg = Arg of name * typed
+
+and whence = When of typed * stmt list
 
 and expr =
   { e_guts: expr_guts;
@@ -36,6 +38,7 @@ and expr_guts = Number of int
          | Call of expr * expr * expr list (* object.method(args) *)
          | New of typed
          | Puts of expr
+         | Switch of expr * whence list
          | This
          | Super
          | Nil

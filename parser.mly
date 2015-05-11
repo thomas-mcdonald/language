@@ -9,7 +9,7 @@ open Tree
 %token CLASS COMMA DEF DOT EQUALS EOF END GT NEW LPAREN RPAREN SEMI
 %token MINUS PLUS
 /* TODO - should these be specialcased? */
-%token BOOL COLON FALSE INT PUTS SUPER THIS TRUE
+%token BOOL COLON FALSE INT PUTS SWITCH SUPER THIS TRUE WHEN
 
 %type <Tree.program> program
 %start program
@@ -72,6 +72,7 @@ expr:
   | expr MINUS expr  { makeExpr (Binop(Minus, $1, $3)) }
   | NEW typed        { makeExpr (New($2)) }
   | PUTS expr        { makeExpr (Puts($2)) }
+  | SWITCH expr switch_body END { makeExpr(Switch($2, $3)) }
   | ident   { $1 }
   | number  { $1 }
   | FALSE   { makeExpr (Boolean(0)) }
@@ -85,6 +86,13 @@ args:
   | arg COMMA args  { $1 :: $3 }
 
 arg: expr { $1 }
+
+switch_body:
+  | /* empty */     { [] }
+  | switch_stmt switch_body { $1 :: $2 }
+
+switch_stmt:
+  | WHEN typed stmts { When($2, $3) }
 
 ident:
   IDENT { makeExpr (Ident(makeName($1))) }
