@@ -1,0 +1,73 @@
+comment: switch basic example
+executable: true
+#-#-#
+class A
+end
+
+class B
+end
+
+class Main
+  def main
+    B instance
+    instance = new B
+    switch instance
+    when A
+      puts 10
+    end
+  end
+end
+#-#-#
+MODULE Program 0 0
+ENDHDR
+
+PROC Main.main 4 0 0
+CONST 4
+GLOBAL B
+LOCAL -4
+GLOBAL Lib.New
+CALL 3
+LDLW -4
+LOADW
+DUP 0
+GLOBAL A
+JNEQ 0
+CONST 10
+GLOBAL Lib.Print
+CALL 1
+LABEL 0
+RETURN
+END
+
+PROC Program.%main 4 0 0
+CONST 4
+GLOBAL Main
+LOCAL -4
+GLOBAL Lib.New
+CALL 3
+LDLW -4
+GLOBAL Main.main
+CALL 1
+RETURN
+END
+
+
+! Descriptor for A
+DEFINE A
+WORD 0
+DEFINE A.%super
+WORD A
+
+! Descriptor for B
+DEFINE B
+WORD 0
+DEFINE B.%super
+WORD B
+
+! Descriptor for Main
+DEFINE Main
+WORD 0
+WORD Main.main
+DEFINE Main.%super
+WORD Main
+#-#-#

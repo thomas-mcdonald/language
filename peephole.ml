@@ -67,9 +67,9 @@ let rename_labs =
     | i -> i
 
 let opposite =
-  function (* Eq -> Neq | Neq -> Eq | Lt  -> Geq
-    | Leq -> Gt | Gt  -> Leq | Geq -> Lt
-    | *) _ -> failwith "opposite"
+  function Eq -> Neq | Neq -> Eq (* | Lt  -> Geq
+    | Leq -> Gt | Gt  -> Leq | Geq -> Lt *)
+    | _ -> failwith "opposite"
 
 (* |ruleset| -- simplify and introduce abbreviations *)
 let ruleset replace =

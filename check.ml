@@ -367,13 +367,17 @@ and check_expr (cenv: environment) (menv: environment) (e : expr) =
   | _ -> ()
 
 (* check_assign ensures that the lhs is an identifier and that the types match up *)
-let check_assign (cenv: environment) (menv: environment) (e1: expr) (e2: expr) =
+(* t is an optional typecast *)
+and check_assign (cenv: environment) (menv: environment) (e1: expr) (t : typed) (e2: expr) =
   (* required to simplify comparison of typed objects *)
+  let unknown = match t with Unknown -> true | _ -> false and
+      update_def t = match t with Object(x) -> x.n_def <- find_def !top_env x.n_name; t in
+  let assignment_type e = if unknown then e.e_type else (update_def t) in
   match e1.e_guts with
   | Ident(i) ->
     check_expr cenv menv e1;
     check_expr cenv menv e2;
-    begin match e1.e_type, e2.e_type with
+    begin match e1.e_type, (assignment_type e2) with
     | Object(x), Object(y) ->
       if List.mem x.n_def (find_hierarchy y.n_def) then () else error "assignment types mismatched"
     | x, y -> if x <> y then error "assignment types mismatched"
@@ -398,7 +402,7 @@ and check_stmt (cenv: environment) (menv: environment) (s: stmt) =
   | MethodDecl(n,_,xs, r) ->
     List.iter (check_stmt cenv n.n_def.d_env) xs;
     if r <> Unknown then check_return_value n xs r
-  | Assign(e1, e2) -> check_assign cenv menv e1 e2
+  | Assign(e1, t, e2) -> check_assign cenv menv e1 t e2
   | Declare(_,_) -> ()
   | Expr(e) -> check_expr cenv menv e
 

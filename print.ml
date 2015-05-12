@@ -39,7 +39,7 @@ let rec ppExpr e =
 let rec ppStmt =
   function
   | MethodDecl (n, args, xs, _) -> wraplist "Method" [ppName n; ppArgs args; ppStmts xs]
-  | Assign (e, e') -> wraplist "Assignment" [ppExpr e; ppExpr e']
+  | Assign (e, t, e') -> wraplist "Assignment" [ppExpr e; ppExpr e']
   | Declare(p, e) -> wraplist ("Declaration " ^ (ppType p)) [ppExpr e]
   | Expr(e) -> wraplist "Expression" [ppExpr e]
 

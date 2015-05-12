@@ -1,0 +1,92 @@
+comment: test for type casting semantics
+executable: true
+#-#-#
+class A
+  def test
+  end
+end
+
+class B < A
+  def method
+    puts 10
+  end
+end
+
+class Main
+  def main
+    A generic
+    B instance
+    generic = new B
+    instance = (B) generic
+    instance.method
+  end
+end
+#-#-#
+MODULE Program 0 0
+ENDHDR
+
+PROC A.test 0 0 0
+RETURN
+END
+
+PROC B.method 0 0 0
+CONST 10
+GLOBAL Lib.Print
+CALL 1
+RETURN
+END
+
+PROC Main.main 8 0 0
+CONST 4
+GLOBAL B
+LOCAL -4
+GLOBAL Lib.New
+CALL 3
+LDLW -4
+STLW -8
+LDLW -8
+DUP 0
+! method address for B.method
+LOADW
+LDNW 8
+CALL 1
+RETURN
+END
+
+PROC Program.%main 4 0 0
+CONST 4
+GLOBAL Main
+LOCAL -4
+GLOBAL Lib.New
+CALL 3
+LDLW -4
+GLOBAL Main.main
+CALL 1
+RETURN
+END
+
+
+! Descriptor for A
+DEFINE A
+WORD 0
+WORD A.test
+DEFINE A.%super
+WORD A
+
+! Descriptor for B
+DEFINE B
+WORD 0
+WORD A.test
+WORD B.method
+DEFINE B.%super
+WORD B
+WORD A
+
+! Descriptor for Main
+DEFINE Main
+WORD 0
+WORD Main.main
+DEFINE Main.%super
+WORD Main
+#-#-#
+10

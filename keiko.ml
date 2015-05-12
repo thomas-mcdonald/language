@@ -1,7 +1,7 @@
 type codelab = int
 type kind = Int
 type ident
-type op = Plus | Minus | PlusA | Neq
+type op = Plus | Minus | PlusA | Neq | Eq
 type symbol = string
 
 type literal =
@@ -71,6 +71,7 @@ let string_of_icode (w : icode) : string =
   | BINOP(op) -> print_op op
   | LABEL(cl) -> Printf.sprintf "LABEL %d" cl
   | JUMP(cl)  -> Printf.sprintf "JUMP %d" cl
+  | JUMPC(Eq, cl) -> Printf.sprintf "JEQ %d" cl
   | JUMPC(Neq, cl) -> Printf.sprintf "JNEQ %d" cl
 
   | PROC(s,f,_) -> Printf.sprintf "PROC %s %d 0 0" s f

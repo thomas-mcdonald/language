@@ -43,7 +43,8 @@ stmts:
 stmt:
     DEF identname opt_type stmts END                     { MethodDecl($2, [], $4, $3) }
   | DEF identname LPAREN argsd RPAREN opt_type stmts END { MethodDecl($2, $4, $7, $6) }
-  | ident EQUALS expr              { Assign($1, $3) }
+  | ident EQUALS expr                     { Assign($1, Unknown, $3) }
+  | ident EQUALS LPAREN typed RPAREN expr { Assign($1, $4, $6) }
   | BOOL ident                     { Declare(Bool, $2) }
   | INT ident                      { Declare(Integer, $2) }
   | typed ident                    { Declare($1, $2) }

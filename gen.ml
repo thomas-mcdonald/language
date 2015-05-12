@@ -152,7 +152,7 @@ and gen_assign (e1: expr) (e2: expr) : icode =
 
 and gen_stmt (s: stmt) : icode =
   match s with
-  | Assign(e1,e2) ->
+  | Assign(e1,_,e2) ->
     begin match e2.e_guts with
     | New(t) -> gen_new_assign e1 t
     | _ -> gen_assign e1 e2

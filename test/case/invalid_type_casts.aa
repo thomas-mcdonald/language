@@ -1,0 +1,24 @@
+comment: test for type casting semantics
+#-#-#
+class A
+  def test
+  end
+end
+
+class B
+  def method
+    puts 10
+  end
+end
+
+class Main
+  def main
+    A generic
+    B instance
+    generic = new B
+    instance = (B) generic
+    instance.method
+  end
+end
+#-#-#
+assignment types mismatched
