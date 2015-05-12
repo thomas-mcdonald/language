@@ -21,6 +21,8 @@ type icode =
   | STOREW                      (* Store word *)
   | LDLW of int                 (* Load local word *)
   | LDNW of int
+  | STLW of int
+  | STNW of int
   | ARG of int                  (* Pass argument (index) *)
   | CALL of int                 (* Call procedure (nparams) *)
   | CALLW of int                (* Call procedure with word return (nparams) *)
@@ -64,6 +66,8 @@ let string_of_icode (w : icode) : string =
   | STOREW -> "STOREW"
   | LDLW(i) -> Printf.sprintf "LDLW %d" i
   | LDNW(i) -> Printf.sprintf "LDNW %d" i
+  | STLW(i) -> Printf.sprintf "STLW %d" i
+  | STNW(i) -> Printf.sprintf "STNW %d" i
   | CALL(i) -> Printf.sprintf "CALL %d" i
   | CALLW(i) -> Printf.sprintf "CALLW %d" i
   | PCALL(i) -> Printf.sprintf "PCALL %d" i

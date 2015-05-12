@@ -38,9 +38,7 @@ ENDHDR
 PROC Wrapper.setX 0 0 0
 LDLW 16
 LDLW 12
-CONST 4
-PLUSA
-STOREW
+STNW 4
 RETURN
 END
 
@@ -82,8 +80,7 @@ DUP 0
 LOADW
 LDNW 4
 CALLW 2
-LOCAL -4
-STOREW
+STLW -4
 LDLW -4
 DUP 0
 ! method address for Wrapper.print

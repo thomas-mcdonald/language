@@ -84,6 +84,10 @@ let ruleset replace =
         replace 2 [LDLW a]
     | CONST n :: BINOP PlusA :: LOADW :: _ ->
         replace 3 [LDNW n]
+    | LOCAL a :: STOREW :: _ ->
+        replace 2 [STLW a]
+    | CONST a :: BINOP PlusA :: STOREW :: _ ->
+        replace 3 [STNW a]
      
     (* | BINOP (Eq|Leq|Geq|Lt|Gt|Neq as w) :: JUMPB (true, lab) :: _ ->
         replace 2 [JUMPC (w, lab)] *)
